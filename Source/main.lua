@@ -8,6 +8,7 @@ res = require 'lib.resolution_solution'
 
 cf = require 'lib.commonfunctions'
 fun = require 'functions'
+armyalpha = require 'objects.armyalpha'
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -62,6 +63,20 @@ function love.load()
 
 	fun.InitialiseData()
 
+	-- print(inspect(flotilla))
+
+	for k,flot in pairs(flotilla) do
+		-- determine starting locale
+		--! determine which of six hex sides to start
+		for q,form in pairs(flot.formation) do
+			for w,mark in pairs(form.marker) do
+				--! determine heading based on hex entry
+				--! mark.heading =
+			end
+		end
+	end
+
+	--! determine random hour/minute
 end
 
 
@@ -72,20 +87,37 @@ function love.draw()
 	love.graphics.scale( ZOOMFACTOR, ZOOMFACTOR )
 	love.graphics.translate(TRANSLATEX, TRANSLATEY)
 
-	local x = (flotilla[1].formation[1].marker[1].positionX)
-	local y = (flotilla[1].formation[1].marker[1].positionY)
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mark in pairs(form.marker) do
+				local x = (mark.positionX)
+				local y = (mark.positionY)
 
-
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.circle("fill", x, y, 10)
-
-
-
-    res.stop()
+				love.graphics.setColor(1, 1, 1, 1)
+				love.graphics.circle("fill", x, y, 10)
+			end
+		end
+	end
+	res.stop()
 end
 
 
 function love.update(dt)
+
+	--! army alpha plans moves
+	--! army brava plans moves
+	--! move all flotilla's
+	--! resolve torpedo attacks
+	--! army alpha plans combat
+	--! army bravo plans combat
+	--! simultaneous combat resolution
+	--! add 10 minutes to clock
+	--! if armyalpha == gone then
+		--! armybravo wins
+	--! end
+	--! if armybravo = gone then
+		--! armyalpha wins
+	--! end
 
 	res.update()
 
