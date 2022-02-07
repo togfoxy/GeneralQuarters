@@ -3,14 +3,14 @@ module(...,package.seeall)
 function round(num, idp)
 	--Input: number to round; decimal places required
 	return tonumber(string.format("%." .. (idp or 0) .. "f", num))
-end	
+end
 
 function deepcopy(orig, copies)
 	-- copies one array to another array
 	-- ** important **
 	-- copies parameter is not meant to be passed in. Just send in orig as a single parameter
 	-- returns a new array/table
-	
+
     copies = copies or {}
     local orig_type = type(orig)
     local copy
@@ -54,9 +54,9 @@ function GetDistance(x1, y1, x2, y2)
 	-- this is real distance in pixels
 	-- receives two coordinate pairs (not vectors)
 	-- returns a single number
-	
+
 	if (x1 == nil) or (y1 == nil) or (x2 == nil) or (y2 == nil) then return 0 end
-	
+
     local horizontal_distance = x1 - x2
     local vertical_distance = y1 - y2
     --Both of these work
@@ -86,6 +86,23 @@ function ScaleVector(x,y,fctor)
 	return x * fctor, y * fctor
 	--! should create a vector module
 end
+function AddVectorToPoint(x,y,headingdegrees,distance)
+	-- x/y = a point in space
+	-- heading is the angle in degrees where 0 = NORTH
+	-- distance = distance
+	-- returns x and y
+	-- Note: a negative distance (< 0) will provide a point that is behind or backwards.
+
+	local convertedheading = headingdegrees - 90
+	if convertedheading < 0 then convertedheading = 360 + convertedheading end
+	if convertedheading > 359 then convertedheading = convertedheading - 360 end
+	local rads = math.rad(convertedheading)
+	local xdelta = cf.round(distance * math.cos(rads))
+	local ydelta = cf.round(distance * math.sin(rads))
+	return (x + xdelta), (y + ydelta)		-- 0 = NORTH!
+end
+
+
 function Getuuid()
 	local random = math.random
     local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
@@ -96,7 +113,7 @@ function Getuuid()
 end
 
 function DeDupeArray(myarray)
--- dedupes myarray and returns same array (not a new array)
+	-- dedupes myarray and returns same array (not a new array)
 	local seen = {}
 	for index,item in ipairs(myarray) do
 		if seen[item] then
@@ -105,7 +122,7 @@ function DeDupeArray(myarray)
 			seen[item] = true
 		end
 	end
-	
+
 end
 
 function fltAbsoluteTileDistance(x1,y1,x2,y2)
@@ -122,10 +139,10 @@ function strFormatThousand(v)
 
 	local pos = string.len(s) % 3
 	if pos == 0 then pos = 3 end
-	
+
 	-- special case for negative numbers
 	if v < 0 then sign = "-" end
-	
+
     return sign .. string.sub(s, 1, pos) .. string.gsub(string.sub(s, pos+1), "(...)", ",%1")
 end
 
@@ -144,11 +161,11 @@ local function GetCollisionMap(objMap)
 			colmap[rows][cols] = {}
 			colmap[rows][cols] = objMap[rows][cols].tiletype
 		end
-	end	
-	
+	end
+
 -- print(inspect(colmap[2]))
-	
-	
+
+
 	-- -- after colmap is established, tweak individual tiles that occupy a player
 	-- for i = 1 , #parray do
         -- if parray[i].health > 0 then
@@ -159,7 +176,7 @@ local function GetCollisionMap(objMap)
             -- else
                 -- -- the tile the player is moving too is obstructed
                 -- row = parray[i].row
-                -- col = parray[i].col			
+                -- col = parray[i].col
             -- end
               -- colmap[row][col] = enum.tilePlayer
 		-- end
@@ -174,8 +191,8 @@ function Findpath(m, starttilerow,starttilecol,stoptilerow, stoptilecol )
 
 	mymap = GetCollisionMap(m)
 
--- print(inspect(mymap[1]))	
--- print(inspect(mymap[2]))	
+-- print(inspect(mymap[1]))
+-- print(inspect(mymap[2]))
 
 	-- Value for walkable tiles
 	local walkable = enum.tileInitialised		-- see below - actually looking for < 10
@@ -184,10 +201,10 @@ function Findpath(m, starttilerow,starttilecol,stoptilerow, stoptilecol )
 	local Pathfinder = require ("jumper.pathfinder") -- The pathfinder class
 
 	-- Creates a grid object
-	local grid = Grid(mymap) 
+	local grid = Grid(mymap)
 	-- Creates a pathfinder object using Jump Point Search
-	local myFinder = Pathfinder(grid, 'JPS', walkable) 
-	--local myFinder = Pathfinder(grid, 'JPS', (function(value) return value == 1 end)) 
+	local myFinder = Pathfinder(grid, 'JPS', walkable)
+	--local myFinder = Pathfinder(grid, 'JPS', (function(value) return value == 1 end))
 
 	-- Calculates the path, and its length
 	local path, length = myFinder:getPath(starttilerow, starttilecol, stoptilerow, stoptilecol)
@@ -198,11 +215,11 @@ function Findpath(m, starttilerow,starttilecol,stoptilerow, stoptilecol )
 	  print(('Path found! Length: %.2f'):format(length))
 		for node, count in path:iter() do
 			print(('Step: %d - x: %d - y: %d'):format(count, node.x, node.y))
-	  
+
 		end
 	else
 		print("No path found.")
-	end	
+	end
 	]]--
 
 	return path
@@ -273,6 +290,3 @@ function SwapScreen(newScreen, screenStack)
     AddScreen(newScreen)
     table.remove(screenStack, #screenStack - 1)
 end
-
-
-
