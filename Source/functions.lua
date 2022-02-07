@@ -29,5 +29,17 @@ function functions.allMarkersForwardOnce()
 	end
 end
 
+function functions.getFormationCentre(formation)
+    -- gets the centre of a formation by doing vector things
+    -- returns a single x/y
+    local xcentre, ycentre, count = 0,0,0
+    for k, mark in pairs(formation.marker) do
+        xcentre = xcentre + mark.positionX
+        ycentre = ycentre + mark.positionY
+        count = count + 1
+    end
+    return cf.round(xcentre / count), cf.round(ycentre / count)
+end
+
 
 return functions

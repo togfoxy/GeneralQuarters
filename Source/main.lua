@@ -26,7 +26,7 @@ function love.keyreleased( key, scancode )
 end
 
 function love.keypressed( key, scancode, isrepeat )
-	local translatefactor = ZOOMFACTOR		-- screen moves faster when zoomed in
+	local translatefactor = ZOOMFACTOR * 2		-- screen moves faster when zoomed in
 	if key == "left" then TRANSLATEX = TRANSLATEX + translatefactor end
 	if key == "right" then TRANSLATEX = TRANSLATEX - translatefactor end
 	if key == "up" then TRANSLATEY = TRANSLATEY + translatefactor end
@@ -108,7 +108,13 @@ function love.draw()
 		end
 	end
 
-
+	-- draw centre of formations
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			local formx, formy = fun.getFormationCentre(form)
+			love.graphics.circle("fill", formx, formy, 5)
+		end
+	end
 
 
 	res.stop()
