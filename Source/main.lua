@@ -31,6 +31,11 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "right" then TRANSLATEX = TRANSLATEX - translatefactor end
 	if key == "up" then TRANSLATEY = TRANSLATEY + translatefactor end
 	if key == "down" then TRANSLATEY = TRANSLATEY - translatefactor end
+
+	if key == "kp8" then
+		fun.allMarkersForwardOnce()
+	end
+
 end
 
 function love.wheelmoved(x, y)
@@ -94,8 +99,8 @@ function love.draw()
 			for w,mark in pairs(form.marker) do
 				local xcentre = (mark.positionX)
 				local ycentre = (mark.positionY)
-				local dist = (mark.length)
 				local heading = (mark.heading)
+				local dist = (mark.length)
 				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))
 				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)
 				love.graphics.line(x1,y1,x2,y2)
@@ -105,7 +110,7 @@ function love.draw()
 
 
 
-	
+
 	res.stop()
 end
 
@@ -126,6 +131,10 @@ function love.update(dt)
 	--! if armybravo = gone then
 		--! armyalpha wins
 	--! end
+
+
+
+
 
 	res.update()
 
