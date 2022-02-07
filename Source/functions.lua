@@ -41,5 +41,32 @@ function functions.getFormationCentre(formation)
     return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
+function functions.allMarkersAlignTowardsFormation()
+    -- move ships closer formation
+	-- for every marker:
+	-- draw every marker
+    local steeringamount = 15
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mark in pairs(form.marker) do
+				if mark.heading ~= form.heading then
+					-- turn left or right?
+					if form.heading > mark.heading and form.heading < (mark.heading + 180) then
+						-- turn right
+						mark.heading = mark.heading + steeringamount
+						-- cancel oversteer
+						if mark.heading > form.heading then mark.heading = form.heading end
+					else
+						-- turn right
+						mark.heading = mark.heading - steeringamount
+						-- cancel oversteer
+						if mark.heading < form.heading then mark.heading = form.heading end
+					end
+				end
+			end
+		end
+	end
+end
+
 
 return functions

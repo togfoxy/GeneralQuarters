@@ -33,7 +33,9 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "down" then TRANSLATEY = TRANSLATEY - translatefactor end
 
 	if key == "kp8" then
+		fun.allMarkersAlignTowardsFormation()
 		fun.allMarkersForwardOnce()
+
 	end
 
 end
@@ -112,7 +114,12 @@ function love.draw()
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			local formx, formy = fun.getFormationCentre(form)
-			love.graphics.circle("fill", formx, formy, 5)
+			love.graphics.circle("line", formx, formy, 5)
+			-- draw line out from circle to show heading of formation
+			x1, y1 = formx, formy
+			x2, y2 = cf.AddVectorToPoint(x1,y1,form.heading, 8)
+			love.graphics.line(x1,y1,x2,y2)
+
 		end
 	end
 
@@ -137,6 +144,10 @@ function love.update(dt)
 	--! if armybravo = gone then
 		--! armyalpha wins
 	--! end
+
+
+
+
 
 
 

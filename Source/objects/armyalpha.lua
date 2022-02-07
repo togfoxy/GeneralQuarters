@@ -26,16 +26,8 @@ function armyalpha.Initialise()
         flotilla[1].formation[1].numOfColumns = 1
         flotilla[1].formation[1].distanceBetweenColumns = nil
 
-        for k,flot in pairs(flotilla) do
-            for q,form in pairs(flot.formation) do
-                if form.numOfColumns == 1 then
-                    assert(form.distanceBetweenColumns == nil)
-                else
-                    assert(form.distanceBetweenColumns ~= nil)
-                end
-            end
-        end
 
+        flotilla[1].formation[1].heading = love.math.random(0, 359)
         flotilla[1].formation[1].currentManeuver = ""
         flotilla[1].formation[1].pivotpointx = nil
         flotilla[1].formation[1].pivotpointy = nil
@@ -49,16 +41,9 @@ function armyalpha.Initialise()
         flotilla[1].formation[1].marker[1].markerName = "Friederich Der Grosse"
         flotilla[1].formation[1].marker[1].columnNumber = 1
 
-        for k,flot in pairs(flotilla) do
-            for q,form in pairs(flot.formation) do
-                for w,mark in pairs(form.marker) do
-                    assert(mark.columnNumber <= form.numOfColumns)
-                end
-            end
-        end
 
         flotilla[1].formation[1].marker[1].sequenceInColumn = 1
-        flotilla[1].formation[1].marker[1].movementFactor = 6   -- or is it 8?
+        flotilla[1].formation[1].marker[1].movementFactor = 8
         flotilla[1].formation[1].marker[1].protectionFactor = 12
 
         flotilla[1].formation[1].marker[1].undoPositionX = {}
@@ -129,7 +114,7 @@ function armyalpha.Initialise()
 -- *******************************************
 
         flotilla[1].formation[1].marker[2] = {}
-        flotilla[1].formation[1].marker[2].markerName = "Friederich Der Grosse"
+        flotilla[1].formation[1].marker[2].markerName = "Grosser Kerflirst"
         flotilla[1].formation[1].marker[2].columnNumber = 1
 
         for k,flot in pairs(flotilla) do
@@ -141,8 +126,8 @@ function armyalpha.Initialise()
         end
 
         flotilla[1].formation[1].marker[2].sequenceInColumn = 1
-        flotilla[1].formation[1].marker[2].movementFactor = 6   -- or is it 8?
-        flotilla[1].formation[1].marker[2].protectionFactor = 12
+        flotilla[1].formation[1].marker[2].movementFactor = 8
+        flotilla[1].formation[1].marker[2].protectionFactor = 14
 
         flotilla[1].formation[1].marker[2].undoPositionX = {}
         --flotilla[1].formation[1].marker[2].undoPositionX[1] =
@@ -210,8 +195,25 @@ function armyalpha.Initialise()
             AddTurret(flotilla[1].formation[1].marker[2].structure[4].turret, 1, 0)
         end
 
+        -- quality check
+        for k,flot in pairs(flotilla) do
+            for q,form in pairs(flot.formation) do
+                if form.numOfColumns == 1 then
+                    assert(form.distanceBetweenColumns == nil)
+                else
+                    assert(form.distanceBetweenColumns ~= nil)
+                end
+            end
+        end
 
-
+        -- quality check
+        for k,flot in pairs(flotilla) do
+            for q,form in pairs(flot.formation) do
+                for w,mark in pairs(form.marker) do
+                    assert(mark.columnNumber <= form.numOfColumns)
+                end
+            end
+        end
 
 
 
