@@ -76,6 +76,7 @@ function armyalpha.Initialise()
         flotilla[1].formation[1].marker[1].heading = flotilla[1].formation[1].marker[1].initialHeading
         flotilla[1].formation[1].marker[1].positionX = 400
         flotilla[1].formation[1].marker[1].positionY = 400
+        flotilla[1].formation[1].marker[1].length = 48  -- mm
         flotilla[1].formation[1].marker[1].targetID = "" -- flotilla, formation, marker
 
         flotilla[1].formation[1].marker[1].structure = {}
@@ -158,6 +159,8 @@ function armyalpha.Initialise()
         flotilla[1].formation[1].marker[2].heading = flotilla[1].formation[1].marker[2].initialHeading
         flotilla[1].formation[1].marker[2].positionX = 500
         flotilla[1].formation[1].marker[2].positionY = 500
+        flotilla[1].formation[1].marker[2].length = 48  -- mm
+
         flotilla[1].formation[1].marker[2].targetID = "" -- flotilla, formation, marker
 
         flotilla[1].formation[1].marker[2].structure = {}

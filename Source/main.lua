@@ -77,6 +77,7 @@ function love.load()
 	end
 
 	--! determine random hour/minute
+
 end
 
 
@@ -87,17 +88,24 @@ function love.draw()
 	love.graphics.scale( ZOOMFACTOR, ZOOMFACTOR )
 	love.graphics.translate(TRANSLATEX, TRANSLATEY)
 
+	-- draw every marker
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			for w,mark in pairs(form.marker) do
-				local x = (mark.positionX)
-				local y = (mark.positionY)
-
-				love.graphics.setColor(1, 1, 1, 1)
-				love.graphics.circle("fill", x, y, 10)
+				local xcentre = (mark.positionX)
+				local ycentre = (mark.positionY)
+				local dist = (mark.length)
+				local heading = (mark.heading)
+				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))
+				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)
+				love.graphics.line(x1,y1,x2,y2)
 			end
 		end
 	end
+
+
+
+	
 	res.stop()
 end
 
