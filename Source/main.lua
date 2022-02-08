@@ -18,6 +18,8 @@ ZOOMFACTOR = 1
 TRANSLATEX = 0
 TRANSLATEY = 0
 
+flotilla = {}
+
 function love.keyreleased( key, scancode )
 	if key == "escape" then
 		cf.RemoveScreen(SCREEN_STACK)
@@ -35,8 +37,24 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "kp8" then
 		fun.allMarkersAlignTowardsFormation()
 		fun.allMarkersForwardOnce()
-
 	end
+	if key == "q" then
+		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 45
+		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 - flotilla[1].formation[1].heading end
+	end
+	if key == "w" then
+		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 15
+		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 - flotilla[1].formation[1].heading end
+	end
+	if key == "r" then
+		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading + 15
+		if flotilla[1].formation[1].heading > 359 then flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 360 end
+	end
+	if key == "t" then
+		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading + 45
+		if flotilla[1].formation[1].heading > 359 then flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 360 end
+	end
+
 
 end
 
