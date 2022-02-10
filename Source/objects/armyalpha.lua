@@ -188,8 +188,8 @@ local function addGenericMarker(flot, form)
     mymarker.topedoHitsSustained = 0
     mymarker.isSunk = false
     mymarker.heading = mymarker.initialHeading
-    mymarker.positionX = love.math.random(300, 500)
-    mymarker.positionY = love.math.random(300, 500)
+    mymarker.positionX = love.math.random(100, 1800)
+    mymarker.positionY = love.math.random(100, 900)
     mymarker.length = 48  -- mm
 
     mymarker.targetID = "" -- flotilla, formation, marker
@@ -270,9 +270,13 @@ function armyalpha.Initialise()
         flotilla[1].formation[1].marker = {}
         addFriedrichDerGrosse(1, 1)
         addGrosserKerflirst(1, 1)
-        for i = 1, 10 do
+        for i = 1, love.math.random(3, 15) do
             addGenericMarker(1, 1)
         end
+
+        -- nominate one random marker as the flagship
+        local numofmarkers = #flotilla[1].formation[1].marker
+        flotilla[1].formation[1].marker[love.math.random(1,numofmarkers)].isFlagship = true
 
 -- *******************************************
 
