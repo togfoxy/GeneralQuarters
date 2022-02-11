@@ -131,6 +131,11 @@ function love.draw()
 					love.graphics.setColor(1, 1, 1, 1)
 				end
 				love.graphics.line(x1,y1,x2,y2)
+
+				-- draw correct position
+				if mark.correctX ~= nil then
+					love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+				end
 			end
 		end
 	end

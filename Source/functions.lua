@@ -90,6 +90,44 @@ local function moveMarkerOnce(mymarker)
     mymarker.positionY = newy
 end
 
+local function setCorrectPositionInFormation(formobj, fs, m)
+    -- determine the correct x/y position within the formation
+    -- input: formobj = (object/table)
+    -- input: fs = flagship (object/table)
+    -- input: m = marker (object/table)
+    -- output: sets m.correctX and m.correctY
+
+    -- determine if m is left or right of FS by checking both numOfColumns
+    local columndelta = m.columnNumber - fs.columnNumber    -- a negative number means m should be left of fs
+
+    if columndelta < 0 then
+        -- determine head position of this column
+        -- assumes columns are 45 degrees behind flagship
+        -- using trigonometry and knowledge of distance between columns:
+
+
+        -- cos = adj / hyp
+        -- hyp = adj / cos
+        local hyp = (formobj.distanceBetweenColumns) / math.cos(45) -- gives the hypotenuse/distance for the marker leading the adjacent column
+        -- multipy this hypotenuse for each column away from teh fs column
+        hyp = hyp * math.abs(columndelta)
+        -- determine x/y for the lead marker for this column
+        -- it is known that the angle is fs heading - 135 degrees
+        local relativeheadingfromfs = fs.heading - 135
+print(fs.heading, relativeheadingfromfs)
+        if relativeheadingfromfs < 0 then relativeheadingfromfs = 360 + relativeheadingfromfs end       -- this is a + because the value is a negative
+print(fs.heading, relativeheadingfromfs)
+        -- now determine x/y from relative heading + distance/hypotenuse
+        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
+    elseif columndelta == 0 then
+        --!
+        m.correctX, m.correctY = nil, nil
+    elseif columndelta > 0 then
+        --!
+        m.correctX, m.correctY = nil, nil
+    end
+end
+
 function functions.moveAllMarkers()
     -- moves all marks as a part of the formation or towards the formation
 
@@ -107,6 +145,8 @@ function functions.moveAllMarkers()
                     -- this uses the dot product to detect if the marker is in front or behind the flagship.
                     -- if it is in front - then don't move. Stay still and wait for FS to catch up
                     -- if it is behind the FS, then it is free to move with the formation
+
+                    setCorrectPositionInFormation(form, flagship, mark)
 
                     -- get the direction the flagship is "looking"
                     local fsX = flagship.positionX

@@ -10,12 +10,13 @@ end
 
 local function addFriedrichDerGrosse(flot, form)
     -- adds the Friederich to the provided flotilla and formation
+    -- input: flotilla number, form number   (not objects/tables!)
 
     local mymarker = {}
     mymarker.markerName = "Friederich Der Grosse"
-    mymarker.columnNumber = 1
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
 
-    mymarker.sequenceInColumn = 1
+    mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 12
 
@@ -85,15 +86,14 @@ local function addFriedrichDerGrosse(flot, form)
     end
 
     table.insert(flotilla[flot].formation[form].marker, mymarker)
-
 end
 
 local function addGrosserKerflirst(flot, form)
     local mymarker = {}
     mymarker.markerName = "Grosser Kerflirst"
-    mymarker.columnNumber = 1
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
 
-    mymarker.sequenceInColumn = 1
+    mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 14
 
@@ -167,11 +167,12 @@ local function addGrosserKerflirst(flot, form)
 end
 
 local function addGenericMarker(flot, form)
+    -- input: flotilla number (index), form number (index)
     local mymarker = {}
     mymarker.markerName = "Generic"
-    mymarker.columnNumber = 1
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
 
-    mymarker.sequenceInColumn = 1
+    mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 14
 
@@ -248,16 +249,13 @@ end
 
 function armyalpha.Initialise()
 
-
         flotilla[1] = {}
         flotilla[1].nation = "Alpha"
 
         flotilla[1].formation = {}
         flotilla[1].formation[1] = {}
-        flotilla[1].formation[1].numOfColumns = 1
-        flotilla[1].formation[1].distanceBetweenColumns = nil
-
-
+        flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
+        flotilla[1].formation[1].distanceBetweenColumns = 200
         flotilla[1].formation[1].heading = love.math.random(0, 359)
         flotilla[1].formation[1].currentManeuver = ""
         flotilla[1].formation[1].pivotpointx = nil
@@ -276,7 +274,11 @@ function armyalpha.Initialise()
 
         -- nominate one random marker as the flagship
         local numofmarkers = #flotilla[1].formation[1].marker
-        flotilla[1].formation[1].marker[love.math.random(1,numofmarkers)].isFlagship = true
+        local rndnum = love.math.random(1,numofmarkers)
+        flotilla[1].formation[1].marker[rndnum].isFlagship = true
+        -- make this fs sale east for testing
+        flotilla[1].formation[1].marker[rndnum].heading = 90
+        flotilla[1].formation[1].heading = 90
 
 -- *******************************************
 
