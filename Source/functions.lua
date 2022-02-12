@@ -77,15 +77,25 @@ local function alignMarkerTowardsCorrectPosition(m)
     -- tan(angle) = opp / adj
     -- angle = atan(opp/adj)
     local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians
-    -- convert so it is relative to zero/north
-    local angle = cf.round(90 + angletocorrectposition)      -- a negative will influence angle to the left
--- print(angletocorrectposition, angle)
-    local angledelta = angle - m.heading
-print(angle, m.heading, angledelta, math.abs(angledelta), steeringamount)
-    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
-    if angle < (m.heading) then m.heading = m.heading - (adjsteeringamount) end       -- turn left
-    if angle > (m.heading) then m.heading = m.heading + (adjsteeringamount) end        -- turn right
+print(angletocorrectposition)
+
+
+--     -- convert so it is relative to zero/north
+--     local angle = cf.round(0 + angletocorrectposition)      -- a negative will influence angle to the left
+-- -- print(angletocorrectposition, angle)
+--     local angledelta = angle - m.heading
+-- print(m.heading, angletocorrectposition, angle)
+--     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+--
+--     if angle < (m.heading) then
+--         print("turning left")
+--         m.heading = m.heading - (adjsteeringamount)
+--     end       -- turn left
+--     if angle > (m.heading) then
+--         print("turning right")
+--         m.heading = m.heading + (adjsteeringamount)
+--     end        -- turn right
 end
 
 local function getFlagShip(flot, form)

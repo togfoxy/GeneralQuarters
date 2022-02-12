@@ -123,8 +123,8 @@ function love.draw()
 				local ycentre = (mark.positionY)
 				local heading = (mark.heading)
 				local dist = (mark.length)
-				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))
-				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)
+				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
+				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
 
 				if mark.isFlagship then
 					love.graphics.setColor(1, 1, 0, 1)
@@ -132,6 +132,7 @@ function love.draw()
 					love.graphics.setColor(1, 1, 1, 1)
 				end
 				love.graphics.line(x1,y1,x2,y2)
+				love.graphics.circle("fill", x2, y2, 3)
 
 				-- draw correct position
 				if mark.correctX ~= nil then
