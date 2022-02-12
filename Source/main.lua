@@ -28,14 +28,15 @@ function love.keyreleased( key, scancode )
 end
 
 function love.keypressed( key, scancode, isrepeat )
-	local translatefactor = ZOOMFACTOR * 2		-- screen moves faster when zoomed in
+	local translatefactor = 10 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
 	if key == "left" then TRANSLATEX = TRANSLATEX + translatefactor end
 	if key == "right" then TRANSLATEX = TRANSLATEX - translatefactor end
 	if key == "up" then TRANSLATEY = TRANSLATEY + translatefactor end
 	if key == "down" then TRANSLATEY = TRANSLATEY - translatefactor end
 
 	if key == "kp8" then
-		fun.allMarkersAlignTowardsFormation()
+		-- fun.allMarkersAlignTowardsFormation()
+
 		-- fun.allMarkersForwardOnce()
 		fun.moveAllMarkers()
 	end

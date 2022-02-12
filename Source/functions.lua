@@ -42,31 +42,50 @@ function functions.getFormationCentre(formation)
     return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
-function functions.allMarkersAlignTowardsFormation()
+local function alignMarkerTowardsHeading(mark, heading)
     -- move ships closer formation
 	-- for every marker:
 	-- draw every marker
     local steeringamount = 15
-	for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-			for w,mark in pairs(form.marker) do
-				if mark.heading ~= form.heading then
-					-- turn left or right?
-					if form.heading > mark.heading and form.heading < (mark.heading + 180) then
-						-- turn right
-						mark.heading = mark.heading + steeringamount
-						-- cancel oversteer
-						if mark.heading > form.heading then mark.heading = form.heading end
-					else
-						-- turn right
-						mark.heading = mark.heading - steeringamount
-						-- cancel oversteer
-						if mark.heading < form.heading then mark.heading = form.heading end
-					end
-				end
-			end
+
+	if mark.heading ~= heading then
+		-- turn left or right?
+		if heading > mark.heading and heading < (mark.heading + 180) then
+			-- turn right
+			mark.heading = mark.heading + steeringamount
+			-- cancel oversteer
+			if mark.heading > heading then mark.heading = heading end
+		else
+			-- turn right
+			mark.heading = mark.heading - steeringamount
+			-- cancel oversteer
+			if mark.heading < heading then mark.heading = heading end
 		end
 	end
+end
+
+local function alignMarkerTowardsCorrectPosition(m)
+    -- turns the marker towards the correct position within the formation without breaking turning rules
+    -- input: m = marker object/table
+    local steeringamount = 15   -- max turn rate
+
+    -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
+    local adj = m.correctX - m.positionX
+    local opp = m.correctY - m.positionY
+
+-- print(adj, opp)
+    -- tan(angle) = opp / adj
+    -- angle = atan(opp/adj)
+    local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians
+    -- convert so it is relative to zero/north
+    local angle = cf.round(90 + angletocorrectposition)      -- a negative will influence angle to the left
+-- print(angletocorrectposition, angle)
+    local angledelta = angle - m.heading
+print(angle, m.heading, angledelta, math.abs(angledelta), steeringamount)
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+
+    if angle < (m.heading) then m.heading = m.heading - (adjsteeringamount) end       -- turn left
+    if angle > (m.heading) then m.heading = m.heading + (adjsteeringamount) end        -- turn right
 end
 
 local function getFlagShip(flot, form)
@@ -85,7 +104,13 @@ local function moveMarkerOnce(mymarker)
     local xcentre = (mymarker.positionX)
     local ycentre = (mymarker.positionY)
     local heading = (mymarker.heading)
-    local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, 16)
+    local dist
+    if mymarker.isFlagship then
+        dist = 10
+    else
+        dist = 16
+    end
+    local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, dist)
     mymarker.positionX = newx
     mymarker.positionY = newy
 end
@@ -105,7 +130,6 @@ local function setCorrectPositionInFormation(formobj, fs, m)
         -- assumes columns are 45 degrees behind flagship
         -- using trigonometry and knowledge of distance between columns:
 
-
         -- cos = adj / hyp
         -- hyp = adj / cos
         local hyp = (formobj.distanceBetweenColumns) / math.cos(45) -- gives the hypotenuse/distance for the marker leading the adjacent column
@@ -114,17 +138,21 @@ local function setCorrectPositionInFormation(formobj, fs, m)
         -- determine x/y for the lead marker for this column
         -- it is known that the angle is fs heading - 135 degrees
         local relativeheadingfromfs = fs.heading - 135
-print(fs.heading, relativeheadingfromfs)
+    --print(fs.heading, relativeheadingfromfs)
         if relativeheadingfromfs < 0 then relativeheadingfromfs = 360 + relativeheadingfromfs end       -- this is a + because the value is a negative
-print(fs.heading, relativeheadingfromfs)
+    --print(fs.heading, relativeheadingfromfs)
         -- now determine x/y from relative heading + distance/hypotenuse
         m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
     elseif columndelta == 0 then
-        --!
-        m.correctX, m.correctY = nil, nil
+        local hyp = (formobj.distanceBetweenColumns) / math.cos(45) -- gives the hypotenuse/distance for the marker leading the adjacent column
+        hyp = hyp * math.abs(columndelta)
+        local relativeheadingfromfs = fs.heading + 135
+        if relativeheadingfromfs > 359 then relativeheadingfromfs = relativeheadingfromfs - 360 end
+        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
     elseif columndelta > 0 then
-        --!
-        m.correctX, m.correctY = nil, nil
+        local relativeheadingfromfs = fs.heading + 180
+        if relativeheadingfromfs > 359 then relativeheadingfromfs = relativeheadingfromfs - 360 end
+        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,m.length)
     end
 end
 
@@ -140,33 +168,33 @@ function functions.moveAllMarkers()
 			for w,mark in pairs(form.marker) do
                 if mark == flagship then
                     -- flagship = flagship so move the flagship
+                    alignMarkerTowardsHeading(mark, form.heading)
                     moveMarkerOnce(mark)
                 else
-                    -- this uses the dot product to detect if the marker is in front or behind the flagship.
-                    -- if it is in front - then don't move. Stay still and wait for FS to catch up
-                    -- if it is behind the FS, then it is free to move with the formation
+                    -- this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
+                    -- if it is in front - then don't move. Stay still and wait for the formation to catch up
+                    -- if it is behind the correct position, then it is free to move with the formation
 
-                    setCorrectPositionInFormation(form, flagship, mark)
+                    -- get the correct position within the formation and save that inside the marker table
+                    setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
+                    assert(mark.correctX ~= nil)
+                    assert(mark.correctY ~= nil)
 
-                    -- get the direction the flagship is "looking"
-                    local fsX = flagship.positionX
-                    local fsY = flagship.positionY
-                    local fsHeading = flagship.heading
-                    local fsnewx, fsnewy = cf.AddVectorToPoint(fsX,fsY,fsHeading, 16)
-                    local fsxdelta = fsnewx - fsX   -- this is the direction the flagship is looking
-                    local fsydelta = fsnewy - fsY   -- this is the direction the flagship is looking
+                    alignMarkerTowardsCorrectPosition(mark)
 
-                    -- get delta between marker and flagship
-                    local xcentre = (mark.positionX)
-                    local ycentre = (mark.positionY)
-                    local deltax = xcentre - fsX
-                    local deltay = ycentre - fsY
+                    -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
+                    local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creaets a vector reflecting facting
 
-                    -- now see if the marker is in front or behind the FS
-                    local dotproduct = cf.dotVectors(fsxdelta,fsydelta,deltax,deltay)
+                    -- determine the position of corrextx/y relative to the marker
+                    local correctxdelta = mark.correctX - mark.positionX
+                    local correctydelta = mark.correctY - mark.positionY
 
-                    if dotproduct <= 0 then
-                        -- marker is behind the flagship so allowed to move
+                    -- see if correct position is ahead or behind marker
+                    -- x1/y1 vector is facing/looking
+                    -- x2/y2 is the position relative to the object doing the looking
+                    local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
+                    if dotproduct > 0 then
+                        -- marker is behind the correct position so allowed to move
                         moveMarkerOnce(mark)
                     end
                 end

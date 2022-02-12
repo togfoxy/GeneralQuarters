@@ -255,7 +255,7 @@ function armyalpha.Initialise()
         flotilla[1].formation = {}
         flotilla[1].formation[1] = {}
         flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
-        flotilla[1].formation[1].distanceBetweenColumns = 200
+        flotilla[1].formation[1].distanceBetweenColumns = love.math.random(50, 100)
         flotilla[1].formation[1].heading = love.math.random(0, 359)
         flotilla[1].formation[1].currentManeuver = ""
         flotilla[1].formation[1].pivotpointx = nil
