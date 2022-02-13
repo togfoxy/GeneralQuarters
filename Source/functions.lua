@@ -57,13 +57,13 @@ local function alignMarkerTowardsHeading(m, desiredheading)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-    print(m.heading, desiredheading, leftdistance, rightdistance)
+    -- print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
-        print("turning left " .. adjsteeringamount)
+        -- print("turning left " .. adjsteeringamount)
         m.heading = m.heading - (adjsteeringamount)
     else
-       print("turning right " .. adjsteeringamount)
+       -- print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
     if m.heading < 0 then m.heading = 360 + m.heading end
@@ -145,13 +145,13 @@ local function alignMarkerTowardsCorrectPosition(m)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-    print(m.heading, desiredheading, leftdistance, rightdistance)
+    -- print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
-        print("turning left " .. adjsteeringamount)
+        -- print("turning left " .. adjsteeringamount)
         m.heading = m.heading - (adjsteeringamount)
     else
-       print("turning right " .. adjsteeringamount)
+       -- print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
     if m.heading < 0 then m.heading = 360 + m.heading end
@@ -254,9 +254,9 @@ function functions.moveAllMarkers()
 
                     -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
                     local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
-                    -- translate the new vector back to origin (0,0)
-
-
+                    -- get the delta for use in the dot product
+                    local facingdeltax = markernewx - mark.positionX
+                    local facingdeltay = markernewy - mark.positionY
 
                     -- determine the position of corrextx/y relative to the marker
                     local correctxdelta = mark.correctX - mark.positionX
@@ -265,9 +265,7 @@ function functions.moveAllMarkers()
                     -- see if correct position is ahead or behind marker
                     -- x1/y1 vector is facing/looking
                     -- x2/y2 is the position relative to the object doing the looking
-                    -- local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
-                    local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
-    -- print(markernewx, markernewy, correctxdelta, correctydelta, dotproduct)
+                    local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
                     if dotproduct > 0 then
                         -- marker is behind the correct position so allowed to move
                         moveMarkerOnce(mark)

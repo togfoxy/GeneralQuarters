@@ -24,7 +24,6 @@ function love.keyreleased( key, scancode )
 	if key == "escape" then
 		cf.RemoveScreen(SCREEN_STACK)
 	end
-
 end
 
 function love.keypressed( key, scancode, isrepeat )
@@ -104,7 +103,6 @@ function love.load()
 	end
 
 	--! determine random hour/minute
-
 end
 
 
