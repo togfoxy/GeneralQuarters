@@ -269,7 +269,7 @@ function armyalpha.Initialise()
         addFriedrichDerGrosse(1, 1)
         addGrosserKerflirst(1, 1)
         for i = 1, love.math.random(3, 15) do
-            -- addGenericMarker(1, 1)
+            addGenericMarker(1, 1)
         end
 
         -- nominate one random marker as the flagship
@@ -277,8 +277,11 @@ function armyalpha.Initialise()
         local rndnum = love.math.random(1,numofmarkers)
         flotilla[1].formation[1].marker[rndnum].isFlagship = true
         -- make this fs sale east for testing
-        flotilla[1].formation[1].marker[rndnum].heading = 90
+        --flotilla[1].formation[1].marker[rndnum].heading = 90
+        --flotilla[1].formation[1].marker[rndnum].positionX = 150
+        --flotilla[1].formation[1].marker[rndnum].positiony = 750
         flotilla[1].formation[1].heading = 90
+
 
 -- *******************************************
 

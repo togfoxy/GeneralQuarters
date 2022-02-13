@@ -64,38 +64,93 @@ local function alignMarkerTowardsHeading(mark, heading)
 	end
 end
 
+local function getTargetQuadrant(m, x2, y2)
+    -- returns the quadrant the target is in relative to the viewer/shooter
+    -- Relative to north/0 degrees so north east is quadrant 1 and south east is quadrant 2 etc
+    -- Note: a target on an axis (x/y) will still return a quadrant
+    -- input: a marker object
+    -- input: the x/y of the target
+    -- output: a number between 0 and 4 inclusive. Returns zero if target is on smae location as marker
+
+    local x1 = m.positionX
+    local y1 = m.positionY
+
+    if x1 == x2 and y1 == y2 then return 0 end
+    if x2 >= x1 and y2 <= y1 then return 1 end
+    if x2 > x1 and y2 > y1 then return 2 end
+    if x2 <= x1 and y2 >= y1 then return 3 end
+    if x2 < x1 and y2 < y1 then return 4 end
+    -- this next error should never haqppen
+    print(x1,y1,x2,y2)
+    error("Unexpected program flow")
+end
+
+local function getAbsoluteHeadingToTarget(m, x2,y2)
+    -- return the absoluting heading. 0 - north and 90 = east
+    -- input: m = marker table
+    -- input: target x,y
+
+    -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
+    local targetqudrant = getTargetQuadrant(m, x2, y2)
+    if targetqudrant == 0 then
+        return 0    -- just face north I guess
+    elseif targetqudrant == 1 then
+        -- tan(angle) = opp / adj
+        -- angle = atan(opp/adj)
+        local adj = x2 - m.positionX
+        local opp = m.positionY - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 - angletocorrectposition)
+    elseif targetqudrant == 2 then
+        local adj = x2 - m.positionX
+        local opp = y2 - m.positionY
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 + angletocorrectposition)
+    elseif targetqudrant == 3 then
+        local adj = m.positionX - x2
+        local opp = y2 - m.positionY
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 - angletocorrectposition)
+    elseif targetqudrant == 4 then
+        local adj = m.positionX - x2
+        local opp = m.positionY - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 + angletocorrectposition)
+    end
+ end
+
 local function alignMarkerTowardsCorrectPosition(m)
     -- turns the marker towards the correct position within the formation without breaking turning rules
     -- input: m = marker object/table
     local steeringamount = 15   -- max turn rate
 
-    -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
-    local adj = m.correctX - m.positionX
-    local opp = m.correctY - m.positionY
+    local desiredheading = getAbsoluteHeadingToTarget(m, m.correctX, m.correctY)
+    local angledelta = desiredheading - m.heading
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
--- print(adj, opp)
-    -- tan(angle) = opp / adj
-    -- angle = atan(opp/adj)
-    local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians
+    -- determine if cheaper to turn left or right
+    local leftdistance = m.heading - desiredheading
+    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
 
-print(angletocorrectposition)
+    local rightdistance = desiredheading - m.heading
+    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
 
---     -- convert so it is relative to zero/north
---     local angle = cf.round(0 + angletocorrectposition)      -- a negative will influence angle to the left
--- -- print(angletocorrectposition, angle)
---     local angledelta = angle - m.heading
--- print(m.heading, angletocorrectposition, angle)
---     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
---
---     if angle < (m.heading) then
---         print("turning left")
---         m.heading = m.heading - (adjsteeringamount)
---     end       -- turn left
---     if angle > (m.heading) then
---         print("turning right")
---         m.heading = m.heading + (adjsteeringamount)
---     end        -- turn right
+    -- print(m.heading, desiredheading, leftdistance, rightdistance)
+
+    if leftdistance < rightdistance then
+        -- print("turning left " .. adjsteeringamount)
+        m.heading = m.heading - (adjsteeringamount)
+    else
+        -- print("turning right " .. adjsteeringamount)
+        m.heading = m.heading + (adjsteeringamount)
+    end
+    if m.heading < 0 then m.heading = 360 - m.heading end
+    if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
 local function getFlagShip(flot, form)
