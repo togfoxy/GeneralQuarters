@@ -269,7 +269,7 @@ function armyalpha.Initialise()
         addFriedrichDerGrosse(1, 1)
         addGrosserKerflirst(1, 1)
         for i = 1, love.math.random(3, 15) do
-            addGenericMarker(1, 1)
+            -- addGenericMarker(1, 1)
         end
 
         -- nominate one random marker as the flagship

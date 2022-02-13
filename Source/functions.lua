@@ -139,7 +139,6 @@ local function alignMarkerTowardsCorrectPosition(m)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-
     -- print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
@@ -149,7 +148,7 @@ local function alignMarkerTowardsCorrectPosition(m)
         -- print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
-    if m.heading < 0 then m.heading = 360 - m.heading end
+    if m.heading < 0 then m.heading = 360 + m.heading end
     if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
@@ -248,7 +247,7 @@ function functions.moveAllMarkers()
                     alignMarkerTowardsCorrectPosition(mark)
 
                     -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
-                    local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creaets a vector reflecting facting
+                    local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
 
                     -- determine the position of corrextx/y relative to the marker
                     local correctxdelta = mark.correctX - mark.positionX
@@ -258,6 +257,7 @@ function functions.moveAllMarkers()
                     -- x1/y1 vector is facing/looking
                     -- x2/y2 is the position relative to the object doing the looking
                     local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
+    -- print(markernewx, markernewy, correctxdelta, correctydelta, dotproduct)
                     if dotproduct > 0 then
                         -- marker is behind the correct position so allowed to move
                         moveMarkerOnce(mark)
