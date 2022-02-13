@@ -42,26 +42,32 @@ function functions.getFormationCentre(formation)
     return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
-local function alignMarkerTowardsHeading(mark, heading)
+local function alignMarkerTowardsHeading(m, desiredheading)
     -- move ships closer formation
 	-- for every marker:
 	-- draw every marker
     local steeringamount = 15
+    local angledelta = desiredheading - m.heading
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
-	if mark.heading ~= heading then
-		-- turn left or right?
-		if heading > mark.heading and heading < (mark.heading + 180) then
-			-- turn right
-			mark.heading = mark.heading + steeringamount
-			-- cancel oversteer
-			if mark.heading > heading then mark.heading = heading end
-		else
-			-- turn right
-			mark.heading = mark.heading - steeringamount
-			-- cancel oversteer
-			if mark.heading < heading then mark.heading = heading end
-		end
-	end
+    -- determine if cheaper to turn left or right
+    local leftdistance = m.heading - desiredheading
+    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
+
+    local rightdistance = desiredheading - m.heading
+    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
+
+    print(m.heading, desiredheading, leftdistance, rightdistance)
+
+    if leftdistance < rightdistance then
+        print("turning left " .. adjsteeringamount)
+        m.heading = m.heading - (adjsteeringamount)
+    else
+       print("turning right " .. adjsteeringamount)
+        m.heading = m.heading + (adjsteeringamount)
+    end
+    if m.heading < 0 then m.heading = 360 + m.heading end
+    if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
 local function getTargetQuadrant(m, x2, y2)
@@ -139,13 +145,13 @@ local function alignMarkerTowardsCorrectPosition(m)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-    -- print(m.heading, desiredheading, leftdistance, rightdistance)
+    print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
-        -- print("turning left " .. adjsteeringamount)
+        print("turning left " .. adjsteeringamount)
         m.heading = m.heading - (adjsteeringamount)
     else
-        -- print("turning right " .. adjsteeringamount)
+       print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
     if m.heading < 0 then m.heading = 360 + m.heading end
@@ -248,6 +254,9 @@ function functions.moveAllMarkers()
 
                     -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
                     local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
+                    -- translate the new vector back to origin (0,0)
+
+
 
                     -- determine the position of corrextx/y relative to the marker
                     local correctxdelta = mark.correctX - mark.positionX
@@ -256,6 +265,7 @@ function functions.moveAllMarkers()
                     -- see if correct position is ahead or behind marker
                     -- x1/y1 vector is facing/looking
                     -- x2/y2 is the position relative to the object doing the looking
+                    -- local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
                     local dotproduct = cf.dotVectors(markernewx,markernewy,correctxdelta,correctydelta)
     -- print(markernewx, markernewy, correctxdelta, correctydelta, dotproduct)
                     if dotproduct > 0 then

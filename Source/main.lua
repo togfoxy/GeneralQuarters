@@ -42,11 +42,11 @@ function love.keypressed( key, scancode, isrepeat )
 	end
 	if key == "q" then
 		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 45
-		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 - flotilla[1].formation[1].heading end
+		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 + flotilla[1].formation[1].heading end
 	end
 	if key == "w" then
 		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 15
-		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 - flotilla[1].formation[1].heading end
+		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 + flotilla[1].formation[1].heading end
 	end
 	if key == "r" then
 		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading + 15
@@ -138,6 +138,13 @@ function love.draw()
 				if mark.correctX ~= nil then
 					love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
 				end
+
+				-- debugging
+				if tempx ~= nil then
+					love.graphics.setColor(1, 0, 0, 0.5)
+					love.graphics.circle("fill", tempx, tempy, 5)
+				end
+
 			end
 		end
 	end
@@ -146,6 +153,7 @@ function love.draw()
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			local formx, formy = fun.getFormationCentre(form)
+			love.graphics.setColor(1, 1, 1, 1)
 			love.graphics.circle("line", formx, formy, 5)
 			-- draw line out from circle to show heading of formation
 			x1, y1 = formx, formy
