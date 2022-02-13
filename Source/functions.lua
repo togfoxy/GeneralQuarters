@@ -145,13 +145,13 @@ local function alignMarkerTowardsCorrectPosition(m)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-    -- print(m.heading, desiredheading, leftdistance, rightdistance)
+    print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
-        -- print("turning left " .. adjsteeringamount)
+        print("turning left " .. adjsteeringamount)
         m.heading = m.heading - (adjsteeringamount)
     else
-       -- print("turning right " .. adjsteeringamount)
+        print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
     if m.heading < 0 then m.heading = 360 + m.heading end
@@ -180,6 +180,11 @@ local function moveMarkerOnce(mymarker)
     else
         dist = 16
     end
+    if not mymarker.isFlagship then
+        -- get distance to correct position then ensure it is not overshot
+        local dist2 = cf.GetDistance(xcentre,ycentre, mymarker.correctX, mymarker.correctY)
+        dist = math.min(dist,dist2)
+    end
     local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, dist)
     mymarker.positionX = newx
     mymarker.positionY = newy
@@ -206,23 +211,57 @@ local function setCorrectPositionInFormation(formobj, fs, m)
         -- multipy this hypotenuse for each column away from teh fs column
         hyp = hyp * math.abs(columndelta)
         -- determine x/y for the lead marker for this column
-        -- it is known that the angle is fs heading - 135 degrees
+        -- it is known that the angle is fs heading - 135 degrees relative
         local relativeheadingfromfs = fs.heading - 135
-    --print(fs.heading, relativeheadingfromfs)
         if relativeheadingfromfs < 0 then relativeheadingfromfs = 360 + relativeheadingfromfs end       -- this is a + because the value is a negative
-    --print(fs.heading, relativeheadingfromfs)
-        -- now determine x/y from relative heading + distance/hypotenuse
-        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
-    elseif columndelta == 0 then
+        local colheadx, colheady = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
+
+        -- move back through the column to find correct position in sequence
+         if m.sequenceInColumn == 1 then
+            m.correctX, m.correctY = colheadx, colheady
+        else
+            -- marker is not at head of column so need to work out how far back to place it
+            -- determine the reverse direction (i.e. fs - 180 relative)
+            -- from the head of the column, move backwards length * sequenceInColumn
+            local direction = fs.heading + 180
+            if direction > 359 then direction = direction - 360 end
+            local dist = m.length * m.sequenceInColumn
+            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+        end
+    elseif columndelta > 0 then -- it is in a column to the right of the fs
         local hyp = (formobj.distanceBetweenColumns) / math.cos(45) -- gives the hypotenuse/distance for the marker leading the adjacent column
         hyp = hyp * math.abs(columndelta)
         local relativeheadingfromfs = fs.heading + 135
         if relativeheadingfromfs > 359 then relativeheadingfromfs = relativeheadingfromfs - 360 end
-        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
-    elseif columndelta > 0 then
-        local relativeheadingfromfs = fs.heading + 180
-        if relativeheadingfromfs > 359 then relativeheadingfromfs = relativeheadingfromfs - 360 end
-        m.correctX, m.correctY = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,m.length)
+        local colheadx, colheady = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
+
+        -- move back through the column to find correct position in sequence
+        if m.sequenceInColumn == 1 then
+            m.correctX, m.correctY = colheadx, colheady
+        else
+            -- marker is not at head of column so need to work out how far back to place it
+            -- determine the reverse direction (i.e. fs - 180 relative)
+            -- from the head of the column, move backwards length * sequenceInColumn
+            local direction = fs.heading + 180
+            if direction > 359 then direction = direction - 360 end
+            local dist = m.length * m.sequenceInColumn
+            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+        end
+    elseif columndelta == 0 then        -- same column as fs (in line)
+        local colheadx, colheady = fs.positionX, fs.positionY
+
+        -- move back through the column to find correct position in sequence
+        if m.sequenceInColumn == 1 then
+            m.correctX, m.correctY = colheadx, colheady
+        else
+            -- marker is not at head of column so need to work out how far back to place it
+            -- determine the reverse direction (i.e. fs - 180 relative)
+            -- from the head of the column, move backwards length * sequenceInColumn
+            local direction = fs.heading + 180
+            if direction > 359 then direction = direction - 360 end
+            local dist = m.length * m.sequenceInColumn
+            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+        end
     end
 end
 
@@ -274,9 +313,6 @@ function functions.moveAllMarkers()
             end
         end
     end
-
-
 end
-
 
 return functions

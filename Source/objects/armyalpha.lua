@@ -14,7 +14,8 @@ local function addFriedrichDerGrosse(flot, form)
 
     local mymarker = {}
     mymarker.markerName = "Friederich Der Grosse"
-    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    mymarker.columnNumber = 2
 
     mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.movementFactor = 8
@@ -91,7 +92,8 @@ end
 local function addGrosserKerflirst(flot, form)
     local mymarker = {}
     mymarker.markerName = "Grosser Kerflirst"
-    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    mymarker.columnNumber = 2
 
     mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.movementFactor = 8
@@ -170,9 +172,13 @@ local function addGenericMarker(flot, form)
     -- input: flotilla number (index), form number (index)
     local mymarker = {}
     mymarker.markerName = "Generic"
-    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    mymarker.columnNumber = 1
 
-    mymarker.sequenceInColumn = love.math.random(1,5)
+    -- mymarker.sequenceInColumn = love.math.random(1,5)
+    mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
+    nextsequence[mymarker.columnNumber] = nextsequence[mymarker.columnNumber] + 1
+
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 14
 
@@ -245,67 +251,73 @@ local function addGenericMarker(flot, form)
     table.insert(flotilla[flot].formation[form].marker, mymarker)
 end
 
-
-
 function armyalpha.Initialise()
 
-        flotilla[1] = {}
-        flotilla[1].nation = "Alpha"
+    flotilla[1] = {}
+    flotilla[1].nation = "Alpha"
 
-        flotilla[1].formation = {}
-        flotilla[1].formation[1] = {}
-        flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
-        flotilla[1].formation[1].distanceBetweenColumns = love.math.random(50, 100)
-        flotilla[1].formation[1].heading = love.math.random(0, 359)
-        flotilla[1].formation[1].currentManeuver = ""
-        flotilla[1].formation[1].pivotpointx = nil
-        flotilla[1].formation[1].pivotpointy = nil
-        flotilla[1].formation[1].undoStackX = {}
-        flotilla[1].formation[1].undoStackY = {}
-        -- flotilla[1].formation[1].undoStackX[1] = 300
-        -- flotilla[1].formation[1].undoStackY[1] = 300
+    flotilla[1].formation = {}
+    flotilla[1].formation[1] = {}
+    -- flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
+    flotilla[1].formation[1].numOfColumns = 2
 
-        flotilla[1].formation[1].marker = {}
-        addFriedrichDerGrosse(1, 1)
-        addGrosserKerflirst(1, 1)
-        for i = 1, love.math.random(3, 15) do
-            addGenericMarker(1, 1)
-        end
+    nextsequence = {}    -- for testing only
+    for i = 1, flotilla[1].formation[1].numOfColumns do
+        nextsequence[i] = {}
+        nextsequence[i] = 0
+    end
 
-        -- nominate one random marker as the flagship
-        local numofmarkers = #flotilla[1].formation[1].marker
-        local rndnum = love.math.random(1,numofmarkers)
-        flotilla[1].formation[1].marker[rndnum].isFlagship = true
-        -- make this fs sale east for testing
-        --flotilla[1].formation[1].marker[rndnum].heading = 90
-        --flotilla[1].formation[1].marker[rndnum].positionX = 150
-        --flotilla[1].formation[1].marker[rndnum].positiony = 750
-        flotilla[1].formation[1].heading = 90
+    flotilla[1].formation[1].distanceBetweenColumns = love.math.random(50, 100)
+    flotilla[1].formation[1].heading = love.math.random(0, 359)
+    flotilla[1].formation[1].currentManeuver = ""
+    flotilla[1].formation[1].pivotpointx = nil
+    flotilla[1].formation[1].pivotpointy = nil
+    flotilla[1].formation[1].undoStackX = {}
+    flotilla[1].formation[1].undoStackY = {}
+    -- flotilla[1].formation[1].undoStackX[1] = 300
+    -- flotilla[1].formation[1].undoStackY[1] = 300
+
+    flotilla[1].formation[1].marker = {}
+    addFriedrichDerGrosse(1, 1)
+    addGrosserKerflirst(1, 1)
+    for i = 1, love.math.random(3, 15) do
+        addGenericMarker(1, 1)
+    end
+
+    -- nominate one random marker as the flagship
+    local numofmarkers = #flotilla[1].formation[1].marker
+    local rndnum = love.math.random(1,numofmarkers)
+    flotilla[1].formation[1].marker[rndnum].isFlagship = true
+    -- make this fs sale east for testing
+    -- flotilla[1].formation[1].marker[rndnum].heading = 90
+    --flotilla[1].formation[1].marker[rndnum].positionX = 150
+    --flotilla[1].formation[1].marker[rndnum].positiony = 750
+    flotilla[1].formation[1].heading = 90
 
 
 -- *******************************************
 
-        -- flotilla[1].formation[1].marker[2] = {}
+    -- flotilla[1].formation[1].marker[2] = {}
 
-        -- quality check
-        for k,flot in pairs(flotilla) do
-            for q,form in pairs(flot.formation) do
-                if form.numOfColumns == 1 then
-                    assert(form.distanceBetweenColumns == nil)
-                else
-                    assert(form.distanceBetweenColumns ~= nil)
-                end
+    -- quality check
+    for k,flot in pairs(flotilla) do
+        for q,form in pairs(flot.formation) do
+            if form.numOfColumns == 1 then
+                assert(form.distanceBetweenColumns == nil)
+            else
+                assert(form.distanceBetweenColumns ~= nil)
             end
         end
+    end
 
-        -- quality check
-        for k,flot in pairs(flotilla) do
-            for q,form in pairs(flot.formation) do
-                for w,mark in pairs(form.marker) do
-                    assert(mark.columnNumber <= form.numOfColumns)
-                end
+    -- quality check
+    for k,flot in pairs(flotilla) do
+        for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                assert(mark.columnNumber <= form.numOfColumns)
             end
         end
+    end
 
 
 
