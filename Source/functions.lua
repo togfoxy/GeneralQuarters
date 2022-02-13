@@ -145,13 +145,13 @@ local function alignMarkerTowardsCorrectPosition(m)
     local rightdistance = desiredheading - m.heading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
 
-    print(m.heading, desiredheading, leftdistance, rightdistance)
+    -- print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
-        print("turning left " .. adjsteeringamount)
+        -- print("turning left " .. adjsteeringamount)
         m.heading = m.heading - (adjsteeringamount)
     else
-        print("turning right " .. adjsteeringamount)
+        -- print("turning right " .. adjsteeringamount)
         m.heading = m.heading + (adjsteeringamount)
     end
     if m.heading < 0 then m.heading = 360 + m.heading end
@@ -250,6 +250,8 @@ local function setCorrectPositionInFormation(formobj, fs, m)
     elseif columndelta == 0 then        -- same column as fs (in line)
         local colheadx, colheady = fs.positionX, fs.positionY
 
+    -- print(m.sequenceInColumn)
+
         -- move back through the column to find correct position in sequence
         if m.sequenceInColumn == 1 then
             m.correctX, m.correctY = colheadx, colheady
@@ -262,6 +264,8 @@ local function setCorrectPositionInFormation(formobj, fs, m)
             local dist = m.length * m.sequenceInColumn
             m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
         end
+    else
+        error("Unexpected program flow")
     end
 end
 
@@ -288,6 +292,8 @@ function functions.moveAllMarkers()
                     setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
                     assert(mark.correctX ~= nil)
                     assert(mark.correctY ~= nil)
+
+                    -- print(mark.correctX,mark.correctY)
 
                     alignMarkerTowardsCorrectPosition(mark)
 

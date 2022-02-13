@@ -14,10 +14,11 @@ local function addFriedrichDerGrosse(flot, form)
 
     local mymarker = {}
     mymarker.markerName = "Friederich Der Grosse"
-    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
-    mymarker.columnNumber = 2
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = 2
 
-    mymarker.sequenceInColumn = love.math.random(1,5)
+    mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
+    nextsequence[mymarker.columnNumber] = nextsequence[mymarker.columnNumber] + 1
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 12
 
@@ -92,10 +93,11 @@ end
 local function addGrosserKerflirst(flot, form)
     local mymarker = {}
     mymarker.markerName = "Grosser Kerflirst"
-    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
-    mymarker.columnNumber = 2
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = 2
 
-    mymarker.sequenceInColumn = love.math.random(1,5)
+    mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
+    nextsequence[mymarker.columnNumber] = nextsequence[mymarker.columnNumber] + 1
     mymarker.movementFactor = 8
     mymarker.protectionFactor = 14
 
@@ -172,8 +174,8 @@ local function addGenericMarker(flot, form)
     -- input: flotilla number (index), form number (index)
     local mymarker = {}
     mymarker.markerName = "Generic"
-    -- mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
-    mymarker.columnNumber = 1
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = 1
 
     -- mymarker.sequenceInColumn = love.math.random(1,5)
     mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
