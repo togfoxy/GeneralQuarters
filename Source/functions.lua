@@ -225,7 +225,7 @@ local function setCorrectPositionInFormation(formobj, fs, m)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fs.heading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = m.length * m.sequenceInColumn
+            local dist = m.length * 1.5 * m.sequenceInColumn
             m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
         end
     elseif columndelta > 0 then -- it is in a column to the right of the fs
@@ -244,7 +244,7 @@ local function setCorrectPositionInFormation(formobj, fs, m)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fs.heading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = m.length * m.sequenceInColumn
+            local dist = m.length * 1.5 * m.sequenceInColumn
             m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
         end
     elseif columndelta == 0 then        -- same column as fs (in line)
@@ -261,7 +261,7 @@ local function setCorrectPositionInFormation(formobj, fs, m)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fs.heading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = m.length * m.sequenceInColumn
+            local dist = m.length * 1.5 * m.sequenceInColumn
             m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
         end
     else

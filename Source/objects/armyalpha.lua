@@ -14,9 +14,10 @@ local function addFriedrichDerGrosse(flot, form)
 
     local mymarker = {}
     mymarker.markerName = "Friederich Der Grosse"
+    mymarker.isFlagship = true
+
     mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
     -- mymarker.columnNumber = 2
-
     mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
     nextsequence[mymarker.columnNumber] = nextsequence[mymarker.columnNumber] + 1
     mymarker.movementFactor = 8
@@ -93,7 +94,7 @@ end
 local function addGrosserKerflirst(flot, form)
     local mymarker = {}
     mymarker.markerName = "Grosser Kerflirst"
-    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+        mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
     -- mymarker.columnNumber = 2
 
     mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
@@ -260,13 +261,13 @@ function armyalpha.Initialise()
 
     flotilla[1].formation = {}
     flotilla[1].formation[1] = {}
-    -- flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
-    flotilla[1].formation[1].numOfColumns = 2
+    flotilla[1].formation[1].numOfColumns = love.math.random(2,4)
+    -- flotilla[1].formation[1].numOfColumns = 2
 
     nextsequence = {}    -- for testing only
     for i = 1, flotilla[1].formation[1].numOfColumns do
         nextsequence[i] = {}
-        nextsequence[i] = 0
+        nextsequence[i] = 1
     end
 
     flotilla[1].formation[1].distanceBetweenColumns = love.math.random(50, 100)
@@ -287,9 +288,10 @@ function armyalpha.Initialise()
     end
 
     -- nominate one random marker as the flagship
-    local numofmarkers = #flotilla[1].formation[1].marker
-    local rndnum = love.math.random(1,numofmarkers)
-    flotilla[1].formation[1].marker[rndnum].isFlagship = true
+    -- local numofmarkers = #flotilla[1].formation[1].marker
+    -- local rndnum = love.math.random(1,numofmarkers)
+
+
     -- make this fs sale east for testing
     -- flotilla[1].formation[1].marker[rndnum].heading = 90
     --flotilla[1].formation[1].marker[rndnum].positionX = 150

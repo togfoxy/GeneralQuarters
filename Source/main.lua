@@ -131,16 +131,20 @@ function love.draw()
 				end
 				love.graphics.line(x1,y1,x2,y2)
 				love.graphics.circle("fill", x2, y2, 3)
+				local txt = mark.sequenceInColumn
+				love.graphics.print(txt, x2, y2 - 20)
 
 				-- draw correct position
 				if mark.correctX ~= nil then
-					love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+					-- love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+
 				end
 
 				-- debugging
 				if tempx ~= nil then
 					love.graphics.setColor(1, 0, 0, 0.5)
 					love.graphics.circle("fill", tempx, tempy, 5)
+
 				end
 
 			end
