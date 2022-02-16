@@ -9,6 +9,7 @@ res = require 'lib.resolution_solution'
 cf = require 'lib.commonfunctions'
 fun = require 'functions'
 armyalpha = require 'objects.armyalpha'
+armybravo = require 'objects.armybravo'
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -114,6 +115,7 @@ function love.draw()
 	love.graphics.translate(TRANSLATEX, TRANSLATEY)
 
 	-- draw every marker
+
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			for w,mark in pairs(form.marker) do

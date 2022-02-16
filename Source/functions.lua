@@ -11,10 +11,11 @@ function functions.InitialiseData()
     flotilla = {}
 
     armyalpha.Initialise()
+    armybravo.Initialise()
 end
 
 function functions.allMarkersForwardOnce()
-    -- moves all markers forward one (16 pixels)
+    -- moves all markers forward one 'step'
 
     for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -33,6 +34,9 @@ end
 function functions.getFormationCentre(formation)
     -- gets the centre of a formation by doing vector things
     -- returns a single x/y
+    -- input: formation = object/table
+    -- output: x/y pair (number)
+
     local xcentre, ycentre, count = 0,0,0
     for k, mark in pairs(formation.marker) do
         xcentre = xcentre + mark.positionX
@@ -43,9 +47,12 @@ function functions.getFormationCentre(formation)
 end
 
 local function alignMarkerTowardsHeading(m, desiredheading)
-    -- move ships closer formation
-	-- for every marker:
-	-- draw every marker
+    -- aligns markers closer to desired heading
+    -- operates directly on m
+    -- input: m = marker (object/table)
+    -- input: desiredheading = number between 0 -> 359 inclusive
+    -- output: none
+
     local steeringamount = 15
     local angledelta = desiredheading - m.heading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
@@ -95,6 +102,7 @@ local function getAbsoluteHeadingToTarget(m, x2,y2)
     -- return the absoluting heading. 0 - north and 90 = east
     -- input: m = marker table
     -- input: target x,y
+    -- output: number
 
     -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
     local targetqudrant = getTargetQuadrant(m, x2, y2)
@@ -132,6 +140,7 @@ local function getAbsoluteHeadingToTarget(m, x2,y2)
 local function alignMarkerTowardsCorrectPosition(m)
     -- turns the marker towards the correct position within the formation without breaking turning rules
     -- input: m = marker object/table
+    -- output: none. Operaties directly on m (marker)
     local steeringamount = 15   -- max turn rate
 
     local desiredheading = getAbsoluteHeadingToTarget(m, m.correctX, m.correctY)
@@ -160,7 +169,9 @@ end
 
 local function getFlagShip(flot, form)
     -- scans the provided flotilla/formation for the marker ID (index) that is the flagship
-    -- returns the marker object
+    -- input: flotilla (number/index)
+    -- input: formation (number/index)
+    -- output: a marker object that is the flagship
     for w,mark in pairs(flotilla[flot].formation[form].marker) do
         if mark.isFlagship then
             return mark
@@ -169,8 +180,9 @@ local function getFlagShip(flot, form)
 end
 
 local function moveMarkerOnce(mymarker)
-    -- input: a marker object
     -- moves one marker just once (in direction of heading)
+    -- input: a marker object
+    -- output: none. Operates directly on mymarker
     local xcentre = (mymarker.positionX)
     local ycentre = (mymarker.positionY)
     local heading = (mymarker.heading)
@@ -319,6 +331,139 @@ function functions.moveAllMarkers()
             end
         end
     end
+end
+
+function functions.addGenericMarker(flot, form)
+    -- input: flotilla number (index), form number (index)
+    local mymarker = {}
+    mymarker.markerName = "Generic"
+    mymarker.columnNumber = love.math.random(1, flotilla[flot].formation[form].numOfColumns)
+    -- mymarker.columnNumber = 1
+
+    -- mymarker.sequenceInColumn = love.math.random(1,5)
+    mymarker.sequenceInColumn = nextsequence[mymarker.columnNumber]
+    nextsequence[mymarker.columnNumber] = nextsequence[mymarker.columnNumber] + 1
+
+    mymarker.movementFactor = 8
+    mymarker.protectionFactor = 14
+
+    mymarker.undoPositionX = {}
+    --mymarker.undoPositionX[1] =
+    mymarker.undoPositionY = {}
+    --mymarker.undoPositionY[1] = 300
+    mymarker.isSelected = false
+    mymarker.isTarget = false
+    mymarker.markerType = "BB"
+    mymarker.missileFactor = 0
+    mymarker.missileCount = 0
+    mymarker.initialHeading = love.math.random(0, 359)
+    mymarker.topedoHitsSustained = 0
+    mymarker.isSunk = false
+    mymarker.heading = mymarker.initialHeading
+    mymarker.positionX = love.math.random(100, 1800)
+    mymarker.positionY = love.math.random(100, 900)
+    mymarker.length = 48  -- mm
+
+    mymarker.targetID = "" -- flotilla, formation, marker
+
+    mymarker.structure = {}
+    mymarker.structure[1] = {}
+    mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
+    mymarker.structure[1].fireDirections = {}
+    mymarker.structure[1].fireDirections[1] = "North"
+    mymarker.structure[1].fireDirections[2] = "West"
+    mymarker.structure[1].fireDirections[3] = "South"
+
+    mymarker.structure[2] = {}
+    mymarker.structure[2].location = "Starboard"        -- location of the structure on the marker
+    mymarker.structure[2].fireDirections = {}
+    mymarker.structure[2].fireDirections[1] = "North"
+    mymarker.structure[2].fireDirections[2] = "West"
+    mymarker.structure[2].fireDirections[3] = "East"
+
+    mymarker.structure[3] = {}
+    mymarker.structure[3].location = "Port"        -- location of the structure on the marker
+    mymarker.structure[3].fireDirections = {}
+    mymarker.structure[3].fireDirections[1] = "East"
+    mymarker.structure[3].fireDirections[2] = "West"
+    mymarker.structure[3].fireDirections[3] = "South"
+
+    mymarker.structure[4] = {}
+    mymarker.structure[4].location = "Astern"        -- location of the structure on the marker
+    mymarker.structure[4].fireDirections = {}
+    mymarker.structure[4].fireDirections[1] = "North"
+    mymarker.structure[4].fireDirections[2] = "East"
+    mymarker.structure[4].fireDirections[3] = "South"
+
+    mymarker.structure[1].turret = {}
+    mymarker.structure[2].turret = {}
+    mymarker.structure[3].turret = {}
+    mymarker.structure[4].turret = {}
+
+    for i = 1,3 do
+        fun.AddTurret(mymarker.structure[1].turret, 1, 0)
+    end
+    for i = 1,2 do
+        fun.AddTurret(mymarker.structure[2].turret, 1, 0)
+    end
+    for i = 1,2 do
+        fun.AddTurret(mymarker.structure[3].turret, 1, 0)
+    end
+    for i = 1,5 do
+        fun.AddTurret(mymarker.structure[4].turret, 1, 0)
+    end
+
+    table.insert(flotilla[flot].formation[form].marker, mymarker)
+end
+
+function functions.createNewFlotilla(nation)
+    -- creates a new flotilla. There is likely two and only two on each map.
+    -- doesn't add things like formations and markers
+    -- input: nation (string)
+    -- output: the flotilla that was created (object/table)
+
+    local myflotilla = {}
+    myflotilla.nation = nation
+    myflotilla.formation = {}
+    table.insert(flotilla, myflotilla)
+    return myflotilla
+end
+
+function functions.createNewFormation()
+    -- creates a new formation
+    -- there is normally two flotilla's (two sides) and each has multiple formations
+    -- output = a new formation. This will need to be added to a flotilla in the calling routine
+
+    local myformation = {}
+    myformation.numOfColumns = love.math.random(2,4)
+
+    nextsequence = {}    -- for testing only
+    for i = 1, myformation.numOfColumns do
+        nextsequence[i] = {}
+        nextsequence[i] = 1
+    end
+
+    myformation.distanceBetweenColumns = love.math.random(50, 100)
+    myformation.heading = love.math.random(0, 359)
+    myformation.currentManeuver = ""
+    myformation.pivotpointx = nil
+    myformation.pivotpointy = nil
+    myformation.undoStackX = {}
+    myformation.undoStackY = {}
+    return myformation
+end
+
+function functions.AddTurret(struct, gf, mf)
+    -- input: structure (object/table)
+    -- input: gunfactor (numbner)
+    -- input: missileFactor (number)
+    -- output: none. Operates directly on structure (object/table)
+    
+    local myturret = {}
+    myturret.active = true
+    myturret.gunfactor = gf
+    myturret.missileFactor = mf
+    table.insert(struct, myturret)
 end
 
 return functions
