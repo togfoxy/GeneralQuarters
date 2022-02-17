@@ -1,7 +1,5 @@
 local armyalpha = {}
 
-
-
 local function addFriedrichDerGrosse(flot, form)
     -- adds the Friederich to the provided flotilla and formation
     -- input: flotilla number, form number   (not objects/tables!)

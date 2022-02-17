@@ -71,6 +71,25 @@ function love.wheelmoved(x, y)
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
 end
 
+function love.mousepressed( x, y, button, istouch )
+	if button == 1 then 
+		-- clear all selections
+		fun.ClearFormationSelection()
+		
+		-- determine formation closest to the mouse click
+		local closestformation = fun.getClosestFormation(x, y)
+		
+		-- set selection flag for that formation
+		closestformation.isSelected = true
+		
+	elseif button == 2 then 
+		--!
+	else 
+		error("Unexpected button pressed")
+	end
+
+end
+
 function love.load()
 
 
@@ -106,9 +125,10 @@ function love.load()
 	--! determine random hour/minute
 end
 
-
 function love.draw()
 
+	local alphavalue
+	
     res.start()
 
 	love.graphics.scale( ZOOMFACTOR, ZOOMFACTOR )
@@ -118,6 +138,13 @@ function love.draw()
 
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
+			
+			if form.isSelected then 
+				alphavalue = 1
+			else 
+				alphavalue = 0.33
+			end 
+
 			for w,mark in pairs(form.marker) do
 				local xcentre = (mark.positionX)
 				local ycentre = (mark.positionY)
@@ -126,10 +153,11 @@ function love.draw()
 				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
 				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
 
+
 				if mark.isFlagship then
-					love.graphics.setColor(1, 1, 0, 1)
+					love.graphics.setColor(1, 1, 0, alphavalue)
 				else
-					love.graphics.setColor(1, 1, 1, 1)
+					love.graphics.setColor(1, 1, 1, alphavalue)
 				end
 				love.graphics.line(x1,y1,x2,y2)
 				love.graphics.circle("fill", x2, y2, 3)
@@ -139,14 +167,12 @@ function love.draw()
 				-- draw correct position
 				if mark.correctX ~= nil then
 					-- love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
-
 				end
 
 				-- debugging
 				if tempx ~= nil then
-					love.graphics.setColor(1, 0, 0, 0.5)
+					love.graphics.setColor(1, 0, 0, alphavalue)
 					love.graphics.circle("fill", tempx, tempy, 5)
-
 				end
 
 			end
@@ -157,20 +183,17 @@ function love.draw()
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			local formx, formy = fun.getFormationCentre(form)
-			love.graphics.setColor(1, 1, 1, 1)
+			love.graphics.setColor(1, 1, 1, alphavalue)
 			love.graphics.circle("line", formx, formy, 5)
 			-- draw line out from circle to show heading of formation
 			x1, y1 = formx, formy
 			x2, y2 = cf.AddVectorToPoint(x1,y1,form.heading, 8)
 			love.graphics.line(x1,y1,x2,y2)
-
 		end
 	end
 
-
 	res.stop()
 end
-
 
 function love.update(dt)
 

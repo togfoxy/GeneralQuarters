@@ -446,6 +446,7 @@ function functions.createNewFormation()
     myformation.distanceBetweenColumns = love.math.random(50, 100)
     myformation.heading = love.math.random(0, 359)
     myformation.currentManeuver = ""
+	myformation.isSelected = false
     myformation.pivotpointx = nil
     myformation.pivotpointy = nil
     myformation.undoStackX = {}
@@ -466,4 +467,45 @@ function functions.AddTurret(struct, gf, mf)
     table.insert(struct, myturret)
 end
 
+function functions.ClearFormationSelection()
+	-- cycles through all formations and clears the 'isSelected' flag
+	-- often called right before a mouse click/selection of a new formation
+	
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			form.isSelected = false
+		end 
+	end
+end 
+
+function functions.getClosestFormation(x, y)
+	-- scans all formations and returns the one closest to x/y
+	local bestdistance = -1
+	local closestformation
+
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			local formx, formy = fun.getFormationCentre(form)
+			local disttoformation = cf.GetDistance(x, y, formx, formy)
+	-- print(disttoformation, bestdistance)
+	print(x, y, formx, formy)
+			if (disttoformation < bestdistance) or (bestdistance < 0) then
+				bestdistance = disttoformation
+				closestformation = form		-- this is an object/table
+			end 
+		end
+	end
+	print("***")
+	return closestformation	-- an object/table 
+end 
+
+
+
 return functions
+
+
+
+
+
+
+
