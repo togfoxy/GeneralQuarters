@@ -468,7 +468,7 @@ function functions.AddTurret(struct, gf, mf)
     table.insert(struct, myturret)
 end
 
-function functions.ClearFormationSelection()
+function functions.unselectAllFormations()
 	-- cycles through all formations and clears the 'isSelected' flag
 	-- often called right before a mouse click/selection of a new formation
 
@@ -479,9 +479,20 @@ function functions.ClearFormationSelection()
 	end
 end
 
+function functions.unselectAllMarkers()
+    -- cycles through every marker and clears the isTarget flag
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                mark.isTarget = false
+			end
+		end
+	end
+end
+
 function functions.getClosestFormation(x, y)
 	-- scans all formations and returns the one closest to x/y
-    -- output: a formation object/table22
+    -- output: a formation object/table
 	local bestdistance = -1
 	local closestformation
 
@@ -500,6 +511,30 @@ function functions.getClosestFormation(x, y)
 	-- print("***")
 	return closestformation	-- an object/table
 end
+
+function functions.getClosestMarker(x,y)
+    -- scans every marker and returns the one closest to x/y
+    -- output: a formation object/table
+    local bestdistance = -1
+	local closestmarker    -- this is returned by this function
+
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+		        local disttomarker = cf.GetDistance(x, y, mark.positionX, mark.positionY)
+	-- print(disttoformation, bestdistance)
+	-- print(x, y, mark.positionX, mark.positionY)
+    			if (disttomarker < bestdistance) or (bestdistance < 0) then
+    				bestdistance = disttomarker
+    				closestmarker = mark		-- this is an object/table
+            	end
+            end
+		end
+	end
+	-- print("***")
+	return closestmarker	-- an object/table
+end
+
 
 function functions.turnSelectedFormation(value)
 	-- turns the currently selected formation by the provided value.

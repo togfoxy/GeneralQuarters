@@ -68,7 +68,7 @@ function love.mousepressed( x, y, button, istouch )
 
 	if button == 1 then
 		-- clear all selections
-		fun.ClearFormationSelection()
+		fun.unselectAllFormations()
 
 		-- determine formation closest to the mouse click
 		local closestformation = fun.getClosestFormation(x, y)	-- returns a formation object/table
@@ -82,7 +82,16 @@ function love.mousepressed( x, y, button, istouch )
 		end
 
 	elseif button == 2 then
-		--!
+		-- set selected marker as a target
+
+		-- clear all targets
+		fun.unselectAllMarkers()
+		-- determine marker closest to the mouse click
+		local closestmarker = fun.getClosestMarker(x,y)
+		local dist = cf.GetDistance(x,y,closestmarker.positionX, closestmarker.positionY)
+		if dist <= 25 then
+			closestmarker.isTarget = true
+		end
 	else
 		error("Unexpected button pressed")
 	end
@@ -158,12 +167,20 @@ function love.draw()
 				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
 				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
 
+				local red,green,blue = 1,1,1
 
 				if mark.isFlagship then
-					love.graphics.setColor(1, 1, 0, alphavalue)
-				else
-					love.graphics.setColor(1, 1, 1, alphavalue)
+					blue = 0
 				end
+				if mark.isTarget then
+					green = green / 2
+					blue = blue / 2
+					--alphavalue = 1
+				else
+
+				end
+				love.graphics.setColor(red, green, blue, alphavalue)
+
 				-- draw line and circle
 				--love.graphics.line(x1,y1,x2,y2)
 				--love.graphics.circle("fill", x2, y2, 3)
