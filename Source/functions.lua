@@ -282,50 +282,51 @@ local function setCorrectPositionInFormation(formobj, fs, m)
 end
 
 function functions.moveAllMarkers()
-    -- moves all marks as a part of the formation or towards the formation
+    -- moves all markers as a part of the formation or towards the formation
 
     -- ipairs is important because we're using table index
     for k,flot in ipairs(flotilla) do
 		for q,form in ipairs(flot.formation) do
+            if form.isSelected then
+                local flagship = getFlagShip(k, q)
 
-            local flagship = getFlagShip(k, q)
-
-			for w,mark in pairs(form.marker) do
-                if mark == flagship then
-                    -- flagship = flagship so move the flagship
-                    alignMarkerTowardsHeading(mark, form.heading)
-                    moveMarkerOnce(mark)
-                else
-                    -- this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
-                    -- if it is in front - then don't move. Stay still and wait for the formation to catch up
-                    -- if it is behind the correct position, then it is free to move with the formation
-
-                    -- get the correct position within the formation and save that inside the marker table
-                    setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
-                    assert(mark.correctX ~= nil)
-                    assert(mark.correctY ~= nil)
-
-                    -- print(mark.correctX,mark.correctY)
-
-                    alignMarkerTowardsCorrectPosition(mark)
-
-                    -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
-                    local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
-                    -- get the delta for use in the dot product
-                    local facingdeltax = markernewx - mark.positionX
-                    local facingdeltay = markernewy - mark.positionY
-
-                    -- determine the position of corrextx/y relative to the marker
-                    local correctxdelta = mark.correctX - mark.positionX
-                    local correctydelta = mark.correctY - mark.positionY
-
-                    -- see if correct position is ahead or behind marker
-                    -- x1/y1 vector is facing/looking
-                    -- x2/y2 is the position relative to the object doing the looking
-                    local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
-                    if dotproduct > 0 then
-                        -- marker is behind the correct position so allowed to move
+    			for w,mark in pairs(form.marker) do
+                    if mark == flagship then
+                        -- flagship = flagship so move the flagship
+                        alignMarkerTowardsHeading(mark, form.heading)
                         moveMarkerOnce(mark)
+                    else
+                        -- this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
+                        -- if it is in front - then don't move. Stay still and wait for the formation to catch up
+                        -- if it is behind the correct position, then it is free to move with the formation
+
+                        -- get the correct position within the formation and save that inside the marker table
+                        setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
+                        assert(mark.correctX ~= nil)
+                        assert(mark.correctY ~= nil)
+
+                        -- print(mark.correctX,mark.correctY)
+
+                        alignMarkerTowardsCorrectPosition(mark)
+
+                        -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
+                        local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
+                        -- get the delta for use in the dot product
+                        local facingdeltax = markernewx - mark.positionX
+                        local facingdeltay = markernewy - mark.positionY
+
+                        -- determine the position of corrextx/y relative to the marker
+                        local correctxdelta = mark.correctX - mark.positionX
+                        local correctydelta = mark.correctY - mark.positionY
+
+                        -- see if correct position is ahead or behind marker
+                        -- x1/y1 vector is facing/looking
+                        -- x2/y2 is the position relative to the object doing the looking
+                        local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
+                        if dotproduct > 0 then
+                            -- marker is behind the correct position so allowed to move
+                            moveMarkerOnce(mark)
+                        end
                     end
                 end
             end
@@ -459,7 +460,7 @@ function functions.AddTurret(struct, gf, mf)
     -- input: gunfactor (numbner)
     -- input: missileFactor (number)
     -- output: none. Operates directly on structure (object/table)
-    
+
     local myturret = {}
     myturret.active = true
     myturret.gunfactor = gf
@@ -470,16 +471,17 @@ end
 function functions.ClearFormationSelection()
 	-- cycles through all formations and clears the 'isSelected' flag
 	-- often called right before a mouse click/selection of a new formation
-	
+
     for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			form.isSelected = false
-		end 
+		end
 	end
-end 
+end
 
 function functions.getClosestFormation(x, y)
 	-- scans all formations and returns the one closest to x/y
+    -- output: a formation object/table22
 	local bestdistance = -1
 	local closestformation
 
@@ -488,24 +490,32 @@ function functions.getClosestFormation(x, y)
 			local formx, formy = fun.getFormationCentre(form)
 			local disttoformation = cf.GetDistance(x, y, formx, formy)
 	-- print(disttoformation, bestdistance)
-	print(x, y, formx, formy)
+	-- print(x, y, formx, formy)
 			if (disttoformation < bestdistance) or (bestdistance < 0) then
 				bestdistance = disttoformation
 				closestformation = form		-- this is an object/table
-			end 
+			end
 		end
 	end
-	print("***")
-	return closestformation	-- an object/table 
-end 
+	-- print("***")
+	return closestformation	-- an object/table
+end
 
-
+function functions.turnSelectedFormation(value)
+	-- turns the currently selected formation by the provided value.
+    -- if no formation is selected then there is nothing to do
+	-- input: f = formation (object/table)
+	-- input: value = degrees to turn. A negative value turns left.
+	-- output: none. Operates directly on f
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            if form.isSelected then
+            	form.heading = form.heading + value
+            	if form.heading < 0 then form.heading = 360 + form.heading end 	-- this is '+' because the heading is negative
+            	if form.heading > 459 then form.heading = form.heading - 360 end
+            end
+        end
+    end
+end
 
 return functions
-
-
-
-
-
-
-

@@ -35,29 +35,20 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "down" then TRANSLATEY = TRANSLATEY - translatefactor end
 
 	if key == "kp8" then
-		-- fun.allMarkersAlignTowardsFormation()
-
-		-- fun.allMarkersForwardOnce()
-		fun.moveAllMarkers()
+		fun.moveAllMarkers()		-- actually only moves the selected formation
 	end
 	if key == "q" then
-		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 45
-		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 + flotilla[1].formation[1].heading end
+		fun.turnSelectedFormation(-45)
 	end
 	if key == "w" then
-		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 15
-		if flotilla[1].formation[1].heading < 0 then flotilla[1].formation[1].heading = 360 + flotilla[1].formation[1].heading end
+		fun.turnSelectedFormation(-15)
 	end
 	if key == "r" then
-		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading + 15
-		if flotilla[1].formation[1].heading > 359 then flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 360 end
+		fun.turnSelectedFormation(15)
 	end
 	if key == "t" then
-		flotilla[1].formation[1].heading = flotilla[1].formation[1].heading + 45
-		if flotilla[1].formation[1].heading > 359 then flotilla[1].formation[1].heading = flotilla[1].formation[1].heading - 360 end
+		fun.turnSelectedFormation(45)
 	end
-
-
 end
 
 function love.wheelmoved(x, y)
@@ -72,19 +63,26 @@ function love.wheelmoved(x, y)
 end
 
 function love.mousepressed( x, y, button, istouch )
-	if button == 1 then 
+	if button == 1 then
 		-- clear all selections
 		fun.ClearFormationSelection()
-		
+
 		-- determine formation closest to the mouse click
-		local closestformation = fun.getClosestFormation(x, y)
-		
-		-- set selection flag for that formation
-		closestformation.isSelected = true
-		
-	elseif button == 2 then 
+		local closestformation = fun.getClosestFormation(x, y)	-- returns a formation object/table
+
+		-- get the distance between the mouse click and the closest formation
+		local formx, formy = fun.getFormationCentre(closestformation)
+		local dist = cf.GetDistance(x, y, formx, formy)
+	print(x, y, closestformation.positionX, closestformation.positionY )
+	print("dist = " .. dist)
+		if dist <= 25 then
+			-- set selection flag for that formation
+			closestformation.isSelected = true
+		end
+
+	elseif button == 2 then
 		--!
-	else 
+	else
 		error("Unexpected button pressed")
 	end
 
@@ -128,7 +126,7 @@ end
 function love.draw()
 
 	local alphavalue
-	
+
     res.start()
 
 	love.graphics.scale( ZOOMFACTOR, ZOOMFACTOR )
@@ -138,12 +136,12 @@ function love.draw()
 
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
-			
-			if form.isSelected then 
+
+			if form.isSelected then
 				alphavalue = 1
-			else 
+			else
 				alphavalue = 0.33
-			end 
+			end
 
 			for w,mark in pairs(form.marker) do
 				local xcentre = (mark.positionX)
