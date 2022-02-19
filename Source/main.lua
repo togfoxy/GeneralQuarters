@@ -6,6 +6,9 @@ inspect = require 'lib.inspect'
 res = require 'lib.resolution_solution'
 -- https://github.com/Vovkiv/resolution_solution
 
+Camera = require 'lib.cam11.cam11'	-- Returns the Camera class.
+-- https://notabug.org/pgimeno/cam11
+
 cf = require 'lib.commonfunctions'
 fun = require 'functions'
 armyalpha = require 'objects.armyalpha'
@@ -31,10 +34,10 @@ end
 
 function love.keypressed( key, scancode, isrepeat )
 	local translatefactor = 10 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
-	if key == "left" then TRANSLATEX = TRANSLATEX + translatefactor end
-	if key == "right" then TRANSLATEX = TRANSLATEX - translatefactor end
-	if key == "up" then TRANSLATEY = TRANSLATEY + translatefactor end
-	if key == "down" then TRANSLATEY = TRANSLATEY - translatefactor end
+	if key == "left" then TRANSLATEX = TRANSLATEX - translatefactor end
+	if key == "right" then TRANSLATEX = TRANSLATEX + translatefactor end
+	if key == "up" then TRANSLATEY = TRANSLATEY - translatefactor end
+	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
 
 	if key == "kp8" then
 		fun.moveAllMarkers()		-- actually only moves the selected formation
@@ -65,17 +68,18 @@ function love.wheelmoved(x, y)
 end
 
 function love.mousepressed( x, y, button, istouch )
+	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
 
 	if button == 1 then
 		-- clear all selections
 		fun.unselectAllFormations()
 
 		-- determine formation closest to the mouse click
-		local closestformation = fun.getClosestFormation(x, y)	-- returns a formation object/table
+		local closestformation = fun.getClosestFormation(wx, wy)	-- returns a formation object/table
 
 		-- get the distance between the mouse click and the closest formation
 		local formx, formy = fun.getFormationCentre(closestformation)
-		local dist = cf.GetDistance(x, y, formx, formy)
+		local dist = cf.GetDistance(wx, wy, formx, formy)
 		if dist <= 25 then
 			-- set selection flag for that formation
 			closestformation.isSelected = true
@@ -87,8 +91,8 @@ function love.mousepressed( x, y, button, istouch )
 		-- clear all targets
 		fun.unselectAllMarkers()
 		-- determine marker closest to the mouse click
-		local closestmarker = fun.getClosestMarker(x,y)
-		local dist = cf.GetDistance(x,y,closestmarker.positionX, closestmarker.positionY)
+		local closestmarker = fun.getClosestMarker(wx,wy)
+		local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
 		if dist <= 25 then
 			closestmarker.isTarget = true
 		end
@@ -132,8 +136,7 @@ function love.load()
 	-- load images
     image[enum.markerBattleship] = love.graphics.newImage("assets/ShipBattleshipHull.png")
 
-
-
+	cam = Camera.new(960, 540, 1)
 
 	--! determine random hour/minute
 end
@@ -143,12 +146,9 @@ function love.draw()
 	local alphavalue
 
     res.start()
-
-	love.graphics.scale( ZOOMFACTOR, ZOOMFACTOR )
-	love.graphics.translate(TRANSLATEX, TRANSLATEY)
+	cam:attach()
 
 	-- draw every marker
-
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 
@@ -222,12 +222,16 @@ function love.draw()
 		end
 	end
 
+	cam:detach()
 	res.stop()
 end
 
 function love.update(dt)
 
 	res.update()	-- put at start of love.update
+
+	cam:setPos(TRANSLATEX, TRANSLATEY)
+	cam:setZoom(ZOOMFACTOR)
 
 	--! army alpha plans moves
 	--! army brava plans moves
