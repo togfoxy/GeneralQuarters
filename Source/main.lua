@@ -10,6 +10,7 @@ cf = require 'lib.commonfunctions'
 fun = require 'functions'
 armyalpha = require 'objects.armyalpha'
 armybravo = require 'objects.armybravo'
+enum = require "enum"
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -19,6 +20,7 @@ ZOOMFACTOR = 1
 TRANSLATEX = 0
 TRANSLATEY = 0
 
+image = {}		-- table that holds the images
 flotilla = {}
 
 function love.keyreleased( key, scancode )
@@ -63,6 +65,7 @@ function love.wheelmoved(x, y)
 end
 
 function love.mousepressed( x, y, button, istouch )
+
 	if button == 1 then
 		-- clear all selections
 		fun.ClearFormationSelection()
@@ -73,8 +76,6 @@ function love.mousepressed( x, y, button, istouch )
 		-- get the distance between the mouse click and the closest formation
 		local formx, formy = fun.getFormationCentre(closestformation)
 		local dist = cf.GetDistance(x, y, formx, formy)
-	print(x, y, closestformation.positionX, closestformation.positionY )
-	print("dist = " .. dist)
 		if dist <= 25 then
 			-- set selection flag for that formation
 			closestformation.isSelected = true
@@ -119,6 +120,11 @@ function love.load()
 			end
 		end
 	end
+	-- load images
+    image[enum.markerBattleship] = love.graphics.newImage("assets/ShipBattleshipHull.png")
+
+
+
 
 	--! determine random hour/minute
 end
@@ -147,6 +153,7 @@ function love.draw()
 				local xcentre = (mark.positionX)
 				local ycentre = (mark.positionY)
 				local heading = (mark.heading)
+				local headingrad = math.rad(heading)
 				local dist = (mark.length)
 				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
 				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
@@ -157,10 +164,17 @@ function love.draw()
 				else
 					love.graphics.setColor(1, 1, 1, alphavalue)
 				end
-				love.graphics.line(x1,y1,x2,y2)
-				love.graphics.circle("fill", x2, y2, 3)
-				local txt = mark.sequenceInColumn
-				love.graphics.print(txt, x2, y2 - 20)
+				-- draw line and circle
+				--love.graphics.line(x1,y1,x2,y2)
+				--love.graphics.circle("fill", x2, y2, 3)
+
+				-- draw image
+				local xoffset, yoffset = 0,0
+				love.graphics.draw(image[1], xcentre - xoffset, ycentre - yoffset, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.23 scales the image down to 48 pixels
+				love.graphics.draw(image[1], x1, y1, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.23 scales the image down to 48 pixels
+
+				-- local txt = mark.sequenceInColumn
+				-- love.graphics.print(txt, x2, y2 - 20)
 
 				-- draw correct position
 				if mark.correctX ~= nil then
@@ -168,6 +182,7 @@ function love.draw()
 				end
 
 				-- debugging
+				-- draw tempx/tempy if that has been set anywhere
 				if tempx ~= nil then
 					love.graphics.setColor(1, 0, 0, alphavalue)
 					love.graphics.circle("fill", tempx, tempy, 5)
@@ -195,6 +210,8 @@ end
 
 function love.update(dt)
 
+	res.update()	-- put at start of love.update
+
 	--! army alpha plans moves
 	--! army brava plans moves
 	--! move all flotilla's
@@ -210,15 +227,6 @@ function love.update(dt)
 		--! armyalpha wins
 	--! end
 
-
-
-
-
-
-
-
-
-	res.update()
 
 
 end
