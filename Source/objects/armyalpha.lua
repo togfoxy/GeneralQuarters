@@ -218,10 +218,6 @@ function armyalpha.Initialise()
 
 
 
-
-
-
-
 end
 
 

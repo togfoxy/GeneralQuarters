@@ -23,6 +23,9 @@ ZOOMFACTOR = 1
 TRANSLATEX = 0
 TRANSLATEY = 0
 
+MOVE_MODE = true		-- used to control game flow. Move and Combat modes are opposites and should never be the same
+TARGETTING_MODE = false
+
 image = {}		-- table that holds the images
 flotilla = {}
 
@@ -39,6 +42,11 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "up" then TRANSLATEY = TRANSLATEY - translatefactor end
 	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
 
+	if key == "kp5" then
+		-- change modes between 'move' and 'combat'
+		MOVE_MODE = not MOVE_MODE
+		TARGETTING_MODE = not TARGETTING_MODE
+	end
 	if key == "kp8" then
 		fun.moveAllMarkers()		-- actually only moves the selected formation
 	end
@@ -71,20 +79,21 @@ function love.mousepressed( x, y, button, istouch )
 	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
 
 	if button == 1 then
-		-- clear all selections
-		fun.unselectAllFormations()
+		if MOVE_MODE then
+			-- clear all selections
+			fun.unselectAllFormations()
 
-		-- determine formation closest to the mouse click
-		local closestformation = fun.getClosestFormation(wx, wy)	-- returns a formation object/table
+			-- determine formation closest to the mouse click
+			local closestformation = fun.getClosestFormation(wx, wy)	-- returns a formation object/table
 
-		-- get the distance between the mouse click and the closest formation
-		local formx, formy = fun.getFormationCentre(closestformation)
-		local dist = cf.GetDistance(wx, wy, formx, formy)
-		if dist <= 25 then
-			-- set selection flag for that formation
-			closestformation.isSelected = true
+			-- get the distance between the mouse click and the closest formation
+			local formx, formy = fun.getFormationCentre(closestformation)
+			local dist = cf.GetDistance(wx, wy, formx, formy)
+			if dist <= 25 then
+				-- set selection flag for that formation
+				closestformation.isSelected = true
+			end
 		end
-
 	elseif button == 2 then
 		-- set selected marker as a target
 
@@ -147,6 +156,14 @@ function love.draw()
 
     res.start()
 	cam:attach()
+
+	-- draw game mode
+	love.graphics.setColor(1, 1, 1, 1)
+	if MOVE_MODE then
+		love.graphics.print("Movement mode", 100, 100)
+	else
+		love.graphics.print("Targetting mode", 100, 100)
+	end
 
 	-- draw every marker
 	for k,flot in pairs(flotilla) do
@@ -247,6 +264,10 @@ function love.update(dt)
 	--! if armybravo = gone then
 		--! armyalpha wins
 	--! end
+
+
+
+	assert(MOVE_MODE ~= TARGETTING_MODE)
 
 
 
