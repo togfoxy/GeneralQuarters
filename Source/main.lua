@@ -20,8 +20,8 @@ SCREEN_HEIGHT = 1080
 SCREEN_STACK = {}
 
 ZOOMFACTOR = 1
-TRANSLATEX = 0
-TRANSLATEY = 0
+TRANSLATEX = cf.round(SCREEN_WIDTH / 2)		-- starts the camera in the middle of the ocean
+TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is working with pixels
 
 MOVE_MODE = true		-- used to control game flow. Move and Combat modes are opposites and should never be the same
 TARGETTING_MODE = false
@@ -107,13 +107,17 @@ function love.mousepressed( x, y, button, istouch )
 		-- set selected marker as a target
 
 		if TARGETTING_MODE then
-			-- clear all targets
-			fun.unselectAllTargettedMarkers()
-			-- determine marker closest to the mouse click
-			local closestmarker = fun.getClosestMarker(wx,wy)
-			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
-			if dist <= 25 then
-				closestmarker.isTarget = true
+			local selectedMarker = fun.getSelectedMarker()
+			if selectedMarker ~= nil then
+				-- clear all targets
+				fun.unselectAllTargettedMarkers()
+				-- determine marker closest to the mouse click
+				local closestmarker = fun.getClosestMarker(wx,wy)
+				local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
+				if dist <= 25 then
+					closestmarker.isTarget = true
+					selectedMarker.targetMarker = closestmarker
+				end
 			end
 		end
 	else
@@ -238,6 +242,24 @@ function love.draw()
 		end
 	end
 
+	-- draw targeting lines between ships
+	if TARGETTING_MODE then
+		for k,flot in pairs(flotilla) do
+			for q,form in pairs(flot.formation) do
+				for w,mark in pairs(form.marker) do
+					if mark.targetMarker ~= nil then
+						local x1 = mark.positionX
+						local y1 = mark.positionY
+						local x2 = mark.targetMarker.positionX
+						local y2 = mark.targetMarker.positionY
+						love.graphics.setColor(1, 0, 0, 0.5)
+						love.graphics.line(x1,y1,x2,y2)
+					end
+				end
+			end
+		end
+	end
+
 	-- draw centre of formations
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -248,6 +270,23 @@ function love.draw()
 			x1, y1 = formx, formy
 			x2, y2 = cf.AddVectorToPoint(x1,y1,form.heading, 8)
 			love.graphics.line(x1,y1,x2,y2)
+		end
+	end
+
+	-- draw targeting line from selected marker to mouse
+	if TARGETTING_MODE then
+		local selectedMarker = fun.getSelectedMarker()
+		if selectedMarker ~= nil then
+			-- check if selected marker has no target
+			if selectedMarker.targetMarker == nil then
+				local x1 = selectedMarker.positionX
+				local y1 = selectedMarker.positionY
+
+				local x, y = love.mouse.getPosition()
+				local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+
+				love.graphics.line(x1, y1, wx, wy)
+			end
 		end
 	end
 

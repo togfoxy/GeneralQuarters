@@ -179,6 +179,21 @@ local function getFlagShip(flot, form)
     end
 end
 
+function functions.getSelectedMarker()
+    -- cycles through every marker looking for the one that is selected.
+    -- output: the marker that is selected (object/table) or nil
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if mark.isSelected then
+                    return mark
+                end
+            end
+        end
+    end
+    return nil
+end
+
 local function moveMarkerOnce(mymarker)
     -- moves one marker just once (in direction of heading)
     -- input: a marker object
@@ -366,9 +381,9 @@ function functions.addGenericMarker(flot, form)
     mymarker.heading = mymarker.initialHeading
     mymarker.positionX = love.math.random(100, 1800)
     mymarker.positionY = love.math.random(100, 900)
-    mymarker.length = 48  -- mm
+    mymarker.length = 48  -- millimetres / pixels
 
-    mymarker.targetID = "" -- flotilla, formation, marker
+    mymarker.targetMarker = nil -- marker
 
     mymarker.structure = {}
     mymarker.structure[1] = {}
@@ -508,7 +523,7 @@ function functions.unselectAllSelectedMarkers()
 end
 
 function functions.unselectAllTargettedMarkers()
-    -- cycles through every marker and clears the isSelected flag
+    -- cycles through every marker and clears the isTargetted flag
     for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
             for w,mark in pairs(form.marker) do
@@ -519,7 +534,6 @@ function functions.unselectAllTargettedMarkers()
 		end
 	end
 end
-
 
 function functions.getClosestFormation(x, y)
 	-- scans all formations and returns the one closest to x/y
