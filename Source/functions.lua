@@ -483,15 +483,43 @@ function functions.unselectAllFormations()
 end
 
 function functions.unselectAllMarkers()
-    -- cycles through every marker and clears the isTarget flag
+    -- cycles through every marker and clears all 'selection' flags
     for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
             for w,mark in pairs(form.marker) do
                 mark.isTarget = false
+                mark.isSelected = false
 			end
 		end
 	end
 end
+
+function functions.unselectAllSelectedMarkers()
+    -- cycles through every marker and clears the isSelected flag
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if mark.isSelected then
+                    mark.isSelected = false
+                end
+			end
+		end
+	end
+end
+
+function functions.unselectAllTargettedMarkers()
+    -- cycles through every marker and clears the isSelected flag
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if mark.isTarget then
+                    mark.isTarget = false
+                end
+			end
+		end
+	end
+end
+
 
 function functions.getClosestFormation(x, y)
 	-- scans all formations and returns the one closest to x/y
@@ -537,7 +565,6 @@ function functions.getClosestMarker(x,y)
 	-- print("***")
 	return closestmarker	-- an object/table
 end
-
 
 function functions.turnSelectedFormation(value)
 	-- turns the currently selected formation by the provided value.

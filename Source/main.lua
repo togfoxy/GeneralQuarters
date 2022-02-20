@@ -93,17 +93,28 @@ function love.mousepressed( x, y, button, istouch )
 				-- set selection flag for that formation
 				closestformation.isSelected = true
 			end
+		elseif TARGETTING_MODE then
+			-- select the closest marker
+
+			fun.unselectAllSelectedMarkers()
+			local closestmarker = fun.getClosestMarker(wx,wy)
+			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
+			if dist <= 25 then
+				closestmarker.isSelected = true
+			end
 		end
 	elseif button == 2 then
 		-- set selected marker as a target
 
-		-- clear all targets
-		fun.unselectAllMarkers()
-		-- determine marker closest to the mouse click
-		local closestmarker = fun.getClosestMarker(wx,wy)
-		local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
-		if dist <= 25 then
-			closestmarker.isTarget = true
+		if TARGETTING_MODE then
+			-- clear all targets
+			fun.unselectAllTargettedMarkers()
+			-- determine marker closest to the mouse click
+			local closestmarker = fun.getClosestMarker(wx,wy)
+			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
+			if dist <= 25 then
+				closestmarker.isTarget = true
+			end
 		end
 	else
 		error("Unexpected button pressed")
@@ -152,8 +163,6 @@ end
 
 function love.draw()
 
-	local alphavalue
-
     res.start()
 	cam:attach()
 
@@ -193,8 +202,11 @@ function love.draw()
 					green = green / 2
 					blue = blue / 2
 					--alphavalue = 1
+				elseif mark.isSelected then
+					red = red / 2
+					blue = blue / 2
 				else
-
+					-- nothing to do
 				end
 				love.graphics.setColor(red, green, blue, alphavalue)
 
