@@ -66,7 +66,6 @@ function GetDistance(x1, y1, x2, y2)
     local c = a + b
     local distance = math.sqrt(c)
     return distance
-
 end
 function SubtractVectors(x1,y1,x2,y2)
 	-- subtracts vector2 from vector1 i.e. v1 - v2
@@ -75,9 +74,12 @@ function SubtractVectors(x1,y1,x2,y2)
 end
 function dotVectors(x1,y1,x2,y2)
 	-- receives two vectors (deltas) and assumes same origin
+	-- x1/y1 vector is facing/looking
+	-- x2/y2 is the position relative to the object doing the looking
 	-- eg: guard is looking in direction x1/y1. His looking vector is 1,1
 	-- thief vector from guard is 2,-1  (he's on the right side of the guard)
-	-- dot product is 1. This is positive so thief is infront of guard (assuming 180 deg viewing angle)
+	-- dot product is 1. This is positive so thief is in front of guard (assuming 180 deg viewing angle)
+	-- http://blog.wolfire.com/2009/07/linear-algebra-for-game-developers-part-2/
 	return (x1*x2)+(y1*y2)
 end
 function ScaleVector(x,y,fctor)
@@ -102,7 +104,6 @@ function AddVectorToPoint(x,y,headingdegrees,distance)
 	return (x + xdelta), (y + ydelta)		-- 0 = NORTH!
 end
 
-
 function Getuuid()
 	local random = math.random
     local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
@@ -122,15 +123,13 @@ function DeDupeArray(myarray)
 			seen[item] = true
 		end
 	end
-
 end
 
 function fltAbsoluteTileDistance(x1,y1,x2,y2)
--- given two tiles, determine the distance between those tiles
--- this returns the number of steps or tiles in whole numbers and not in diagonals
+	-- given two tiles, determine the distance between those tiles
+	-- this returns the number of steps or tiles in whole numbers and not in diagonals
 
 	return math.max (math.abs(x2-x1), math.abs(y2-y1))
-
 end
 
 function strFormatThousand(v)
@@ -147,8 +146,8 @@ function strFormatThousand(v)
 end
 
 local function GetCollisionMap(objMap)
--- used by jumper. Don't call this directly
--- set up colmap to be the same as map but slightly tweak tiles that are occupied by players
+	-- used by jumper. Don't call this directly
+	-- set up colmap to be the same as map but slightly tweak tiles that are occupied by players
 
 	local row,col
 	local colmap = {}
@@ -163,7 +162,7 @@ local function GetCollisionMap(objMap)
 		end
 	end
 
--- print(inspect(colmap[2]))
+	-- print(inspect(colmap[2]))
 
 
 	-- -- after colmap is established, tweak individual tiles that occupy a player
@@ -191,8 +190,8 @@ function Findpath(m, starttilerow,starttilecol,stoptilerow, stoptilecol )
 
 	mymap = GetCollisionMap(m)
 
--- print(inspect(mymap[1]))
--- print(inspect(mymap[2]))
+	-- print(inspect(mymap[1]))
+	-- print(inspect(mymap[2]))
 
 	-- Value for walkable tiles
 	local walkable = enum.tileInitialised		-- see below - actually looking for < 10
@@ -223,11 +222,10 @@ function Findpath(m, starttilerow,starttilecol,stoptilerow, stoptilecol )
 	]]--
 
 	return path
-
 end
 
 function bolTableHasValue (tab, val)
--- returns true if tab contains val
+	-- returns true if tab contains val
     for index, value in ipairs(tab) do
         if value == val then
             return true
@@ -238,7 +236,7 @@ function bolTableHasValue (tab, val)
 end
 
 function beep()
---** doesn't seem to work
+	--** doesn't seem to work
 
 	local samplerate = 44100 -- Hz
 	local duration = 1 -- second
@@ -252,8 +250,8 @@ function beep()
 end
 
 function fromImageToQuads(spritesheet, spritewidth, spriteheight)
--- Where spritesheet is an image and spritewidth is the width
--- and height of your textures
+	-- Where spritesheet is an image and spritewidth is the width
+	-- and height of your textures
   local quadtiles = {} -- A table containing the quads to return
   local imageWidth = spritesheet:getWidth()
   local imageHeight = spritesheet:getHeight()
@@ -279,13 +277,13 @@ function RemoveScreen(screenStack)
 end
 
 function CurrentScreenName(screenStack)
--- returns the current active screen
+	-- returns the current active screen
 	return screenStack[#screenStack]
 end
 
 function SwapScreen(newScreen, screenStack)
--- swaps screens so that the old screen is removed from the stack
--- this adds the new screen then removes the 2nd last screen.
+	-- swaps screens so that the old screen is removed from the stack
+	-- this adds the new screen then removes the 2nd last screen.
 
     AddScreen(newScreen)
     table.remove(screenStack, #screenStack - 1)
