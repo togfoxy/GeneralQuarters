@@ -599,4 +599,28 @@ function functions.turnSelectedFormation(value)
     end
 end
 
+function functions.getMarkerPoints(m)
+    -- given a marker (m) return the xy that starts the line and the xy that ends the line
+    -- this is determined by the centre point and the heading that is stored inside m
+    -- output: two xy pairs (x1, y1, x2, y2)
+    local xcentre = (m.positionX)
+    local ycentre = (m.positionY)
+    local heading = (m.heading)
+    local headingrad = math.rad(heading)
+    local dist = (m.length)
+    local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
+    local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
+    return x1, y1, x2, y2
+end
+
+function functions.adjustHeading(heading, amount)
+    -- adjusts HEADING by AMOUNT. A positive moves the heading right/clockwise. A negative value moves left/anti-clockwise
+    -- will adjust if moves past north/zero/360
+    -- output: new heading
+    local newheading = heading + amount
+    if newheading > 359 then newheading = newheading - 360 end
+    if newheading < 0 then newheading = 360 + newheading end     -- heading is a negative value so '+' it and 360
+    return newheading
+end
+
 return functions

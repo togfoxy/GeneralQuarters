@@ -13,7 +13,8 @@ cf = require 'lib.commonfunctions'
 fun = require 'functions'
 armyalpha = require 'objects.armyalpha'
 armybravo = require 'objects.armybravo'
-enum = require "enum"
+enum = require 'enum'
+rays = require 'lib.rays'
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -101,6 +102,7 @@ function love.mousepressed( x, y, button, istouch )
 			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
 			if dist <= 25 then
 				closestmarker.isSelected = true
+				ray1.position = {x=wx, y=wy}
 			end
 		end
 	elseif button == 2 then
@@ -162,6 +164,8 @@ function love.load()
 
 	cam = Camera.new(960, 540, 1)
 
+	ray1 = rays:new({name = "ray1", color = {0,1,0}})		-- green
+
 	--! determine random hour/minute
 end
 
@@ -193,9 +197,7 @@ function love.draw()
 				local ycentre = (mark.positionY)
 				local heading = (mark.heading)
 				local headingrad = math.rad(heading)
-				local dist = (mark.length)
-				local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
-				local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
+				local x1,y1,x2,y2 = fun.getMarkerPoints(mark)
 
 				local red,green,blue = 1,1,1
 
@@ -215,16 +217,18 @@ function love.draw()
 				love.graphics.setColor(red, green, blue, alphavalue)
 
 				-- draw line and circle
-				--love.graphics.line(x1,y1,x2,y2)
-				--love.graphics.circle("fill", x2, y2, 3)
+				-- love.graphics.line(x1,y1,x2,y2)
+				-- love.graphics.circle("fill", x2, y2, 3)
+
+				-- draw centre
+				-- love.graphics.circle("fill", xcentre, ycentre, 3)
 
 				-- draw image
-				local xoffset, yoffset = 0,0
-				love.graphics.draw(image[1], xcentre - xoffset, ycentre - yoffset, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.23 scales the image down to 48 pixels
-				love.graphics.draw(image[1], x1, y1, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.23 scales the image down to 48 pixels
-
-				-- local txt = mark.sequenceInColumn
-				-- love.graphics.print(txt, x2, y2 - 20)
+				-- the image needs to be shifted left and forward. These next two lines will do that.
+				local drawingheading = fun.adjustHeading(heading, -90)
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
+				love.graphics.draw(image[1], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.15 scales the image down to 48 pixels
 
 				-- draw correct position
 				if mark.correctX ~= nil then
@@ -273,22 +277,24 @@ function love.draw()
 		end
 	end
 
-	-- draw targeting line from selected marker to mouse
-	if TARGETTING_MODE then
-		local selectedMarker = fun.getSelectedMarker()
-		if selectedMarker ~= nil then
-			-- check if selected marker has no target
-			if selectedMarker.targetMarker == nil then
-				local x1 = selectedMarker.positionX
-				local y1 = selectedMarker.positionY
+	-- -- draw targeting line from selected marker to mouse
+	-- if TARGETTING_MODE then
+	-- 	local selectedMarker = fun.getSelectedMarker()
+	-- 	if selectedMarker ~= nil then
+	-- 		-- check if selected marker has no target
+	-- 		if selectedMarker.targetMarker == nil then
+	-- 			local x1 = selectedMarker.positionX
+	-- 			local y1 = selectedMarker.positionY
+	--
+	-- 			local x, y = love.mouse.getPosition()
+	-- 			local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+	--
+	-- 			love.graphics.line(x1, y1, wx, wy)
+	-- 		end
+	-- 	end
+	-- end
 
-				local x, y = love.mouse.getPosition()
-				local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
-
-				love.graphics.line(x1, y1, wx, wy)
-			end
-		end
-	end
+	ray1:draw(true)
 
 	cam:detach()
 	res.stop()
@@ -316,10 +322,22 @@ function love.update(dt)
 		--! armyalpha wins
 	--! end
 
+	local x, y = love.mouse.getPosition()
+	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+	ray1.angle = math.atan2(wy-ray1.position.y, wx-ray1.position.x)
 
+	local lines = {}
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mark in pairs(form.marker) do
+				local x1,y1,x2,y2 = fun.getMarkerPoints(mark)
+				local myline = {x1,y1,x2,y2}
+				table.insert(lines, myline)
+			end
+		end
+	end
+	ray1:update (lines)
 
 	assert(MOVE_MODE ~= TARGETTING_MODE)
-
-
 
 end
