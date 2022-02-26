@@ -454,7 +454,9 @@ function functions.createNewFormation()
     -- output = a new formation. This will need to be added to a flotilla in the calling routine
 
     local myformation = {}
-    myformation.numOfColumns = love.math.random(2,4)
+    myformation.numOfColumns = love.math.random(1,4)
+
+    -- myformation.numOfColumns = 1
 
     nextsequence = {}    -- for testing only
     for i = 1, myformation.numOfColumns do
@@ -462,7 +464,11 @@ function functions.createNewFormation()
         nextsequence[i] = 1
     end
 
-    myformation.distanceBetweenColumns = love.math.random(50, 100)
+    if myformation.numOfColumns > 1 then
+        myformation.distanceBetweenColumns = love.math.random(50, 100)
+    else
+        myformation.distanceBetweenColumns = nil
+    end
     myformation.heading = love.math.random(0, 359)
     myformation.currentManeuver = ""
 	myformation.isSelected = false

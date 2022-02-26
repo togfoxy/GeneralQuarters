@@ -330,9 +330,13 @@ function love.update(dt)
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			for w,mark in pairs(form.marker) do
-				local x1,y1,x2,y2 = fun.getMarkerPoints(mark)
-				local myline = {x1,y1,x2,y2}
-				table.insert(lines, myline)
+				if TARGETTING_MODE and mark.isSelected then
+					-- do nothing
+				else
+					local x1,y1,x2,y2 = fun.getMarkerPoints(mark)
+					local myline = {x1,y1,x2,y2}
+					table.insert(lines, myline)
+				end
 			end
 		end
 	end
