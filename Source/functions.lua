@@ -98,7 +98,7 @@ local function getTargetQuadrant(m, x2, y2)
     error("Unexpected program flow")
 end
 
-local function getAbsoluteHeadingToTarget(m, x2,y2)
+local function getAbsoluteHeadingToTarget(x1,y1, x2,y2)
     -- return the absoluting heading. 0 - north and 90 = east
     -- input: m = marker table
     -- input: target x,y
@@ -106,6 +106,7 @@ local function getAbsoluteHeadingToTarget(m, x2,y2)
 
     -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
     local targetqudrant = getTargetQuadrant(m, x2, y2)
+
     if targetqudrant == 0 then
         return 0    -- just face north I guess
     elseif targetqudrant == 1 then
@@ -565,7 +566,7 @@ end
 
 function functions.getClosestMarker(x,y)
     -- scans every marker and returns the one closest to x/y
-    -- output: a formation object/table
+    -- output: a marker object/table
     local bestdistance = -1
 	local closestmarker    -- this is returned by this function
 

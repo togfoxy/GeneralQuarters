@@ -102,12 +102,13 @@ function love.mousepressed( x, y, button, istouch )
 			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
 			if dist <= 25 then
 				closestmarker.isSelected = true
-				ray1.position = {x=wx, y=wy}
+
+				-- ray1.position = {x=wx, y=wy}
+				ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
 			end
 		end
 	elseif button == 2 then
 		-- set selected marker as a target
-
 		if TARGETTING_MODE then
 			local selectedMarker = fun.getSelectedMarker()
 			if selectedMarker ~= nil then
@@ -182,6 +183,7 @@ function love.draw()
 		love.graphics.print("Targetting mode", 100, 100)
 	end
 
+	local degangle = ""
 	-- draw every marker
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -211,6 +213,17 @@ function love.draw()
 				elseif mark.isSelected then
 					red = red / 2
 					blue = blue / 2
+
+					local mousex, mousey = love.mouse.getPosition()
+					degangle = cf.getBearing(xcentre,ycentre,mousex,mousey)
+					-- degangle is the angle assuming 0 = north.
+					-- it needs to be adjusted to be relative to the ship heading
+					-- degangle == 0 means directly ahead of the marker
+					-- degangle == 90 means directly off starboard
+					degangle = fun.adjustHeading(degangle, mark.heading * -1)
+
+					-- print(degangle)
+
 				else
 					-- nothing to do
 				end
@@ -277,24 +290,7 @@ function love.draw()
 		end
 	end
 
-	-- -- draw targeting line from selected marker to mouse
-	-- if TARGETTING_MODE then
-	-- 	local selectedMarker = fun.getSelectedMarker()
-	-- 	if selectedMarker ~= nil then
-	-- 		-- check if selected marker has no target
-	-- 		if selectedMarker.targetMarker == nil then
-	-- 			local x1 = selectedMarker.positionX
-	-- 			local y1 = selectedMarker.positionY
-	--
-	-- 			local x, y = love.mouse.getPosition()
-	-- 			local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
-	--
-	-- 			love.graphics.line(x1, y1, wx, wy)
-	-- 		end
-	-- 	end
-	-- end
-
-	ray1:draw(true)
+	ray1:draw(true, degangle)
 
 	cam:detach()
 	res.stop()
