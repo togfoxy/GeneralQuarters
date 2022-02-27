@@ -48,8 +48,8 @@ function get_crossing (L1, L2) -- crossing function; returns point or nil
 
 		local dy3 = L1.y1 - L2.y1
 		local dx3 = L1.x1 - L2.x1
---		local u1 = math.floor(((dx2*dy3 - dy2*dx3)/d)*1000+0.5)/1000
---		local u2 = math.floor(((dx1*dy3 - dy2*dx2)/d)*1000+0.5)/1000
+		--		local u1 = math.floor(((dx2*dy3 - dy2*dx3)/d)*1000+0.5)/1000
+		--		local u2 = math.floor(((dx1*dy3 - dy2*dx2)/d)*1000+0.5)/1000
 		local u1 = (dx2*dy3 - dy2*dx3)/d
 		local u2 = (dx1*dy3 - dy2*dx2)/d
 		local x = L1.x1+(u1*dx1)
@@ -118,7 +118,8 @@ function rays:update(lines)
 end
 
 
-function rays:draw (Bdraw_text)
+function rays:draw (Bdraw_text, txt)
+	-- txt is appended to the "distance" that is automatically added here
 	love.graphics.setColor(self.color)
 	love.graphics.circle("fill", self.position.x, self.position.y, 4)
 
@@ -126,7 +127,8 @@ function rays:draw (Bdraw_text)
 		love.graphics.line(self.position.x, self.position.y, self.point.x, self.point.y)
 		love.graphics.circle("line", self.point.x, self.point.y, 4)
 		if Bdraw_text then
-			love.graphics.print("length: " .. math.floor(self.length*1000+0.5)/1000,
+			local raytext = "length: " .. math.floor(self.length*1000+0.5)/1000 .. "\n" .. txt
+			love.graphics.print(raytext,
 			(self.position.x+self.point.x)/2,
 			(self.position.y+self.point.y)/2,
 			(self.angle+math.pi/2)%math.pi-math.pi/2)
