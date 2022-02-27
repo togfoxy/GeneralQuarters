@@ -11,7 +11,7 @@ function functions.InitialiseData()
     flotilla = {}
 
     armyalpha.Initialise()
-    armybravo.Initialise()
+    -- armybravo.Initialise()
 end
 
 function functions.allMarkersForwardOnce()
@@ -77,16 +77,13 @@ local function alignMarkerTowardsHeading(m, desiredheading)
     if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
-local function getTargetQuadrant(m, x2, y2)
+local function getTargetQuadrant(x1, y1, x2, y2)
     -- returns the quadrant the target is in relative to the viewer/shooter
     -- Relative to north/0 degrees so north east is quadrant 1 and south east is quadrant 2 etc
     -- Note: a target on an axis (x/y) will still return a quadrant
     -- input: a marker object
     -- input: the x/y of the target
     -- output: a number between 0 and 4 inclusive. Returns zero if target is on smae location as marker
-
-    local x1 = m.positionX
-    local y1 = m.positionY
 
     if x1 == x2 and y1 == y2 then return 0 end
     if x2 >= x1 and y2 <= y1 then return 1 end
@@ -105,38 +102,38 @@ local function getAbsoluteHeadingToTarget(x1,y1, x2,y2)
     -- output: number
 
     -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
-    local targetqudrant = getTargetQuadrant(m, x2, y2)
+    local targetqudrant = getTargetQuadrant(x1, y1, x2, y2)
 
     if targetqudrant == 0 then
         return 0    -- just face north I guess
     elseif targetqudrant == 1 then
         -- tan(angle) = opp / adj
         -- angle = atan(opp/adj)
-        local adj = x2 - m.positionX
-        local opp = m.positionY - y2
+        local adj = x2 - x1
+        local opp = y1 - y2
         local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
         -- convert so it is relative to zero/north
         return cf.round(90 - angletocorrectposition)
     elseif targetqudrant == 2 then
-        local adj = x2 - m.positionX
-        local opp = y2 - m.positionY
+        local adj = x2 - x1
+        local opp = y2 - y1
         local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
         -- convert so it is relative to zero/north
         return cf.round(90 + angletocorrectposition)
     elseif targetqudrant == 3 then
-        local adj = m.positionX - x2
-        local opp = y2 - m.positionY
+        local adj = x1 - x2
+        local opp = y2 - y1
         local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
         -- convert so it is relative to zero/north
         return cf.round(270 - angletocorrectposition)
     elseif targetqudrant == 4 then
-        local adj = m.positionX - x2
-        local opp = m.positionY - y2
+        local adj = x1 - x2
+        local opp = y1 - y2
         local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
         -- convert so it is relative to zero/north
         return cf.round(270 + angletocorrectposition)
     end
- end
+end
 
 local function alignMarkerTowardsCorrectPosition(m)
     -- turns the marker towards the correct position within the formation without breaking turning rules
@@ -144,7 +141,7 @@ local function alignMarkerTowardsCorrectPosition(m)
     -- output: none. Operaties directly on m (marker)
     local steeringamount = 15   -- max turn rate
 
-    local desiredheading = getAbsoluteHeadingToTarget(m, m.correctX, m.correctY)
+    local desiredheading = getAbsoluteHeadingToTarget(m.positionX, m.positionY, m.correctX, m.correctY)
     local angledelta = desiredheading - m.heading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
@@ -421,7 +418,7 @@ function functions.addGenericMarker(flot, form)
     mymarker.structure[4].turret = {}
 
     for i = 1,3 do
-        fun.AddTurret(mymarker.structure[1].turret, 1, 0)
+        fun.AddTurret(mymarker.structure[1].turret, 1, 0)   -- gun factor, missile factor
     end
     for i = 1,2 do
         fun.AddTurret(mymarker.structure[2].turret, 1, 0)
@@ -628,6 +625,32 @@ function functions.adjustHeading(heading, amount)
     if newheading > 359 then newheading = newheading - 360 end
     if newheading < 0 then newheading = 360 + newheading end     -- heading is a negative value so '+' it and 360
     return newheading
+end
+
+function functions.getGunsInArc(m, arc)
+    -- for the provided marker, return the number of guns that can shoot in the provided arc
+    -- does not account for battle damage
+    -- input: m - marker (object/table)
+    -- output: number - the number of guns that can fire
+
+    local gf, mf = 0,0
+    for k, struct in pairs(m.structure) do
+        for q, firedirection in pairs(struct.fireDirections) do
+            if firedirection == arc then
+                -- print(inspect(struct))
+                for w, tur in pairs(struct.turret) do
+
+                    -- print(inspect(tur))
+
+                    gf = gf + tur.gunfactor
+                    mf = mf + tur.missileFactor
+                end
+            end
+
+        end
+    end
+
+    return gf
 end
 
 return functions

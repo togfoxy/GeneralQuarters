@@ -184,6 +184,7 @@ function love.draw()
 	end
 
 	local degangle = ""
+	local mousetext = ""
 	-- draw every marker
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -215,14 +216,35 @@ function love.draw()
 					blue = blue / 2
 
 					local mousex, mousey = love.mouse.getPosition()
-					degangle = cf.getBearing(xcentre,ycentre,mousex,mousey)
+					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
+					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
 					-- degangle is the angle assuming 0 = north.
 					-- it needs to be adjusted to be relative to the ship heading
 					-- degangle == 0 means directly ahead of the marker
 					-- degangle == 90 means directly off starboard
+
+					-- print(degangle, mark.heading)
 					degangle = fun.adjustHeading(degangle, mark.heading * -1)
 
-					-- print(degangle)
+					local mousearc
+
+					-- +/- 15 degree = front of marker (345 -> 15)
+					if degangle >= 345 or degangle <= 15 then
+						mousearc = "Bow"
+					elseif degangle >= 165 and degangle <= 195 then
+						mousearc = "Stern"
+					elseif degangle > 165 and degangle < 345 then
+						mousearc = "Port"
+					elseif degangle > 15 and degangle < 165 then
+						mousearc = "Starboard"
+					else
+						error(degangle)
+					end
+
+					local gunsdownrange = fun.getGunsInArc(mark, mousearc)
+					-- print(gunsdownrange)
+
+					mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 
 				else
 					-- nothing to do
@@ -290,7 +312,17 @@ function love.draw()
 		end
 	end
 
-	ray1:draw(true, degangle)
+
+
+
+	ray1:draw(true, mousetext)
+	-- ray1:draw(true, "")
+
+	-- -- draw mouse point numbers
+	-- local mousex, mousey = love.mouse.getPosition()
+	-- local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
+	-- love.graphics.print(degangle,wx + 10, wy)
+
 
 	cam:detach()
 	res.stop()
