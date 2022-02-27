@@ -37,30 +37,30 @@ local function addFriedrichDerGrosse(flot, form)
     mymarker.structure[1] = {}
     mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
     mymarker.structure[1].fireDirections = {}
-    mymarker.structure[1].fireDirections[1] = "North"
-    mymarker.structure[1].fireDirections[2] = "West"
-    mymarker.structure[1].fireDirections[3] = "South"
+    mymarker.structure[1].fireDirections[1] = "Bow"
+    mymarker.structure[1].fireDirections[2] = "Port"
+    mymarker.structure[1].fireDirections[3] = "Starboard"
 
     mymarker.structure[2] = {}
     mymarker.structure[2].location = "Starboard"        -- location of the structure on the marker
     mymarker.structure[2].fireDirections = {}
-    mymarker.structure[2].fireDirections[1] = "North"
-    mymarker.structure[2].fireDirections[2] = "West"
-    mymarker.structure[2].fireDirections[3] = "East"
+    mymarker.structure[2].fireDirections[1] = "Bow"
+    mymarker.structure[2].fireDirections[2] = "Starboard"
+    mymarker.structure[2].fireDirections[3] = "Stern"
 
     mymarker.structure[3] = {}
     mymarker.structure[3].location = "Port"        -- location of the structure on the marker
     mymarker.structure[3].fireDirections = {}
-    mymarker.structure[3].fireDirections[1] = "East"
-    mymarker.structure[3].fireDirections[2] = "West"
-    mymarker.structure[3].fireDirections[3] = "South"
+    mymarker.structure[3].fireDirections[1] = "Bow"
+    mymarker.structure[3].fireDirections[2] = "Port"
+    mymarker.structure[3].fireDirections[3] = "Stern"
 
     mymarker.structure[4] = {}
-    mymarker.structure[4].location = "Astern"        -- location of the structure on the marker
+    mymarker.structure[4].location = "Stern"        -- location of the structure on the marker
     mymarker.structure[4].fireDirections = {}
-    mymarker.structure[4].fireDirections[1] = "North"
-    mymarker.structure[4].fireDirections[2] = "East"
-    mymarker.structure[4].fireDirections[3] = "South"
+    mymarker.structure[4].fireDirections[1] = "Stern"
+    mymarker.structure[4].fireDirections[2] = "Port"
+    mymarker.structure[4].fireDirections[3] = "Starboard"
 
     mymarker.structure[1].turret = {}
     mymarker.structure[2].turret = {}
@@ -176,7 +176,7 @@ function armyalpha.Initialise()
     addFriedrichDerGrosse(1, 1)
     addGrosserKerflirst(1, 1)
     for i = 1, love.math.random(3, 15) do
-        fun.addGenericMarker(1, 1)
+        -- fun.addGenericMarker(1, 1)
     end
 
     -- nominate one random marker as the flagship
@@ -189,6 +189,14 @@ function armyalpha.Initialise()
     --flotilla[1].formation[1].marker[rndnum].positionX = 150
     --flotilla[1].formation[1].marker[rndnum].positiony = 750
     flotilla[1].formation[1].heading = 90
+
+    -- print(inspect(flotilla[1].formation[1].marker[1]))
+
+    for k, struct in pairs(flotilla[1].formation[1].marker[1].structure) do
+        print(inspect(struct))
+
+
+    end
 
 
 -- *******************************************
