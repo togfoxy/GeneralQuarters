@@ -24,8 +24,10 @@ ZOOMFACTOR = 1
 TRANSLATEX = cf.round(SCREEN_WIDTH / 2)		-- starts the camera in the middle of the ocean
 TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is working with pixels
 
-MOVE_MODE = true		-- used to control game flow. Move and Combat modes are opposites and should never be the same
-TARGETTING_MODE = false
+
+-- used to control game flow. Move and Combat modes are opposites and should never be the same
+GAME_MODE = enum.gamemodePlanning
+
 
 image = {}		-- table that holds the images
 flotilla = {}
@@ -44,13 +46,18 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
 
 	if key == "kp5" then
-		-- change modes between 'move' and 'combat'
-		MOVE_MODE = not MOVE_MODE
-		TARGETTING_MODE = not TARGETTING_MODE
+		-- cyle to the next game mode
+		GAME_MODE = GAME_MODE + 1
+		if GAME_MODE > enum.NumGameModes then
+			GAME_MODE = 1
+		end
+
 	end
+
 	if key == "kp8" then
 		fun.moveAllMarkers()		-- actually only moves the selected formation
 	end
+
 	if key == "q" then
 		fun.turnSelectedFormation(-45)
 	end
@@ -80,7 +87,7 @@ function love.mousepressed( x, y, button, istouch )
 	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
 
 	if button == 1 then
-		if MOVE_MODE then
+		if GAME_MODE == enum.gamemodePlanning then
 			-- clear all selections
 			fun.unselectAllFormations()
 
@@ -94,7 +101,7 @@ function love.mousepressed( x, y, button, istouch )
 				-- set selection flag for that formation
 				closestformation.isSelected = true
 			end
-		elseif TARGETTING_MODE then
+		elseif GAME_MODE == enum.gamemodeTargeting then
 			-- select the closest marker
 
 			fun.unselectAllSelectedMarkers()
@@ -106,10 +113,12 @@ function love.mousepressed( x, y, button, istouch )
 				-- ray1.position = {x=wx, y=wy}
 				ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
 			end
+		else
+			error()
 		end
 	elseif button == 2 then
 		-- set selected marker as a target
-		if TARGETTING_MODE then
+		if GAME_MODE == enum.gamemodeTargeting then
 			local selectedMarker = fun.getSelectedMarker()
 			if selectedMarker ~= nil then
 				-- clear all targets
@@ -177,15 +186,19 @@ function love.draw()
 
 	-- draw game mode
 	love.graphics.setColor(1, 1, 1, 1)
-	if MOVE_MODE then
-		love.graphics.print("Movement mode", 100, 100)
+	if GAME_MODE == enum.gamemodePlanning then
+		love.graphics.print("Planning mode", 100, 100)
+	elseif GAME_MODE == enum.gamemodeMoving then
+		love.graphics.print("Move mode", 100, 100)
+	elseif GAME_MODE == enum.gamemodeTargeting then
+		love.graphics.print("Targeting mode", 100, 100)
 	else
-		love.graphics.print("Targetting mode", 100, 100)
+		error()
 	end
 
+	-- draw every marker
 	local degangle = ""
 	local mousetext = ""
-	-- draw every marker
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 
@@ -243,7 +256,6 @@ function love.draw()
 
 					local gunsdownrange = fun.getGunsInArc(mark, mousearc)
 					-- print(gunsdownrange)
-
 					mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 
 				else
@@ -282,7 +294,7 @@ function love.draw()
 	end
 
 	-- draw targeting lines between ships
-	if TARGETTING_MODE then
+	if GAME_MODE == enum.gamemodeTargeting then
 		for k,flot in pairs(flotilla) do
 			for q,form in pairs(flot.formation) do
 				for w,mark in pairs(form.marker) do
@@ -311,9 +323,6 @@ function love.draw()
 			love.graphics.line(x1,y1,x2,y2)
 		end
 	end
-
-
-
 
 	ray1:draw(true, mousetext)
 	-- ray1:draw(true, "")
@@ -358,7 +367,7 @@ function love.update(dt)
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			for w,mark in pairs(form.marker) do
-				if TARGETTING_MODE and mark.isSelected then
+				if GAME_MODE == enum.gamemodeTargeting and mark.isSelected then
 					-- do nothing
 				else
 					local x1,y1,x2,y2 = fun.getMarkerPoints(mark)
@@ -370,6 +379,8 @@ function love.update(dt)
 	end
 	ray1:update (lines)
 
-	assert(MOVE_MODE ~= TARGETTING_MODE)
+	assert(GAME_MODE > 0)
+	assert(GAME_MODE <= enum.NumGameModes)
+
 
 end

@@ -297,7 +297,7 @@ end
 function functions.moveAllMarkers()
     -- moves all markers as a part of the formation or towards the formation
 
-    if MOVE_MODE then
+    if GAME_MODE == enum.gamemodePlanning then
 
     -- ipairs is important because we're using table index
         for k,flot in ipairs(flotilla) do
@@ -590,7 +590,7 @@ function functions.turnSelectedFormation(value)
 	-- input: f = formation (object/table)
 	-- input: value = degrees to turn. A negative value turns left.
 	-- output: none. Operates directly on f
-    if MOVE_MODE then
+    if GAME_MODE == enum.gamemodePlanning then
         for k,flot in pairs(flotilla) do
     		for q,form in pairs(flot.formation) do
                 if form.isSelected then
@@ -639,17 +639,13 @@ function functions.getGunsInArc(m, arc)
             if firedirection == arc then
                 -- print(inspect(struct))
                 for w, tur in pairs(struct.turret) do
-
                     -- print(inspect(tur))
-
                     gf = gf + tur.gunfactor
                     mf = mf + tur.missileFactor
                 end
             end
-
         end
     end
-
     return gf
 end
 
