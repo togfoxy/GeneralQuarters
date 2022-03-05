@@ -77,6 +77,49 @@ local function alignMarkerTowardsHeading(m, desiredheading)
     if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
+local function getNewMarkerHeading(m, desiredheading)
+    -- returns the new/future heading for the marker. Usually only applies to flagships
+    -- input: m = marker (object/table). Usually a flagship
+    -- input: desiredheading = number between 0 -> 359 inclusive
+    -- output: the new/future heading for m
+
+    -- determine the original heading.
+    -- if no steps are planned then use m.heading
+    -- if steps are planned then use that heading instead
+    local currentheading
+    local laststepnumber = #m.planningstep
+    if laststepnumber == 0 then
+        currentheading = m.heading
+    else
+        currentheading = m.planningstep[laststepnumber].newheading
+    end
+
+    local newheading
+    local steeringamount = 15   -- this is the steering amount. Increase it to permit larger turns
+    local angledelta = desiredheading - m.heading
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+
+    -- determine if cheaper to turn left or right
+    local leftdistance = currentheading - desiredheading
+    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
+
+    local rightdistance = desiredheading - currentheading
+    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
+
+    -- print(currentheading, desiredheading, leftdistance, rightdistance)
+
+    if leftdistance < rightdistance then
+        -- print("turning left " .. adjsteeringamount)
+        newheading = currentheading - (adjsteeringamount)
+    else
+       -- print("turning right " .. adjsteeringamount)
+        newheading = currentheading + (adjsteeringamount)
+    end
+    if newheading < 0 then newheading = 360 + newheading end
+    if newheading > 359 then newheading = newheading - 360 end
+    return newheading
+end
+
 local function getTargetQuadrant(x1, y1, x2, y2)
     -- returns the quadrant the target is in relative to the viewer/shooter
     -- Relative to north/0 degrees so north east is quadrant 1 and south east is quadrant 2 etc
@@ -215,6 +258,44 @@ local function moveMarkerOnce(mymarker)
     mymarker.positionY = newy
 end
 
+local function getNewMarkerPosition(mymarker)
+    -- determines the new/future marker position based on current direction
+    -- new marker is based off last planned step i.e not always from current position
+    -- input: a marker object
+    -- output: a new x/y pair
+
+    local xcentre
+    local ycentre
+    local heading
+    local dist
+    local laststepnumber = #mymarker.planningstep
+    if laststepnumber == 0 then
+        -- no steps are planned. Just move from current position
+        xcentre = (mymarker.positionX)
+        ycentre = (mymarker.positionY)
+        heading = (mymarker.heading)
+    else
+        -- get the latest planned step and calculate from that
+        xcentre = (mymarker.planningstep[laststepnumber].newx)
+        ycentre = (mymarker.planningstep[laststepnumber].newy)
+        heading = (mymarker.planningstep[laststepnumber].newheading)
+    end
+
+    -- print(xcentre, ycentre, heading)
+
+    if mymarker.isFlagship then
+        dist = 10
+    else
+        dist = 16
+        -- get distance to correct position then ensure it is not overshot
+        local dist2 = cf.GetDistance(xcentre,ycentre, mymarker.correctX, mymarker.correctY)
+        dist = math.min(dist,dist2)
+    end
+
+    local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, dist)
+    return newx, newy
+end
+
 local function setCorrectPositionInFormation(formobj, fs, m)
     -- determine the correct x/y position within the formation
     -- input: formobj = (object/table)
@@ -299,48 +380,62 @@ function functions.moveAllMarkers()
 
     if GAME_MODE == enum.gamemodePlanning then
 
-    -- ipairs is important because we're using table index
+    -- ipairs is important because we're using table index  --! is this an old and incorrect comment?
         for k,flot in ipairs(flotilla) do
     		for q,form in ipairs(flot.formation) do
                 if form.isSelected then
                     local flagship = getFlagShip(k, q)
 
         			for w,mark in pairs(form.marker) do
-                        if mark == flagship then
-                            -- flagship = flagship so move the flagship
-                            alignMarkerTowardsHeading(mark, form.heading)
-                            moveMarkerOnce(mark)
-                        else
-                            -- this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
-                            -- if it is in front - then don't move. Stay still and wait for the formation to catch up
-                            -- if it is behind the correct position, then it is free to move with the formation
+                        -- see if marker is out of moves
+                        if #mark.planningstep <= mark.movementFactor then
+                            if mark == flagship then
+                                -- flagship = flagship so move the flagship
+                                -- alignMarkerTowardsHeading(mark, form.heading)
 
-                            -- get the correct position within the formation and save that inside the marker table
-                            setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
-                            assert(mark.correctX ~= nil)
-                            assert(mark.correctY ~= nil)
+                                -- moveMarkerOnce(mark)
 
-                            -- print(mark.correctX,mark.correctY)
+                                -- get future heading x, y
+                                local newheading = getNewMarkerHeading(mark, form.heading)
+                                local newx, newy = getNewMarkerPosition(mark)
+                                local newplan = {}
+                                newplan.newx = newx
+                                newplan.newy = newy
+                                newplan.newheading = newheading
+                                table.insert(mark.planningstep, newplan)
+                                -- print(mark.positionX, mark.positionY, newplan.newx, newplan.newy, mark.heading, newplan.newheading)
+                            else
+                                -- this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
+                                -- if it is in front - then don't move. Stay still and wait for the formation to catch up
+                                -- if it is behind the correct position, then it is free to move with the formation
 
-                            alignMarkerTowardsCorrectPosition(mark)
+                                -- get the correct position within the formation and save that inside the marker table
+                                setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
+                                assert(mark.correctX ~= nil)
+                                assert(mark.correctY ~= nil)
 
-                            -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
-                            local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
-                            -- get the delta for use in the dot product
-                            local facingdeltax = markernewx - mark.positionX
-                            local facingdeltay = markernewy - mark.positionY
+                                -- print(mark.correctX,mark.correctY)
 
-                            -- determine the position of corrextx/y relative to the marker
-                            local correctxdelta = mark.correctX - mark.positionX
-                            local correctydelta = mark.correctY - mark.positionY
+                                alignMarkerTowardsCorrectPosition(mark)
 
-                            -- see if correct position is ahead or behind marker
-                            -- x1/y1 vector is facing/looking
-                            -- x2/y2 is the position relative to the object doing the looking
-                            local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
-                            if dotproduct > 0 then
-                                -- marker is behind the correct position so allowed to move
-                                moveMarkerOnce(mark)
+                                -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
+                                local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
+                                -- get the delta for use in the dot product
+                                local facingdeltax = markernewx - mark.positionX
+                                local facingdeltay = markernewy - mark.positionY
+
+                                -- determine the position of corrextx/y relative to the marker
+                                local correctxdelta = mark.correctX - mark.positionX
+                                local correctydelta = mark.correctY - mark.positionY
+
+                                -- see if correct position is ahead or behind marker
+                                -- x1/y1 vector is facing/looking
+                                -- x2/y2 is the position relative to the object doing the looking
+                                local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
+                                if dotproduct > 0 then
+                                    -- marker is behind the correct position so allowed to move
+                                    moveMarkerOnce(mark)
+                                end
                             end
                         end
                     end

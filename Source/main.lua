@@ -135,7 +135,6 @@ function love.mousepressed( x, y, button, istouch )
 	else
 		error("Unexpected button pressed")
 	end
-
 end
 
 function love.load()
@@ -179,26 +178,11 @@ function love.load()
 	--! determine random hour/minute
 end
 
-function love.draw()
-
-    res.start()
-	cam:attach()
-
-	-- draw game mode
-	love.graphics.setColor(1, 1, 1, 1)
-	if GAME_MODE == enum.gamemodePlanning then
-		love.graphics.print("Planning mode", 100, 100)
-	elseif GAME_MODE == enum.gamemodeMoving then
-		love.graphics.print("Move mode", 100, 100)
-	elseif GAME_MODE == enum.gamemodeTargeting then
-		love.graphics.print("Targeting mode", 100, 100)
-	else
-		error()
-	end
-
+local function drawEveryMarker()
 	-- draw every marker
 	local degangle = ""
 	local mousetext = ""
+	local alphavalue = 1
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 
@@ -292,6 +276,59 @@ function love.draw()
 			end
 		end
 	end
+end
+
+local function drawEveryStep()
+	-- draws future steps that have been planned out
+	local red,green,blue = 1,1,1
+	local alphavalue = 0.33
+
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mark in pairs(form.marker) do
+				for e,step in pairs(mark.planningstep) do
+
+	-- print(inspect(step))
+
+					local xcentre = (step.newx)
+					local ycentre = (step.newy)
+					local heading = (step.newheading)
+					local headingrad = math.rad(heading)
+					-- the image needs to be shifted left and forward. These next two lines will do that.
+					local drawingheading = fun.adjustHeading(heading, -90)
+					local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
+
+					local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
+
+					love.graphics.setColor(red, green, blue, alphavalue)
+					love.graphics.draw(image[1], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.15 scales the image down to 48 pixels
+				end
+			end
+		end
+	end
+end
+
+function love.draw()
+
+    res.start()
+	cam:attach()
+
+	-- draw game mode
+	love.graphics.setColor(1, 1, 1, 1)
+	if GAME_MODE == enum.gamemodePlanning then
+		love.graphics.print("Planning mode", 100, 100)
+	elseif GAME_MODE == enum.gamemodeMoving then
+		love.graphics.print("Move mode", 100, 100)
+	elseif GAME_MODE == enum.gamemodeTargeting then
+		love.graphics.print("Targeting mode", 100, 100)
+	else
+		error()
+	end
+
+	drawEveryMarker()
+	if GAME_MODE == enum.gamemodePlanning then
+		drawEveryStep()
+	end
 
 	-- draw targeting lines between ships
 	if GAME_MODE == enum.gamemodeTargeting then
@@ -324,6 +361,7 @@ function love.draw()
 		end
 	end
 
+	if mousetext == nil then mousetext = "" end
 	ray1:draw(true, mousetext)
 	-- ray1:draw(true, "")
 
