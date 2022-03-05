@@ -77,7 +77,7 @@ local function alignMarkerTowardsHeading(m, desiredheading)
     if m.heading > 359 then m.heading = m.heading - 360 end
 end
 
-local function getNewMarkerHeading(m, desiredheading)
+local function getNewFlagshipHeading(m, desiredheading)
     -- returns the new/future heading for the marker. Usually only applies to flagships
     -- input: m = marker (object/table). Usually a flagship
     -- input: desiredheading = number between 0 -> 359 inclusive
@@ -178,34 +178,56 @@ local function getAbsoluteHeadingToTarget(x1,y1, x2,y2)
     end
 end
 
-local function alignMarkerTowardsCorrectPosition(m)
+local function getNewMarkerHeading(m)
     -- turns the marker towards the correct position within the formation without breaking turning rules
+    -- assumes m.correctX/Y has been previously set
     -- input: m = marker object/table
     -- output: none. Operaties directly on m (marker)
     local steeringamount = 15   -- max turn rate
+    local newheading
 
-    local desiredheading = getAbsoluteHeadingToTarget(m.positionX, m.positionY, m.correctX, m.correctY)
-    local angledelta = desiredheading - m.heading
+    local laststepnumber = #m.planningstep
+    if laststepnumber == 0 then
+        currentx = m.positionX
+        currenty = m.positionY
+        correctx = m.correctX
+        correcty = m.correctY
+        currentheading = m.heading
+
+    else
+        currentx = m.planningstep[laststepnumber].newx
+        currenty = m.planningstep[laststepnumber].newy
+        correctx = m.correctX
+        correcty = m.correctY
+        currentheading = m.planningstep[laststepnumber].newheading
+    end
+
+    local desiredheading = getAbsoluteHeadingToTarget(currentx, currenty, correctx, correcty)
+
+    -- print(currentx, currenty, correctx, correcty, desiredheading, currentheading)
+
+    local angledelta = desiredheading - currentheading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
+    -- print("adjsteeringamount = " .. adjsteeringamount)
+
     -- determine if cheaper to turn left or right
-    local leftdistance = m.heading - desiredheading
+    local leftdistance = currentheading - desiredheading
     if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
 
-    local rightdistance = desiredheading - m.heading
+    local rightdistance = desiredheading - currentheading
     if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
-
-    -- print(m.heading, desiredheading, leftdistance, rightdistance)
 
     if leftdistance < rightdistance then
         -- print("turning left " .. adjsteeringamount)
-        m.heading = m.heading - (adjsteeringamount)
+        newheading = currentheading - (adjsteeringamount)
     else
         -- print("turning right " .. adjsteeringamount)
-        m.heading = m.heading + (adjsteeringamount)
+        newheading = currentheading + (adjsteeringamount)
     end
-    if m.heading < 0 then m.heading = 360 + m.heading end
-    if m.heading > 359 then m.heading = m.heading - 360 end
+    if newheading < 0 then newheading = 360 + newheading end
+    if newheading > 359 then newheading = newheading - 360 end
+    return newheading
 end
 
 local function getFlagShip(flot, form)
@@ -244,9 +266,9 @@ local function moveMarkerOnce(mymarker)
     local heading = (mymarker.heading)
     local dist
     if mymarker.isFlagship then
-        dist = 10
+        dist = mymarker.length
     else
-        dist = 16
+        dist = mymarker.length
     end
     if not mymarker.isFlagship then
         -- get distance to correct position then ensure it is not overshot
@@ -280,13 +302,10 @@ local function getNewMarkerPosition(mymarker)
         ycentre = (mymarker.planningstep[laststepnumber].newy)
         heading = (mymarker.planningstep[laststepnumber].newheading)
     end
-
-    -- print(xcentre, ycentre, heading)
-
     if mymarker.isFlagship then
-        dist = 10
+        dist = mymarker.length
     else
-        dist = 16
+        dist = mymarker.length
         -- get distance to correct position then ensure it is not overshot
         local dist2 = cf.GetDistance(xcentre,ycentre, mymarker.correctX, mymarker.correctY)
         dist = math.min(dist,dist2)
@@ -296,17 +315,32 @@ local function getNewMarkerPosition(mymarker)
     return newx, newy
 end
 
-local function setCorrectPositionInFormation(formobj, fs, m)
+local function getCorrectPositionInFormation(formobj, fs, m)
     -- determine the correct x/y position within the formation
     -- input: formobj = (object/table)
     -- input: fs = flagship (object/table)
     -- input: m = marker (object/table)
-    -- output: sets m.correctX and m.correctY
+    -- output: returns an x, y pair
 
     -- determine if m is left or right of FS by checking both numOfColumns
     local columndelta = m.columnNumber - fs.columnNumber    -- a negative number means m should be left of fs
+    local fsheading, fsX, fsY
+    local laststepnumber = #fs.planningstep
+    if  laststepnumber == 0 then
+        -- there is no plan so far so just use real position
+        fsheading = fs.heading
+        fsX = fs.positionX
+        fsY = fs.positionY
+    else
+        -- flagship has a plan so use the last position in the plan
+        fsheading = fs.planningstep[laststepnumber].newheading
+        fsX = fs.planningstep[laststepnumber].newx
+        fsY = fs.planningstep[laststepnumber].newy
+    end
+
 
     if columndelta < 0 then
+        -- left side of the flagship
         -- determine head position of this column
         -- assumes columns are 45 degrees behind flagship
         -- using trigonometry and knowledge of distance between columns:
@@ -318,57 +352,67 @@ local function setCorrectPositionInFormation(formobj, fs, m)
         hyp = hyp * math.abs(columndelta)
         -- determine x/y for the lead marker for this column
         -- it is known that the angle is fs heading - 135 degrees relative
-        local relativeheadingfromfs = fs.heading - 135
+        local relativeheadingfromfs = fsheading - 135
         if relativeheadingfromfs < 0 then relativeheadingfromfs = 360 + relativeheadingfromfs end       -- this is a + because the value is a negative
-        local colheadx, colheady = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
+        local colheadx, colheady = cf.AddVectorToPoint(fsX,fsY,relativeheadingfromfs,hyp)
 
         -- move back through the column to find correct position in sequence
-         if m.sequenceInColumn == 1 then
-            m.correctX, m.correctY = colheadx, colheady
+        if m.sequenceInColumn == 1 then
+            -- m.correctX, m.correctY = colheadx, colheady
+            return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
             -- determine the reverse direction (i.e. fs - 180 relative)
             -- from the head of the column, move backwards length * sequenceInColumn
-            local direction = fs.heading + 180
+            local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
             local dist = m.length * 1.5 * m.sequenceInColumn
-            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            -- m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            local x, y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            return x, y
         end
     elseif columndelta > 0 then -- it is in a column to the right of the fs
         local hyp = (formobj.distanceBetweenColumns) / math.cos(45) -- gives the hypotenuse/distance for the marker leading the adjacent column
         hyp = hyp * math.abs(columndelta)
-        local relativeheadingfromfs = fs.heading + 135
+        local relativeheadingfromfs = fsheading + 135
         if relativeheadingfromfs > 359 then relativeheadingfromfs = relativeheadingfromfs - 360 end
-        local colheadx, colheady = cf.AddVectorToPoint(fs.positionX,fs.positionY,relativeheadingfromfs,hyp)
+        local colheadx, colheady = cf.AddVectorToPoint(fsX,fsY,relativeheadingfromfs,hyp)
 
         -- move back through the column to find correct position in sequence
         if m.sequenceInColumn == 1 then
-            m.correctX, m.correctY = colheadx, colheady
+            -- m.correctX, m.correctY = colheadx, colheady
+            return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
             -- determine the reverse direction (i.e. fs - 180 relative)
             -- from the head of the column, move backwards length * sequenceInColumn
-            local direction = fs.heading + 180
+            local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
             local dist = m.length * 1.5 * m.sequenceInColumn
-            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+
+            -- m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            local x,y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            return x, y
         end
     elseif columndelta == 0 then        -- same column as fs (in line)
-        local colheadx, colheady = fs.positionX, fs.positionY
+        local colheadx, colheady = fsX, fsY
 
     -- print(m.sequenceInColumn)
 
         -- move back through the column to find correct position in sequence
         if m.sequenceInColumn == 1 then
-            m.correctX, m.correctY = colheadx, colheady
+            -- m.correctX, m.correctY = colheadx, colheady
+            return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
             -- determine the reverse direction (i.e. fs - 180 relative)
             -- from the head of the column, move backwards length * sequenceInColumn
-            local direction = fs.heading + 180
+            local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
             local dist = m.length * 1.5 * m.sequenceInColumn
-            m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            -- m.correctX, m.correctY = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            local x, y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
+            return x, y
         end
     else
         error("Unexpected program flow")
@@ -396,7 +440,7 @@ function functions.moveAllMarkers()
                                 -- moveMarkerOnce(mark)
 
                                 -- get future heading x, y
-                                local newheading = getNewMarkerHeading(mark, form.heading)
+                                local newheading = getNewFlagshipHeading(mark, form.heading)
                                 local newx, newy = getNewMarkerPosition(mark)
                                 local newplan = {}
                                 newplan.newx = newx
@@ -410,16 +454,13 @@ function functions.moveAllMarkers()
                                 -- if it is behind the correct position, then it is free to move with the formation
 
                                 -- get the correct position within the formation and save that inside the marker table
-                                setCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
-                                assert(mark.correctX ~= nil)
-                                assert(mark.correctY ~= nil)
+                                mark.correctX, mark.correctY = getCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
 
-                                -- print(mark.correctX,mark.correctY)
+                                local newheading = getNewMarkerHeading(mark)
 
-                                alignMarkerTowardsCorrectPosition(mark)
-
-                                -- get the marker location and facing. Will add an arbitary 'length' to it's current position/heading
+                                -- get the new marker x,y pair. The length is an arbitrary number to create the vector
                                 local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
+
                                 -- get the delta for use in the dot product
                                 local facingdeltax = markernewx - mark.positionX
                                 local facingdeltay = markernewy - mark.positionY
@@ -434,7 +475,12 @@ function functions.moveAllMarkers()
                                 local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
                                 if dotproduct > 0 then
                                     -- marker is behind the correct position so allowed to move
-                                    moveMarkerOnce(mark)
+                                    local newx, newy = getNewMarkerPosition(mark)
+                                    local newplan = {}
+                                    newplan.newx = newx
+                                    newplan.newy = newy
+                                    newplan.newheading = newheading
+                                    table.insert(mark.planningstep, newplan)
                                 end
                             end
                         end

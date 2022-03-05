@@ -27,7 +27,7 @@ TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is workin
 
 -- used to control game flow. Move and Combat modes are opposites and should never be the same
 GAME_MODE = enum.gamemodePlanning
-
+TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
 flotilla = {}
@@ -113,8 +113,10 @@ function love.mousepressed( x, y, button, istouch )
 				-- ray1.position = {x=wx, y=wy}
 				ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
 			end
+		elseif GAME_MODE == enum.gamemodeMoving then
+
 		else
-			error()
+			error("mouse pressed during an unknown game mode")
 		end
 	elseif button == 2 then
 		-- set selected marker as a target
@@ -382,25 +384,10 @@ function love.update(dt)
 	cam:setPos(TRANSLATEX, TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
 
-	--! army alpha plans moves
-	--! army brava plans moves
-	--! move all flotilla's
-	--! resolve torpedo attacks
-	--! army alpha plans combat
-	--! army bravo plans combat
-	--! simultaneous combat resolution
-	--! add 10 minutes to clock
-	--! if armyalpha == gone then
-		--! armybravo wins
-	--! end
-	--! if armybravo = gone then
-		--! armyalpha wins
-	--! end
-
+	-- do line-of-sight stuff
 	local x, y = love.mouse.getPosition()
 	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
 	ray1.angle = math.atan2(wy-ray1.position.y, wx-ray1.position.x)
-
 	local lines = {}
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -416,6 +403,28 @@ function love.update(dt)
 		end
 	end
 	ray1:update (lines)
+
+	if GAME_MODE == enum.gamemodeMoving then
+		TIMER_MOVEMODE = TIMER_MOVEMODE + dt
+		if TIMER_MOVEMODE > enum.timerMoveMode then
+			TIMER_MOVEMODE = 0
+			-- move markers as per planned steps
+			for k,flot in pairs(flotilla) do
+				for q,form in pairs(flot.formation) do
+					for w,mark in pairs(form.marker) do
+						if #mark.planningstep > 0 then
+							-- move to next step
+							mark.positionX = mark.planningstep[1].newx
+							mark.positionY = mark.planningstep[1].newy
+							mark.heading = mark.planningstep[1].newheading
+							table.remove(mark.planningstep, 1)
+							movecomplete = false
+						end
+					end
+				end
+			end
+		end
+	end
 
 	assert(GAME_MODE > 0)
 	assert(GAME_MODE <= enum.NumGameModes)
