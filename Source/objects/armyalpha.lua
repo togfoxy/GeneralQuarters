@@ -8,8 +8,6 @@ local function initaliseMarker(flot, form, m)
     m.sequenceInColumn = nextsequence[m.columnNumber]
     nextsequence[m.columnNumber] = nextsequence[m.columnNumber] + 1
     m.length = 48  -- mm
-    m.undoPositionX = {}
-    m.undoPositionY = {}
     m.isSelected = false
     m.isTarget = false
     m.missileFactor = 0
@@ -21,6 +19,7 @@ local function initaliseMarker(flot, form, m)
     m.positionX = love.math.random(100, 1800)
     m.positionY = love.math.random(100, 900)
     m.targetID = "" -- flotilla, formation, marker
+    m.planningstep = {}     -- holds future moves determined during the planning stage
 end
 
 local function addKaiser(flot, form)
@@ -274,7 +273,7 @@ function armyalpha.Initialise()
     addGrosserKerflirst(1, 1)
     addHelgoland(1,1)
     addKaiser(1,1)
-    
+
     for i = 1, love.math.random(3, 15) do
         -- fun.addGenericMarker(1, 1)
     end
