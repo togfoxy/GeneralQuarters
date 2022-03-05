@@ -46,37 +46,6 @@ function functions.getFormationCentre(formation)
     return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
-local function alignMarkerTowardsHeading(m, desiredheading)
-    -- aligns markers closer to desired heading
-    -- operates directly on m
-    -- input: m = marker (object/table)
-    -- input: desiredheading = number between 0 -> 359 inclusive
-    -- output: none
-
-    local steeringamount = 15
-    local angledelta = desiredheading - m.heading
-    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
-
-    -- determine if cheaper to turn left or right
-    local leftdistance = m.heading - desiredheading
-    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
-
-    local rightdistance = desiredheading - m.heading
-    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
-
-    -- print(m.heading, desiredheading, leftdistance, rightdistance)
-
-    if leftdistance < rightdistance then
-        -- print("turning left " .. adjsteeringamount)
-        m.heading = m.heading - (adjsteeringamount)
-    else
-       -- print("turning right " .. adjsteeringamount)
-        m.heading = m.heading + (adjsteeringamount)
-    end
-    if m.heading < 0 then m.heading = 360 + m.heading end
-    if m.heading > 359 then m.heading = m.heading - 360 end
-end
-
 local function getNewFlagshipHeading(m, desiredheading)
     -- returns the new/future heading for the marker. Usually only applies to flagships
     -- input: m = marker (object/table). Usually a flagship
@@ -257,29 +226,6 @@ function functions.getSelectedMarker()
     return nil
 end
 
-local function moveMarkerOnce(mymarker)
-    -- moves one marker just once (in direction of heading)
-    -- input: a marker object
-    -- output: none. Operates directly on mymarker
-    local xcentre = (mymarker.positionX)
-    local ycentre = (mymarker.positionY)
-    local heading = (mymarker.heading)
-    local dist
-    if mymarker.isFlagship then
-        dist = mymarker.length
-    else
-        dist = mymarker.length
-    end
-    if not mymarker.isFlagship then
-        -- get distance to correct position then ensure it is not overshot
-        local dist2 = cf.GetDistance(xcentre,ycentre, mymarker.correctX, mymarker.correctY)
-        dist = math.min(dist,dist2)
-    end
-    local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, dist)
-    mymarker.positionX = newx
-    mymarker.positionY = newy
-end
-
 local function getNewMarkerPosition(mymarker)
     -- determines the new/future marker position based on current direction
     -- new marker is based off last planned step i.e not always from current position
@@ -435,11 +381,8 @@ function functions.moveAllMarkers()
                         if #mark.planningstep <= mark.movementFactor then
                             if mark == flagship then
                                 -- flagship = flagship so move the flagship
-                                -- alignMarkerTowardsHeading(mark, form.heading)
 
-                                -- moveMarkerOnce(mark)
-
-                                -- get future heading x, y
+                                -- get future heading x, y and heading
                                 local newheading = getNewFlagshipHeading(mark, form.heading)
                                 local newx, newy = getNewMarkerPosition(mark)
                                 local newplan = {}
@@ -457,6 +400,10 @@ function functions.moveAllMarkers()
                                 mark.correctX, mark.correctY = getCorrectPositionInFormation(form, flagship, mark) -- sets marker.correctX and marker.correctY
 
                                 local newheading = getNewMarkerHeading(mark)
+                                local newplan = {}
+                                newplan.newx = mark.positionX       -- this is set here as a default value
+                                newplan.newy = mark.positionY       -- and might be updated down below if marker actually moves
+                                newplan.newheading = newheading
 
                                 -- get the new marker x,y pair. The length is an arbitrary number to create the vector
                                 local markernewx, markernewy = cf.AddVectorToPoint(mark.positionX,mark.positionY, mark.heading, mark.length)    -- creates a vector reflecting facting
@@ -476,12 +423,11 @@ function functions.moveAllMarkers()
                                 if dotproduct > 0 then
                                     -- marker is behind the correct position so allowed to move
                                     local newx, newy = getNewMarkerPosition(mark)
-                                    local newplan = {}
                                     newplan.newx = newx
                                     newplan.newy = newy
-                                    newplan.newheading = newheading
-                                    table.insert(mark.planningstep, newplan)
+
                                 end
+                                table.insert(mark.planningstep, newplan)
                             end
                         end
                     end
