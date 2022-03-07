@@ -140,8 +140,6 @@ function love.mousepressed( x, y, button, istouch )
 end
 
 function love.load()
-
-
     if love.filesystem.isFused( ) then
         void = love.window.setMode(SCREEN_WIDTH, SCREEN_HEIGHT,{fullscreen=false,display=1,resizable=true, borderless=false})	-- display = monitor number (1 or 2)
         gbolDebug = false
@@ -172,6 +170,8 @@ function love.load()
 	end
 	-- load images
     image[enum.markerBattleship] = love.graphics.newImage("assets/ShipBattleshipHull.png")
+	image[enum.markerBattleshipGun] = love.graphics.newImage("assets/WeaponBattleshipStandardGun.png")
+
 
 	cam = Camera.new(960, 540, 1)
 
@@ -183,7 +183,7 @@ end
 local function drawEveryMarker()
 	-- draw every marker
 	local degangle = ""
-	local mousetext = ""
+	mousetext = ""
 	local alphavalue = 1
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
@@ -243,7 +243,6 @@ local function drawEveryMarker()
 					local gunsdownrange = fun.getGunsInArc(mark, mousearc)
 					-- print(gunsdownrange)
 					mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
-
 				else
 					-- nothing to do
 				end
@@ -256,12 +255,18 @@ local function drawEveryMarker()
 				-- draw centre
 				-- love.graphics.circle("fill", xcentre, ycentre, 3)
 
-				-- draw image
+				-- draw marker image
 				-- the image needs to be shifted left and forward. These next two lines will do that.
 				local drawingheading = fun.adjustHeading(heading, -90)
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
-				love.graphics.draw(image[1], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- -24 & -15 centres the image and 0.15 scales the image down to 48 pixels
+				love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- 0.23 scales the image down to 48 pixels
+
+				-- draw the guns
+				local drawingheading = fun.adjustHeading(heading, -90)
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+				love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)
 
 				-- draw correct position
 				if mark.correctX ~= nil then
