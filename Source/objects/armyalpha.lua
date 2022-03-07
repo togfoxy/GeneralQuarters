@@ -20,6 +20,8 @@ local function initaliseMarker(flot, form, m)
     m.positionY = love.math.random(100, 900)
     m.targetID = "" -- flotilla, formation, marker
     m.planningstep = {}     -- holds future moves determined during the planning stage
+    m.frontGunPosition = 20     -- draws the front gun image 20 pixels from the centre of the marker
+
 end
 
 local function addKaiser(flot, form)
