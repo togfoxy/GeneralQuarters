@@ -92,7 +92,7 @@ function AddVectorToPoint(x,y,headingdegrees,distance)
 	-- x/y = a point in space
 	-- heading is the angle in degrees where 0 = NORTH
 	-- distance = distance
-	-- returns x and y
+	-- returns x and y (whole numbers)
 	-- Note: a negative distance (< 0) will provide a point that is behind or backwards.
 
 	local convertedheading = headingdegrees - 90
@@ -287,4 +287,50 @@ function SwapScreen(newScreen, screenStack)
 
     AddScreen(newScreen)
     table.remove(screenStack, #screenStack - 1)
+end
+
+function getBearing(x1,y1,x2,y2)
+	-- returns the bearing between two points assuming straight up (north) is zero degrees
+	-- Straight down (below/south) is 180 degrees
+	-- another way to think of this is the first point is a vector from 0,0 to 0,inf (y axis/north)
+	-- and the other vector is from 0,0 to x2,y2. Function returns the angle between those two vectors
+	-- input: x1, y1 - the anchor or origin to determine the bearing
+	-- output: number - 0 -> 359. Degrees. 0 = north/up/above
+
+    -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
+	if x1 == x2 and y1 == y2 then targetqudrant = 0 end
+    if x2 >= x1 and y2 <= y1 then targetqudrant = 1 end
+    if x2 > x1 and y2 > y1 then targetqudrant = 2 end
+    if x2 <= x1 and y2 >= y1 then targetqudrant = 3 end
+    if x2 < x1 and y2 < y1 then targetqudrant = 4 end
+
+    if targetqudrant == 0 then
+        return 0    -- just face north I guess
+    elseif targetqudrant == 1 then
+        -- tan(angle) = opp / adj
+        -- angle = atan(opp/adj)
+        local adj = x2 - x1
+        local opp = y1 - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 - angletocorrectposition)
+    elseif targetqudrant == 2 then
+        local adj = x2 - x1
+        local opp = y2 - y1
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 + angletocorrectposition)
+    elseif targetqudrant == 3 then
+        local adj = x1 - x2
+        local opp = y2 - y1
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 - angletocorrectposition)
+    elseif targetqudrant == 4 then
+        local adj = x1 - x2
+        local opp = y1 - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 + angletocorrectposition)
+    end
 end
