@@ -278,6 +278,8 @@ end
 
 function CurrentScreenName(screenStack)
 	-- returns the current active screen
+	-- input: the screen stack array
+	-- output: string
 	return screenStack[#screenStack]
 end
 
