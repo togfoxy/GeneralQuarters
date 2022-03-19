@@ -1,4 +1,4 @@
-gstrGameVersion = "0.01"
+GAME_VERSION = "0.01"
 
 inspect = require 'lib.inspect'
 -- https://github.com/kikito/inspect.lua
@@ -9,10 +9,15 @@ res = require 'lib.resolution_solution'
 Camera = require 'lib.cam11.cam11'	-- Returns the Camera class.
 -- https://notabug.org/pgimeno/cam11
 
+Slab = require 'lib.Slab.Slab'
+-- https://github.com/coding-jackalope/Slab/wiki
+
 cf = require 'lib.commonfunctions'
 enum = require 'enum'
 rays = require 'lib.rays'
--- fun = require 'functions'
+Menus = require 'menus'
+
+fun = require 'functions'
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
@@ -44,14 +49,14 @@ function love.load()
     end
 
 	res.setGame(SCREEN_WIDTH, SCREEN_HEIGHT)
-    love.window.setTitle("General quarters! " .. gstrGameVersion)
+    love.window.setTitle("General quarters! " .. GAME_VERSION)
 	love.keyboard.setKeyRepeat(true)
 	cf.AddScreen("MainMenu", SCREEN_STACK)
 
-    image[enum.markerBattleship] = love.graphics.newImage("assets/ShipBattleshipHull.png")
-	image[enum.markerBattleshipGun] = love.graphics.newImage("assets/WeaponBattleshipStandardGun.png")
+    fun.LoadImages()
 
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
+    Slab.Initialize()
 end
 
 function love.draw()
@@ -59,9 +64,14 @@ function love.draw()
     res.start()
 	cam:attach()
 
+	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
+    if strCurrentScreen == "MainMenu" then
+		Menus.DrawMainMenu()
+	end
 
 
 
+    Slab.Draw()
 	cam:detach()
 	res.stop()
 end
@@ -73,7 +83,7 @@ function love.update(dt)
 	cam:setPos(TRANSLATEX, TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
 
-
+    Slab.Update(dt)
 
     assert(GAME_MODE > 0)
 	assert(GAME_MODE <= enum.NumGameModes)

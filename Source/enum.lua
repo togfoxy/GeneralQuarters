@@ -3,6 +3,7 @@ module(...,package.seeall)
 -- images
 markerBattleship = 1
 markerBattleshipGun = 2
+mainmenu = 3
 
 -- timers
 timerMoveMode = 0.6       -- how quickly ships move in move mode
