@@ -15,7 +15,7 @@ Slab = require 'lib.Slab.Slab'
 cf = require 'lib.commonfunctions'
 enum = require 'enum'
 rays = require 'lib.rays'
-Menus = require 'menus'
+menus = require 'menus'
 
 fun = require 'functions'
 
@@ -66,9 +66,22 @@ function love.draw()
 
 	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
     if strCurrentScreen == "MainMenu" then
-		Menus.DrawMainMenu()
+		menus.DrawMainMenu()
 	end
 
+
+
+
+
+
+
+
+
+
+
+	if strCurrentScreen == "Credits" then
+		menus.DrawCredits()
+	end
 
 
     Slab.Draw()
