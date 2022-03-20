@@ -39,6 +39,7 @@ function menus.DrawMainMenu()
 	        Slab.SetLayoutColumn(2)
 				Slab.NewLine()
 	            if Slab.Button("New game",{W=columnwidth, H = buttonheight}) then
+					cf.AddScreen("GameLoop", SCREEN_STACK)
 	     		end
 
 				Slab.NewLine()

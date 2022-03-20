@@ -16,6 +16,7 @@ cf = require 'lib.commonfunctions'
 enum = require 'enum'
 rays = require 'lib.rays'
 menus = require 'menus'
+ocean = require 'ocean'
 
 fun = require 'functions'
 
@@ -66,8 +67,15 @@ function love.draw()
 
 	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
     if strCurrentScreen == "MainMenu" then
+		love.graphics.setBackgroundColor( 0, 0, 0, 1 )
 		menus.DrawMainMenu()
 	end
+	if strCurrentScreen == "GameLoop" then
+		-- menus.DrawMainMenu()
+		ocean.Draw()
+	end
+
+
 
 
 
