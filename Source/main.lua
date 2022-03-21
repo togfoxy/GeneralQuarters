@@ -34,12 +34,24 @@ TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
 flotilla = {}
+font = {}		-- table to hold different fonts
 
 function love.keyreleased( key, scancode )
 	if key == "escape" then
 		cf.RemoveScreen(SCREEN_STACK)
 	end
 end
+
+function love.keypressed( key, scancode, isrepeat )
+	if key == "kp5" then
+		-- cyle to the next game mode
+		GAME_MODE = GAME_MODE + 1
+		if GAME_MODE > enum.NumGameModes then
+			GAME_MODE = 1
+		end
+	end
+end
+
 
 function love.load()
     if love.filesystem.isFused( ) then
@@ -55,9 +67,12 @@ function love.load()
 	cf.AddScreen("MainMenu", SCREEN_STACK)
 
     fun.LoadImages()
+	fun.LoadFonts()
+
 
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
-    Slab.Initialize()
+
+	    Slab.Initialize()
 end
 
 function love.draw()

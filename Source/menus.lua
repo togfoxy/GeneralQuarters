@@ -86,11 +86,13 @@ function menus.DrawCredits()
 		AutoSizeWindow=false,
 		AllowMove=false,
 		AllowResize=false,
+		NoSavedSettings=true,
 		X = fltSlabWindowX,
 		Y = fltSlabWindowY,
 		W = intSlabWidth,
-		H = intSlabHeight,
+		H = intSlabHeight
 	}
+
 	local URLOptions = function(url)
 		local option = {}
 		option.URL = url

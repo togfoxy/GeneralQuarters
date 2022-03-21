@@ -10,5 +10,11 @@ function functions.LoadImages()
 
 end
 
+function functions.LoadFonts()
+    font[enum.fontHeavyMetal] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf")
+end
+
+
+
 
 return functions
