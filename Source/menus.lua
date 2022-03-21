@@ -39,6 +39,7 @@ function menus.DrawMainMenu()
 	        Slab.SetLayoutColumn(2)
 				Slab.NewLine()
 	            if Slab.Button("New game",{W=columnwidth, H = buttonheight}) then
+					cf.AddScreen("GameLoop", SCREEN_STACK)
 	     		end
 
 				Slab.NewLine()
@@ -85,11 +86,13 @@ function menus.DrawCredits()
 		AutoSizeWindow=false,
 		AllowMove=false,
 		AllowResize=false,
+		NoSavedSettings=true,
 		X = fltSlabWindowX,
 		Y = fltSlabWindowY,
 		W = intSlabWidth,
-		H = intSlabHeight,
+		H = intSlabHeight
 	}
+
 	local URLOptions = function(url)
 		local option = {}
 		option.URL = url
