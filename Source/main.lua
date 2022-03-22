@@ -17,6 +17,9 @@ enum = require 'enum'
 rays = require 'lib.rays'
 menus = require 'menus'
 ocean = require 'ocean'
+flot = require 'flotilla'
+-- marker = require 'marker'
+qualitycheck = require 'qualitycheck'
 
 fun = require 'functions'
 
