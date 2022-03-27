@@ -27,6 +27,8 @@ SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 SCREEN_STACK = {}
 
+MAP_CENTRE = 7511	-- the x/y of the centre of the map. X = 7511 and Y = 7511
+
 ZOOMFACTOR = 1
 TRANSLATEX = cf.round(SCREEN_WIDTH / 2)		-- starts the camera in the middle of the ocean
 TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is working with pixels

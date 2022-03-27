@@ -1,0 +1,7 @@
+Ship image = 209 pixels but needs to be 48 pixels.  Conversion means times everything in rules by 4.35.
+
+Hex is 36,000 yards across = 3,450 mm = 3450 pixels. After scaling = 15,022 pixels.
+    Middle of map x/y after scaling = 7511, 7511
+
+Starting location is front ship 18,000 yards from centre. (Half the hex). This scales to 7511 pixels. Will ignore 'hex' and assume a circle.
+Starting orientation is towards the centre.
