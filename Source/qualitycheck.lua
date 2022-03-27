@@ -24,4 +24,19 @@ function qualitycheck.columnNumber()
     end
 end
 
+function qualitycheck.formationHasFlagship()
+    -- ensures every formation has a flagship
+    for k, flot in pairs(flotilla) do
+        for q, form in pairs(flot.formation) do
+            local hasFS = false
+            for w, mark in pairs(form.marker) do
+                if mark.isFlagship then
+                    hasFS = true
+                end
+            end
+            assert(hasFS == true)
+        end
+    end
+end
+
 return qualitycheck

@@ -33,6 +33,7 @@ local function createNewFormation()
     myformation.pivotpointy = nil
     myformation.undoStackX = {}
     myformation.undoStackY = {}
+    myformation.planningstep = {}
     return myformation
 end
 
@@ -52,6 +53,9 @@ function flot.Initialise()
     table.insert(newflotilla.formation, newformation)
     -- prep this new formation to accept one or more markers
     newformation.marker = {}
+    local newmarker = mark.addAgincourt(newformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
     -- do the same for the Germans
     newflotilla = {}
@@ -67,6 +71,7 @@ function flot.Initialise()
     -- do some QA to make sure nothing broke
     qualitycheck.distanceBetweenColumns()
     qualitycheck.columnNumber()
+    qualitycheck.formationHasFlagship()
 
     -- determine starting location and orientation for each flotilla/formation
     local bearingfromcentre
@@ -81,7 +86,6 @@ function flot.Initialise()
             form.positionX, form.positionY = cf.AddVectorToPoint(MAP_CENTRE, MAP_CENTRE, bearingfromcentre, distfromcentre)
         end
     end
-
 end
 
 return flot
