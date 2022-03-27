@@ -336,3 +336,14 @@ function getBearing(x1,y1,x2,y2)
         return cf.round(270 + angletocorrectposition)
     end
 end
+
+function adjustHeading(heading, amount)
+    -- adjusts HEADING by AMOUNT. A positive moves the heading right/clockwise. A negative value moves left/anti-clockwise
+    -- will adjust if moves past north/zero/360
+	-- input: original heading, amount to adjust
+    -- output: new heading
+    local newheading = heading + amount
+    if newheading > 359 then newheading = newheading - 360 end
+    if newheading < 0 then newheading = 360 + newheading end     -- heading is a negative value so '+' it and 360
+    return newheading
+end

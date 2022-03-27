@@ -33,6 +33,7 @@ local function createNewFormation()
     myformation.pivotpointy = nil
     myformation.undoStackX = {}
     myformation.undoStackY = {}
+    myformation.planningstep = {}
     return myformation
 end
 
@@ -53,8 +54,47 @@ function flot.Initialise()
     -- prep this new formation to accept one or more markers
     newformation.marker = {}
 
+    -- add some markers
+    local newmarker = mark.addAgincourt(newformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+    -- do the same for the Germans
+    newflotilla = {}
+    newflotilla = createNewFlotilla("German")   -- adds a flotilla to the global flotilla and returns that new flotilla
+    newflotilla.formation = {}
+
+    newformation = {}
+    newformation = createNewFormation()           -- creates a newformation
+    table.insert(newflotilla.formation, newformation)   -- adds the new formation to the new flotilla
+
+    -- add some markers
+    newformation.marker = {}    -- preps the formation to receive new markers
+    local newmarker = mark.addFriedrichDerGrosse(newformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+
+    -- *************************************
+
+    -- do some QA to make sure nothing broke
     qualitycheck.distanceBetweenColumns()
     qualitycheck.columnNumber()
+    qualitycheck.formationHasFlagship()
+
+    -- determine starting location and orientation for each flotilla/formation
+    local bearingfromcentre
+    for k, flot in pairs(flotilla) do
+        for q, form in pairs(flot.formation) do
+            -- orientation
+            bearingfromcentre = love.math.random(0, 359)
+            form.heading = cf.adjustHeading(bearingfromcentre, 180)
+
+            -- location
+            local distfromcentre = MAP_CENTRE
+            form.positionX, form.positionY = cf.AddVectorToPoint(MAP_CENTRE, MAP_CENTRE, bearingfromcentre, distfromcentre)
+        end
+    end
 end
 
 return flot
