@@ -35,60 +35,6 @@ local function AddTurret(struct, gf, tf)
     table.insert(struct, myturret)
 end
 
-function marker.addAgincourt(form)
-    -- adds a marker to the provided formation
-    -- input: the formation this marker will be assigned to
-    -- output: the marker, noting it will already be a part of the formation
-    local mymarker = {}
-    initaliseMarker(form, mymarker)   -- sets up some boring generic default values
-    mymarker.markerName = "Agincourt"
-    mymarker.movementFactor = 9
-    mymarker.protectionFactor = 8
-    mymarker.markerType = "BB"
-    mymarker.initialHeading = form.heading
-    mymarker.heading = form.heading
-
-    mymarker.structure = {}
-    mymarker.structure[1] = {}
-    mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
-    mymarker.structure[1].fireDirections = {}
-    mymarker.structure[1].fireDirections[1] = "Bow"
-    mymarker.structure[1].fireDirections[2] = "Port"
-    mymarker.structure[1].fireDirections[3] = "Starboard"
-
-    mymarker.structure[2] = {}
-    mymarker.structure[2].location = "Midships"        -- location of the structure on the marker
-    mymarker.structure[2].fireDirections = {}
-    mymarker.structure[2].fireDirections[1] = "Port"
-    mymarker.structure[2].fireDirections[2] = "Starboard"
-
-    mymarker.structure[3] = {}
-    mymarker.structure[3].location = "Stern"        -- location of the structure on the marker
-    mymarker.structure[3].fireDirections = {}
-    mymarker.structure[3].fireDirections[1] = "Starboard"
-    mymarker.structure[3].fireDirections[2] = "Port"
-    mymarker.structure[3].fireDirections[3] = "Stern"
-
-    mymarker.structure[1].turret = {}
-    mymarker.structure[2].turret = {}
-    mymarker.structure[3].turret = {}
-
-    -- for each structure defined above, describe the turrets linked to each structure
-    for i = 1,4 do
-    AddTurret(mymarker.structure[1].turret, 1, 0)   -- struct, gunfactor, torpedo factor. Normally 1 gf for BB.
-    end
-    for i = 1,6 do
-    AddTurret(mymarker.structure[2].turret, 1, 0)
-    end
-    for i = 1,4 do
-    AddTurret(mymarker.structure[3].turret, 1, 0)
-    end
-
-    table.insert (form.marker, mymarker)
-    return mymarker
-
-end
-
 function marker.getCorrectPositionInFormation(thismark)
     -- determine the correct x/y position for this marker
 
@@ -196,6 +142,127 @@ function marker.getCorrectPositionInFormation(thismark)
     end
 
 end
+
+-- ******************************** British makers ******************************
+function marker.addAgincourt(form)
+    -- adds a marker to the provided formation
+    -- input: the formation this marker will be assigned to
+    -- output: the marker, noting it will already be a part of the formation
+    local mymarker = {}
+    initaliseMarker(form, mymarker)   -- sets up some boring generic default values
+    mymarker.markerName = "Agincourt"
+    mymarker.movementFactor = 9
+    mymarker.protectionFactor = 8
+    mymarker.markerType = "BB"
+    mymarker.initialHeading = form.heading
+    mymarker.heading = form.heading
+
+    mymarker.structure = {}
+    mymarker.structure[1] = {}
+    mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
+    mymarker.structure[1].fireDirections = {}
+    mymarker.structure[1].fireDirections[1] = "Bow"
+    mymarker.structure[1].fireDirections[2] = "Port"
+    mymarker.structure[1].fireDirections[3] = "Starboard"
+
+    mymarker.structure[2] = {}
+    mymarker.structure[2].location = "Midships"        -- location of the structure on the marker
+    mymarker.structure[2].fireDirections = {}
+    mymarker.structure[2].fireDirections[1] = "Port"
+    mymarker.structure[2].fireDirections[2] = "Starboard"
+
+    mymarker.structure[3] = {}
+    mymarker.structure[3].location = "Stern"        -- location of the structure on the marker
+    mymarker.structure[3].fireDirections = {}
+    mymarker.structure[3].fireDirections[1] = "Starboard"
+    mymarker.structure[3].fireDirections[2] = "Port"
+    mymarker.structure[3].fireDirections[3] = "Stern"
+
+    mymarker.structure[1].turret = {}
+    mymarker.structure[2].turret = {}
+    mymarker.structure[3].turret = {}
+
+    -- for each structure defined above, describe the turrets linked to each structure
+    for i = 1,4 do
+    AddTurret(mymarker.structure[1].turret, 1, 0)   -- struct, gunfactor, torpedo factor. Normally 1 gf for BB.
+    end
+    for i = 1,6 do
+    AddTurret(mymarker.structure[2].turret, 1, 0)
+    end
+    for i = 1,4 do
+    AddTurret(mymarker.structure[3].turret, 1, 0)
+    end
+
+    table.insert (form.marker, mymarker)
+    return mymarker
+
+end
+
+-- ******************************** German makers ******************************
+function marker.addFriedrichDerGrosse(thisform)
+    -- adds the Friederich to the provided flotilla and formation
+    -- input: flotilla number, form number   (not objects/tables!)
+
+    local mymarker = {}
+    initaliseMarker(thisform, mymarker)   -- sets up some boring generic default values
+    mymarker.markerName = "Friederich Der Grosse"
+    mymarker.isFlagship = true
+    mymarker.movementFactor = 8
+    mymarker.protectionFactor = 12
+    mymarker.markerType = "BB"
+    mymarker.initialHeading = thisform.heading
+    mymarker.heading = thisform.heading
+
+    mymarker.structure = {}
+    mymarker.structure[1] = {}
+    mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
+    mymarker.structure[1].fireDirections = {}
+    mymarker.structure[1].fireDirections[1] = "Bow"
+    mymarker.structure[1].fireDirections[2] = "Port"
+    mymarker.structure[1].fireDirections[3] = "Starboard"
+
+    mymarker.structure[2] = {}
+    mymarker.structure[2].location = "Starboard"        -- location of the structure on the marker
+    mymarker.structure[2].fireDirections = {}
+    mymarker.structure[2].fireDirections[1] = "Bow"
+    mymarker.structure[2].fireDirections[2] = "Starboard"
+    mymarker.structure[2].fireDirections[3] = "Stern"
+
+    mymarker.structure[3] = {}
+    mymarker.structure[3].location = "Port"        -- location of the structure on the marker
+    mymarker.structure[3].fireDirections = {}
+    mymarker.structure[3].fireDirections[1] = "Bow"
+    mymarker.structure[3].fireDirections[2] = "Port"
+    mymarker.structure[3].fireDirections[3] = "Stern"
+
+    mymarker.structure[4] = {}
+    mymarker.structure[4].location = "Stern"        -- location of the structure on the marker
+    mymarker.structure[4].fireDirections = {}
+    mymarker.structure[4].fireDirections[1] = "Stern"
+    mymarker.structure[4].fireDirections[2] = "Port"
+    mymarker.structure[4].fireDirections[3] = "Starboard"
+
+    mymarker.structure[1].turret = {}
+    mymarker.structure[2].turret = {}
+    mymarker.structure[3].turret = {}
+    mymarker.structure[4].turret = {}
+
+    for i = 1,3 do
+        AddTurret(mymarker.structure[1].turret, 1, 0)
+    end
+    for i = 1,2 do
+        AddTurret(mymarker.structure[2].turret, 1, 0)
+    end
+    for i = 1,2 do
+        AddTurret(mymarker.structure[3].turret, 1, 0)
+    end
+    for i = 1,5 do
+        AddTurret(mymarker.structure[4].turret, 1, 0)
+    end
+    table.insert (thisform.marker, mymarker)
+    return mymarker
+end
+
 
 
 

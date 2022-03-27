@@ -53,6 +53,8 @@ function flot.Initialise()
     table.insert(newflotilla.formation, newformation)
     -- prep this new formation to accept one or more markers
     newformation.marker = {}
+
+    -- add some markers
     local newmarker = mark.addAgincourt(newformation)
     newmarker.isFlagship = true
     newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
@@ -66,7 +68,14 @@ function flot.Initialise()
     newformation = createNewFormation()           -- creates a newformation
     table.insert(newflotilla.formation, newformation)   -- adds the new formation to the new flotilla
 
+    -- add some markers
     newformation.marker = {}    -- preps the formation to receive new markers
+    local newmarker = mark.addFriedrichDerGrosse(newformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+
+    -- *************************************
 
     -- do some QA to make sure nothing broke
     qualitycheck.distanceBetweenColumns()
