@@ -184,7 +184,6 @@ local function drawEveryMarker()
 				local ycentre = (mark.positionY)
 				local heading = (mark.heading)
 				local headingrad = math.rad(heading)
-print(mark.markerName, mark.positionX, mark.positionY, mark.heading)
 				local x1,y1,x2,y2 = getMarkerPoints(mark)
 
 				local red,green,blue = 1,1,1
@@ -246,13 +245,13 @@ print(mark.markerName, mark.positionX, mark.positionY, mark.heading)
 				local drawingheading = cf.adjustHeading(heading, -90)
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
-				love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- 0.23 scales the image down to 48 pixels
+				love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
 				-- draw the guns
-				local drawingheading = cf.adjustHeading(heading, -90)
-				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
-				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
-				love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)
+				-- local drawingheading = cf.adjustHeading(heading, -90)
+				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
+				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
 				-- draw correct position
 				if mark.correctX ~= nil then

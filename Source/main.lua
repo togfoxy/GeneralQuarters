@@ -94,7 +94,6 @@ function love.load()
     fun.LoadImages()
 	fun.LoadFonts()
 
-
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
 
     Slab.Initialize()
@@ -134,7 +133,14 @@ function love.update(dt)
 
 	res.update()	-- put at start of love.update
 
-	cam:setPos(TRANSLATEX, TRANSLATEY)
+	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
+
+	if strCurrentScreen == "GameLoop" then
+		cam:setPos(flotilla[1].formation[1].positionX, flotilla[1].formation[1].positionY)
+	else
+
+	end
+
 	cam:setZoom(ZOOMFACTOR)
 
     Slab.Update(dt)
