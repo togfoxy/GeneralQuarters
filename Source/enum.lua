@@ -6,8 +6,8 @@ markerBattleshipGun = 2
 mainmenu = 3
 
 -- fonts
-fontHeavyMetal = 1
-
+fontHeavyMetalLarge = 1
+fontHeavyMetalSmall = 2
 
 -- timers
 timerMoveMode = 0.6       -- how quickly ships move in move mode

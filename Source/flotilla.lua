@@ -49,6 +49,7 @@ local function getAllFlotillaStartingPosition()
             -- location
             local distfromcentre = MAP_CENTRE
             form.positionX, form.positionY = cf.AddVectorToPoint(MAP_CENTRE, MAP_CENTRE, bearingfromcentre, distfromcentre)
+print(form.positionX, form.positionY)
         end
     end
 end

@@ -11,7 +11,8 @@ function functions.LoadImages()
 end
 
 function functions.LoadFonts()
-    font[enum.fontHeavyMetal] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf")
+    font[enum.fontHeavyMetalLarge] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf")
+    font[enum.fontHeavyMetalSmall] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf",10)
 end
 
 
