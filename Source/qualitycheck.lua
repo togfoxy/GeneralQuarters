@@ -13,12 +13,14 @@ function qualitycheck.distanceBetweenColumns()
     end
 end
 
-function qualitycheck.columnNumber()
+function qualitycheck.marker()
     -- ensures the column number/index for each formation does not exceed the number of columns in the formation
     for k,flot in pairs(flotilla) do
         for q,form in pairs(flot.formation) do
             for w,mark in pairs(form.marker) do
                 assert(mark.columnNumber <= form.numOfColumns)
+                assert(mark.positionX ~= nil)
+                assert(mark.positionY ~= nil)
             end
         end
     end
