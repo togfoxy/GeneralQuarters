@@ -40,6 +40,8 @@ function marker.getCorrectPositionInFormation(thismark)
 
     local thisform, flagship
 
+-- print(inspect(thismark))
+
     -- determine which formation the marker is in
     for q,flot in pairs(flotilla) do
         for w,form in pairs(flot.formation) do
@@ -55,10 +57,13 @@ function marker.getCorrectPositionInFormation(thismark)
         end
     end
 
+-- print(inspect(flagship))
+
     -- determine if thismark should be left or right of the flagship by checking numOfColumns
     local columndelta = thismark.columnNumber - flagship.columnNumber    -- a negative number means m should be left of fs
     local fsheading, fsX, fsY
     local laststepnumber = #thisform.planningstep
+
     if  laststepnumber == 0 then
         -- there is no plan so far so just use real position
         fsheading = thisform.heading
@@ -70,6 +75,8 @@ function marker.getCorrectPositionInFormation(thismark)
         fsX = thisform.planningstep[laststepnumber].newx
         fsY = thisform.planningstep[laststepnumber].newy
     end
+
+    assert(fsX ~= nil and fsY ~= nil)
 
     if columndelta < 0 then
         -- left side of the flagship
@@ -143,6 +150,132 @@ function marker.getCorrectPositionInFormation(thismark)
 
 end
 
+local function getMarkerPoints(m)
+    -- given a marker (m) return the xy that starts the line and the xy that ends the line
+    -- this is determined by the centre point and the heading that is stored inside m
+    -- output: two xy pairs (x1, y1, x2, y2)
+    local xcentre = (m.positionX)
+    local ycentre = (m.positionY)
+    local heading = (m.heading)
+    local headingrad = math.rad(heading)
+    local dist = (m.length)
+    local x1, y1 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2))		-- front
+    local x2, y2 = cf.AddVectorToPoint(xcentre,ycentre,heading, (dist/2) * -1)	-- rear
+    return x1, y1, x2, y2
+end
+
+local function drawEveryMarker()
+	-- draw every marker
+
+	local degangle = ""
+	mousetext = ""
+	local alphavalue = 1
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+
+			if form.isSelected then
+				alphavalue = 1
+			else
+				alphavalue = 0.33
+			end
+
+			for w,mark in pairs(form.marker) do
+				local xcentre = (mark.positionX)
+				local ycentre = (mark.positionY)
+				local heading = (mark.heading)
+				local headingrad = math.rad(heading)
+print(mark.markerName, mark.positionX, mark.positionY, mark.heading)
+				local x1,y1,x2,y2 = getMarkerPoints(mark)
+
+				local red,green,blue = 1,1,1
+
+				if mark.isFlagship then
+					blue = 0
+				end
+				if mark.isTarget then
+					green = green / 2
+					blue = blue / 2
+					--alphavalue = 1
+				elseif mark.isSelected then
+					red = red / 2
+					blue = blue / 2
+
+					local mousex, mousey = love.mouse.getPosition()
+					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
+					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
+					-- degangle is the angle assuming 0 = north.
+					-- it needs to be adjusted to be relative to the ship heading
+					-- degangle == 0 means directly ahead of the marker
+					-- degangle == 90 means directly off starboard
+
+					-- print(degangle, mark.heading)
+					degangle = cf.adjustHeading(degangle, mark.heading * -1)
+
+					local mousearc
+
+					-- +/- 15 degree = front of marker (345 -> 15)
+					if degangle >= 345 or degangle <= 15 then
+						mousearc = "Bow"
+					elseif degangle >= 165 and degangle <= 195 then
+						mousearc = "Stern"
+					elseif degangle > 165 and degangle < 345 then
+						mousearc = "Port"
+					elseif degangle > 15 and degangle < 165 then
+						mousearc = "Starboard"
+					else
+						error(degangle)
+					end
+
+					local gunsdownrange = fun.getGunsInArc(mark, mousearc)
+					-- print(gunsdownrange)
+					mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+				else
+					-- nothing to do
+				end
+				love.graphics.setColor(red, green, blue, alphavalue)
+
+				-- draw line and circle
+				-- love.graphics.line(x1,y1,x2,y2)
+				-- love.graphics.circle("fill", x2, y2, 3)
+
+				-- draw centre
+				-- love.graphics.circle("fill", xcentre, ycentre, 3)
+
+				-- draw marker image
+				-- the image needs to be shifted left and forward. These next two lines will do that.
+				local drawingheading = cf.adjustHeading(heading, -90)
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
+				love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)		-- 0.23 scales the image down to 48 pixels
+
+				-- draw the guns
+				local drawingheading = cf.adjustHeading(heading, -90)
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
+				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+				love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 0.23, 0.23)
+
+				-- draw correct position
+				if mark.correctX ~= nil then
+					-- love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+				end
+
+				-- debugging
+				-- draw tempx/tempy if that has been set anywhere
+				if tempx ~= nil then
+					love.graphics.setColor(1, 0, 0, alphavalue)
+					love.graphics.circle("fill", tempx, tempy, 5)
+				end
+
+			end
+		end
+	end
+end
+
+function marker.draw()
+    drawEveryMarker()
+end
+
+
 -- ******************************** British makers ******************************
 function marker.addAgincourt(form)
     -- adds a marker to the provided formation
@@ -150,6 +283,7 @@ function marker.addAgincourt(form)
     -- output: the marker, noting it will already be a part of the formation
     local mymarker = {}
     initaliseMarker(form, mymarker)   -- sets up some boring generic default values
+
     mymarker.markerName = "Agincourt"
     mymarker.movementFactor = 9
     mymarker.protectionFactor = 8
@@ -262,17 +396,6 @@ function marker.addFriedrichDerGrosse(thisform)
     table.insert (thisform.marker, mymarker)
     return mymarker
 end
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -112,18 +112,10 @@ function love.draw()
 	end
 	if strCurrentScreen == "GameLoop" then
 		-- menus.DrawMainMenu()
-		ocean.Draw()
+		ocean.draw()
+		flot.draw()
 		hud.printGameMode()	-- ensure this is drawn towards the end so that it draws over other things
 	end
-
-
-
-
-
-
-
-
-
 
 
 

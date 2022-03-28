@@ -20,7 +20,25 @@ function formation.getSizeOfColumn(thisform, thiscol)
     return colsize[thiscol]
 end
 
+function formation.getFormationCentre(thisform)
+    -- gets the centre of a formation by doing vector things
+    -- returns a single x/y
+    -- input: thisform = object/table
+    -- output: x/y pair (number)
 
+    local xcentre, ycentre, count = 0,0,0
+    for k, mark in pairs(thisform.marker) do
+        xcentre = xcentre + mark.positionX
+        ycentre = ycentre + mark.positionY
+        count = count + 1
+    end
+    return cf.round(xcentre / count), cf.round(ycentre / count)
+end
+
+function formation.draw()
+    -- draw every formation
+    mark.draw()
+end
 
 
 return formation

@@ -37,52 +37,8 @@ local function createNewFormation()
     return myformation
 end
 
-function flot.Initialise()
-    -- initialises two flotillas and adds them to the flotilla table
-    -- input: none
-    -- output: none
-
-    -- create a new flotilla and add that flotilla to the global table
-    -- the 'nation' could be anything but for now it's hardcoded to 'British' and 'German'
-    newflotilla = createNewFlotilla("British")
-    -- prep the flotilla to accept one or more formations
-    newflotilla.formation = {}
-    -- create a generic formation with default Settings
-    newformation = createNewFormation()
-    -- add this generic formation to the flotila
-    table.insert(newflotilla.formation, newformation)
-    -- prep this new formation to accept one or more markers
-    newformation.marker = {}
-
-    -- add some markers
-    local newmarker = mark.addAgincourt(newformation)
-    newmarker.isFlagship = true
-    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
-
-    -- do the same for the Germans
-    newflotilla = {}
-    newflotilla = createNewFlotilla("German")   -- adds a flotilla to the global flotilla and returns that new flotilla
-    newflotilla.formation = {}
-
-    newformation = {}
-    newformation = createNewFormation()           -- creates a newformation
-    table.insert(newflotilla.formation, newformation)   -- adds the new formation to the new flotilla
-
-    -- add some markers
-    newformation.marker = {}    -- preps the formation to receive new markers
-    local newmarker = mark.addFriedrichDerGrosse(newformation)
-    newmarker.isFlagship = true
-    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
-
-
-    -- *************************************
-
-    -- do some QA to make sure nothing broke
-    qualitycheck.distanceBetweenColumns()
-    qualitycheck.columnNumber()
-    qualitycheck.formationHasFlagship()
-
-    -- determine starting location and orientation for each flotilla/formation
+local function getAllFlotillaStartingPosition()
+    -- called just once to set flotilla starting positions
     local bearingfromcentre
     for k, flot in pairs(flotilla) do
         for q, form in pairs(flot.formation) do
@@ -95,6 +51,66 @@ function flot.Initialise()
             form.positionX, form.positionY = cf.AddVectorToPoint(MAP_CENTRE, MAP_CENTRE, bearingfromcentre, distfromcentre)
         end
     end
+end
+
+function flot.Initialise()
+    -- initialises two flotillas and adds them to the flotilla table
+    -- input: none
+    -- output: none
+
+    -- create a new flotilla and add that flotilla to the global table
+    -- the 'nation' could be anything but for now it's hardcoded to 'British' and 'German'
+    newflotilla = createNewFlotilla("British")
+    -- prep the flotilla to accept one or more formations
+    newflotilla.formation = {}
+    -- create a generic formation with default Settings
+    local newbritformation = createNewFormation()
+    -- add this generic formation to the flotilla
+    table.insert(newflotilla.formation, newbritformation)
+    -- prep this new formation to accept one or more markers
+    newbritformation.marker = {}
+
+    -- do the same for the Germans
+    newflotilla = {}
+    newflotilla = createNewFlotilla("German")   -- adds a flotilla to the global flotilla and returns that new flotilla
+    newflotilla.formation = {}
+
+    local newgermformation = {}
+    newgermformation = createNewFormation()           -- creates a newformation
+    table.insert(newflotilla.formation, newgermformation)   -- adds the new formation to the new flotilla
+
+    -- prep this new formation to accept one or more markers
+    newgermformation.marker = {}    -- preps the formation to receive new markers
+
+    -- determine starting location and orientation for each flotilla/formation
+    getAllFlotillaStartingPosition()
+
+    -- ********************************************************************************************
+    -- neds to come after both flotilla's/formations are established
+    -- load up markers on both flotillas
+
+    local newmarker = mark.addAgincourt(newbritformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+    local newmarker = {}
+    newmarker = mark.addFriedrichDerGrosse(newgermformation)
+    newmarker.isFlagship = true
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+    -- *************************************
+
+    -- do some QA to make sure nothing broke
+    qualitycheck.distanceBetweenColumns()
+    qualitycheck.marker()
+    qualitycheck.formationHasFlagship()
+
+
+end
+
+function flot.draw()
+    -- draws every flotilla
+    form.draw()
 end
 
 return flot
