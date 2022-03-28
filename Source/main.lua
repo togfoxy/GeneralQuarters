@@ -17,6 +17,7 @@ enum = require 'enum'
 rays = require 'lib.rays'
 menus = require 'menus'
 ocean = require 'ocean'
+hud = require 'hud'
 flot = require 'flotilla'
 form = require 'formation'
 mark = require 'marker'
@@ -49,6 +50,13 @@ function love.keyreleased( key, scancode )
 end
 
 function love.keypressed( key, scancode, isrepeat )
+
+	local translatefactor = 10 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
+	if key == "left" then TRANSLATEX = TRANSLATEX - translatefactor end
+	if key == "right" then TRANSLATEX = TRANSLATEX + translatefactor end
+	if key == "up" then TRANSLATEY = TRANSLATEY - translatefactor end
+	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
+
 	if key == "kp5" then
 		-- cyle to the next game mode
 		GAME_MODE = GAME_MODE + 1
@@ -56,6 +64,17 @@ function love.keypressed( key, scancode, isrepeat )
 			GAME_MODE = 1
 		end
 	end
+end
+
+function love.wheelmoved(x, y)
+	if y > 0 then
+		-- wheel moved up. Zoom in
+		ZOOMFACTOR = ZOOMFACTOR + 0.1
+	end
+	if y < 0 then
+		ZOOMFACTOR = ZOOMFACTOR - 0.1
+	end
+	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
 end
 
 
@@ -78,7 +97,7 @@ function love.load()
 
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
 
-	    Slab.Initialize()
+    Slab.Initialize()
 end
 
 function love.draw()
@@ -94,6 +113,7 @@ function love.draw()
 	if strCurrentScreen == "GameLoop" then
 		-- menus.DrawMainMenu()
 		ocean.Draw()
+		hud.printGameMode()	-- ensure this is drawn towards the end so that it draws over other things
 	end
 
 
