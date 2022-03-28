@@ -15,9 +15,21 @@ function hud.printGameMode()
         text = "COMBAT MODE"
     end
 
-    love.graphics.setFont(font[enum.fontHeavyMetal])
+    love.graphics.setFont(font[enum.fontHeavyMetalLarge])
     love.graphics.setColor(1,1,1,1)
     love.graphics.print(text, 50, 50)
+
+    if PLAYER_TURN == 1 then
+        text = "BRITAN"
+    else
+        text = "GERMANY"
+    end
+
+    love.graphics.setFont(font[enum.fontHeavyMetalSmall])
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.print(text, 50, 150)
+
+
 end
 
 

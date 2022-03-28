@@ -231,7 +231,6 @@ local function drawEveryMarker()
 				else
 					-- nothing to do
 				end
-				love.graphics.setColor(red, green, blue, alphavalue)
 
 				-- draw line and circle
 				-- love.graphics.line(x1,y1,x2,y2)
@@ -245,7 +244,10 @@ local function drawEveryMarker()
 				local drawingheading = cf.adjustHeading(heading, -90)
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
-				love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
+
+-- love.graphics.setColor(red, green, blue, alphavalue)
+                love.graphics.setColor(1,1,1,1)
+                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
 				-- draw the guns
 				-- local drawingheading = cf.adjustHeading(heading, -90)

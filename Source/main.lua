@@ -37,6 +37,7 @@ TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is workin
 
 -- used to control game flow. Move and Combat modes are opposites and should never be the same
 GAME_MODE = enum.gamemodePlanning
+PLAYER_TURN = 1		-- which player is in control - 1 or 2?
 TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
@@ -51,15 +52,20 @@ end
 
 function love.keypressed( key, scancode, isrepeat )
 
-	local translatefactor = 10 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
+	local translatefactor = 500 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
 	if key == "left" then TRANSLATEX = TRANSLATEX - translatefactor end
 	if key == "right" then TRANSLATEX = TRANSLATEX + translatefactor end
 	if key == "up" then TRANSLATEY = TRANSLATEY - translatefactor end
 	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
 
 	if key == "kp5" then
-		-- cyle to the next game mode
-		GAME_MODE = GAME_MODE + 1
+		-- cyle to the next player and then the next game mode
+		if PLAYER_TURN == 1 then
+			PLAYER_TURN = 2
+		else
+			GAME_MODE = GAME_MODE + 1
+			PLAYER_TURN = 1
+		end
 		if GAME_MODE > enum.NumGameModes then
 			GAME_MODE = 1
 		end
@@ -95,6 +101,9 @@ function love.load()
 	fun.LoadFonts()
 
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
+	-- cam:setPos(7960, 7440)	-- puts cam approximately in centre of battle map
+	TRANSLATEX = 7960
+	TRANSLATEY = 7440
 
     Slab.Initialize()
 end
@@ -104,28 +113,32 @@ function love.draw()
     res.start()
 	cam:attach()
 
-	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
-    if strCurrentScreen == "MainMenu" then
+	local currentscreen = cf.CurrentScreenName(SCREEN_STACK)
+    if currentscreen == "MainMenu" then
 		love.graphics.setBackgroundColor( 0, 0, 0, 1 )
 		menus.DrawMainMenu()
 	end
-	if strCurrentScreen == "GameLoop" then
+	if currentscreen == "GameLoop" then
 		-- menus.DrawMainMenu()
 		ocean.draw()
 		flot.draw()
-		hud.printGameMode()	-- ensure this is drawn towards the end so that it draws over other things
+
+		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 50)
 	end
 
-
-
-
-	if strCurrentScreen == "Credits" then
+	if currentscreen == "Credits" then
 		menus.DrawCredits()
 	end
 
 
     Slab.Draw()
 	cam:detach()
+
+	-- do hud stuff after cam:detach because we don't want that to zoom/scale/pan etc.
+	if currentscreen == "GameLoop" then
+		hud.printGameMode()	-- ensure this is drawn towards the end so that it draws over other things
+	end
+
 	res.stop()
 end
 
@@ -136,13 +149,13 @@ function love.update(dt)
 	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
 
 	if strCurrentScreen == "GameLoop" then
-		cam:setPos(flotilla[1].formation[1].positionX, flotilla[1].formation[1].positionY)
+		--cam:setPos(flotilla[1].formation[1].positionX, flotilla[1].formation[1].positionY)
 	else
 
 	end
 
+	cam:setPos(TRANSLATEX,	TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
-
     Slab.Update(dt)
 
     assert(GAME_MODE > 0)
