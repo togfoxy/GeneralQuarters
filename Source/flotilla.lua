@@ -13,29 +13,6 @@ local function createNewFlotilla(nation)
     return myflotilla
 end
 
-local function createNewFormation()
-    -- creates a new formation with default settings
-    -- there is normally two flotilla's (two sides) and each has multiple formations
-    -- output = a new formation. This will need to be added to a flotilla in the calling routine
-
-    local myformation = {}
-    myformation.numOfColumns = love.math.random(1,4)
-
-    if myformation.numOfColumns > 1 then
-        myformation.distanceBetweenColumns = love.math.random(50, 100)
-    else
-        myformation.distanceBetweenColumns = nil
-    end
-    myformation.heading = love.math.random(0, 359)
-    myformation.currentManeuver = ""
-	myformation.isSelected = false
-    myformation.pivotpointx = nil
-    myformation.pivotpointy = nil
-    myformation.undoStackX = {}
-    myformation.undoStackY = {}
-    myformation.planningstep = {}
-    return myformation
-end
 
 local function getAllFlotillaStartingPosition()
     -- called just once to set flotilla starting positions
@@ -53,6 +30,31 @@ local function getAllFlotillaStartingPosition()
     end
 end
 
+function flot.getAveragePosition(nation)
+    -- cycle thorugh all markers and determine the average x/y for the provided nation.
+    -- used to know where the 'middle' of the flotilla is for positioning camera etc
+    -- input: nation - string
+    -- output: x, y - integer (pixels) reflecting the average x and average y for all markers of that nation
+
+    -- cycle through, add totals, keep a count, then do an average (total/count)
+    local totalx = 0
+    local totaly = 0
+    local markercount = 0
+
+    for k,flot in pairs(flotilla) do
+        if flot.nation == nation then
+            for q,form in pairs(flot.formation) do
+                for w,mark in pairs(form.marker) do
+                    totalx = totalx + mark.positionX
+                    totaly = totaly + mark.positionY
+                    markercount = markercount + 1
+                end
+            end
+        end
+    end
+    return cf.round(totalx/markercount), cf.round(totaly/markercount)       -- this is pixes so must round off
+end
+
 function flot.Initialise()
     -- initialises two flotillas and adds them to the flotilla table
     -- input: none
@@ -64,7 +66,7 @@ function flot.Initialise()
     -- prep the flotilla to accept one or more formations
     newflotilla.formation = {}
     -- create a generic formation with default Settings
-    local newbritformation = createNewFormation()
+    local newbritformation = form.createNewFormation()
     -- add this generic formation to the flotilla
     table.insert(newflotilla.formation, newbritformation)
     -- prep this new formation to accept one or more markers
@@ -76,7 +78,7 @@ function flot.Initialise()
     newflotilla.formation = {}
 
     local newgermformation = {}
-    newgermformation = createNewFormation()           -- creates a newformation
+    newgermformation = form.createNewFormation()           -- creates a newformation
     table.insert(newflotilla.formation, newgermformation)   -- adds the new formation to the new flotilla
 
     -- prep this new formation to accept one or more markers
@@ -104,8 +106,6 @@ function flot.Initialise()
     qualitycheck.distanceBetweenColumns()
     qualitycheck.marker()
     qualitycheck.formationHasFlagship()
-
-
 end
 
 function flot.draw()

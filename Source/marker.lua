@@ -40,8 +40,6 @@ function marker.getCorrectPositionInFormation(thismark)
 
     local thisform, flagship
 
--- print(inspect(thismark))
-
     -- determine which formation the marker is in
     for q,flot in pairs(flotilla) do
         for w,form in pairs(flot.formation) do
@@ -56,8 +54,6 @@ function marker.getCorrectPositionInFormation(thismark)
             end
         end
     end
-
--- print(inspect(flagship))
 
     -- determine if thismark should be left or right of the flagship by checking numOfColumns
     local columndelta = thismark.columnNumber - flagship.columnNumber    -- a negative number means m should be left of fs
