@@ -19,21 +19,19 @@ function hud.printGameMode()
     love.graphics.setColor(1,1,1,1)
     love.graphics.print(text, 50, 50)
 
-    if PLAYER_TURN == 1 then
-        text = "BRITAN"
+    -- draw which player has control
+    if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
+        text = ""
     else
-        text = "GERMANY"
+        if PLAYER_TURN == 1 then
+            text = "BRITAN"
+        else
+            text = "GERMANY"
+        end
     end
 
     love.graphics.setFont(font[enum.fontHeavyMetalSmall])
     love.graphics.setColor(1,1,1,1)
     love.graphics.print(text, 50, 150)
-
-
 end
-
-
-
-
-
 return hud

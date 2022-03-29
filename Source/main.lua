@@ -53,15 +53,30 @@ end
 function love.keypressed( key, scancode, isrepeat )
 
 	local translatefactor = 500 * (ZOOMFACTOR * 2)		-- screen moves faster when zoomed in
-	if key == "left" then TRANSLATEX = TRANSLATEX - translatefactor end
-	if key == "right" then TRANSLATEX = TRANSLATEX + translatefactor end
-	if key == "up" then TRANSLATEY = TRANSLATEY - translatefactor end
-	if key == "down" then TRANSLATEY = TRANSLATEY + translatefactor end
+
+	local leftpressed = love.keyboard.isDown("left")
+	local rightpressed = love.keyboard.isDown("right")
+	local uppressed = love.keyboard.isDown("up")
+	local downpressed = love.keyboard.isDown("down")
+	local shiftpressed = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")	-- either shift key will work
+
+	-- adjust translatex/y based on keypress combinations
+	if shiftpressed then translatefactor = translatefactor * 2 end	-- ensure this line is above the lines below
+	if leftpressed then TRANSLATEX = TRANSLATEX - translatefactor end
+	if rightpressed then TRANSLATEX = TRANSLATEX + translatefactor end
+	if uppressed then TRANSLATEY = TRANSLATEY - translatefactor end
+	if downpressed then TRANSLATEY = TRANSLATEY + translatefactor end
 
 	if key == "kp5" then
 		-- cyle to the next player and then the next game mode
+		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
 		if PLAYER_TURN == 1 then
-			PLAYER_TURN = 2
+			if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
+				GAME_MODE = GAME_MODE + 1
+				PLAYER_TURN = 1
+			else
+				PLAYER_TURN = 2
+			end
 		else
 			GAME_MODE = GAME_MODE + 1
 			PLAYER_TURN = 1
