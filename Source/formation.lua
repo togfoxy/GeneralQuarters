@@ -1,5 +1,29 @@
 local formation = {}
 
+function formation.createNewFormation()
+    -- creates a new formation with default settings
+    -- there is normally two flotilla's (two sides) and each has multiple formations
+    -- output = a new formation. This will need to be added to a flotilla in the calling routine
+
+    local myformation = {}
+    myformation.numOfColumns = love.math.random(1,4)
+
+    if myformation.numOfColumns > 1 then
+        myformation.distanceBetweenColumns = love.math.random(50, 100)
+    else
+        myformation.distanceBetweenColumns = nil
+    end
+    myformation.heading = love.math.random(0, 359)
+    myformation.currentManeuver = ""
+	myformation.isSelected = false
+    myformation.pivotpointx = nil
+    myformation.pivotpointy = nil
+    myformation.undoStackX = {}
+    myformation.undoStackY = {}
+    myformation.planningstep = {}
+    return myformation
+end
+
 function formation.getSizeOfColumn(thisform, thiscol)
     -- return how many markers are in the nominated formation/column
     -- input: formation (table)

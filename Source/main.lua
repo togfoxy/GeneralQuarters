@@ -84,6 +84,9 @@ function love.keypressed( key, scancode, isrepeat )
 		if GAME_MODE > enum.NumGameModes then
 			GAME_MODE = 1
 		end
+
+		fun.changeCameraPosition()
+
 	end
 end
 
@@ -138,7 +141,7 @@ function love.draw()
 		ocean.draw()
 		flot.draw()
 
-		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 50)
+		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
 	end
 
 	if currentscreen == "Credits" then
@@ -169,7 +172,7 @@ function love.update(dt)
 
 	end
 
-	cam:setPos(TRANSLATEX,	TRANSLATEY)
+	-- cam:setPos(TRANSLATEX,	TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
     Slab.Update(dt)
 
