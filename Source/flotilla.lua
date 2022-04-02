@@ -95,11 +95,18 @@ function flot.Initialise()
     newmarker.isFlagship = true
     newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
-    local newmarker = {}
-    newmarker = mark.addFriedrichDerGrosse(newgermformation)
+
+
+    local newmarker = mark.addFriedrichDerGrosse(newgermformation)
     newmarker.isFlagship = true
     newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
+    local newmarker = mark.addGrosserKurfurst(newgermformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+
+	fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
     -- *************************************
 
     -- do some QA to make sure nothing broke

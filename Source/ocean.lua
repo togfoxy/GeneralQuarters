@@ -1,7 +1,8 @@
 local ocean = {}
 
 local function DrawWater()
-    love.graphics.setBackgroundColor( 46/255, 53/255, 252/255, 1 )
+    love.graphics.setBackgroundColor( 2/255, 5/255, 71/255, 1 )
+
 end
 
 function ocean.draw()

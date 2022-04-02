@@ -16,7 +16,7 @@ end
 function functions.changeCameraPosition()
     -- determines where the camera should focus on depending on game_mode and phase
     -- input: nothing
-    -- output: nothing. OPerators directly on cam object
+    -- output: nothing. Operates directly on TRANSLATEX/TRANSLATEY
 
     -- get the flotilla position
     local britishx, britishy = flot.getAveragePosition("British")
@@ -53,7 +53,9 @@ function functions.changeCameraPosition()
         camy = MAP_CENTRE
     end
 
-    cam:setPos(camx, camy)
+    TRANSLATEX = camx
+    TRANSLATEY = camy
+    cam:setPos(TRANSLATEX, TRANSLATEY)
 end
 
 return functions

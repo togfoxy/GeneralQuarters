@@ -44,23 +44,40 @@ function formation.getSizeOfColumn(thisform, thiscol)
     return colsize[thiscol]
 end
 
--- function formation.getFormationCentre(thisform)
---     -- gets the centre of a formation by doing vector things
---     -- returns a single x/y
---     -- input: thisform = object/table
---     -- output: x/y pair (number)
---
---     local xcentre, ycentre, count = 0,0,0
---     for k, mark in pairs(thisform.marker) do
---         xcentre = xcentre + mark.positionX
---         ycentre = ycentre + mark.positionY
---         count = count + 1
---     end
---     return cf.round(xcentre / count), cf.round(ycentre / count)
--- end
+function getFormationCentre(thisform)
+    -- gets the centre of a formation by doing vector things
+    -- returns a single x/y
+    -- input: thisform = object/table
+    -- output: x/y pair (number)
+
+    local xcentre, ycentre, count = 0,0,0
+    for k, mark in pairs(thisform.marker) do
+        xcentre = xcentre + mark.positionX
+        ycentre = ycentre + mark.positionY
+        count = count + 1
+    end
+    return cf.round(xcentre / count), cf.round(ycentre / count)
+end
+
+function drawCentre()
+    -- draw centre of formations
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			local formx, formy = getFormationCentre(form)
+			love.graphics.setColor(1, 1, 1, alphavalue)
+			love.graphics.circle("line", formx, formy, 5)
+			-- draw line out from circle to show heading of formation
+			x1, y1 = formx, formy
+			x2, y2 = cf.AddVectorToPoint(x1,y1,form.heading, 8)
+			love.graphics.line(x1,y1,x2,y2)
+		end
+	end
+
+end
 
 function formation.draw()
     -- draw every formation
+    drawCentre()
     mark.draw()
 end
 

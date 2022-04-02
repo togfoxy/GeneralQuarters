@@ -32,6 +32,6 @@ function hud.printGameMode()
 
     love.graphics.setFont(font[enum.fontHeavyMetalSmall])
     love.graphics.setColor(1,1,1,1)
-    love.graphics.print(text, 50, 150)
+    love.graphics.print(text, 50, 75)
 end
 return hud

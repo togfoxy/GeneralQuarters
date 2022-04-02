@@ -32,6 +32,8 @@ SCREEN_STACK = {}
 MAP_CENTRE = 7511	-- the x/y of the centre of the map. X = 7511 and Y = 7511
 
 ZOOMFACTOR = 1
+PREFERRED_ZOOM_BRITISH = 1		-- glabals to capture the zoom the camera should return to between modes
+PREFERRED_ZOOM_GERMAN = 1
 TRANSLATEX = cf.round(SCREEN_WIDTH / 2)		-- starts the camera in the middle of the ocean
 TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is working with pixels
 
@@ -67,17 +69,27 @@ function love.keypressed( key, scancode, isrepeat )
 	if uppressed then TRANSLATEY = TRANSLATEY - translatefactor end
 	if downpressed then TRANSLATEY = TRANSLATEY + translatefactor end
 
+print(TRANSLATEX, TRANSLATEY)
+
 	if key == "kp5" then
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
 		if PLAYER_TURN == 1 then
 			if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
+				-- changing from Moving/Comnat into planning/targeting for player 1
 				GAME_MODE = GAME_MODE + 1
 				PLAYER_TURN = 1
+				ZOOMFACTOR = PREFERRED_ZOOM_BRITISH
 			else
+				--moving from planning/targetting for player 1 into planning/targeting for player 2
+				PREFERRED_ZOOM_BRITISH = ZOOMFACTOR
 				PLAYER_TURN = 2
+				ZOOMFACTOR = PREFERRED_ZOOM_GERMAN
 			end
 		else
+			-- moving from planning/targetting for player 2 into moving/combat mode (both players)
+			PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
+			ZOOMFACTOR = 0.1		-- most zoomed out possible
 			GAME_MODE = GAME_MODE + 1
 			PLAYER_TURN = 1
 		end
@@ -85,7 +97,7 @@ function love.keypressed( key, scancode, isrepeat )
 			GAME_MODE = 1
 		end
 
-		fun.changeCameraPosition()
+		fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
 
 	end
 end
@@ -167,12 +179,11 @@ function love.update(dt)
 	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
 
 	if strCurrentScreen == "GameLoop" then
-		--cam:setPos(flotilla[1].formation[1].positionX, flotilla[1].formation[1].positionY)
 	else
 
 	end
 
-	-- cam:setPos(TRANSLATEX,	TRANSLATEY)
+	cam:setPos(TRANSLATEX,	TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
     Slab.Update(dt)
 
