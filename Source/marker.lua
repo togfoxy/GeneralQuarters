@@ -221,9 +221,9 @@ local function drawEveryMarker()
 						error(degangle)
 					end
 
-					local gunsdownrange = fun.getGunsInArc(mark, mousearc)
+					-- local gunsdownrange = fun.getGunsInArc(mark, mousearc)
 					-- print(gunsdownrange)
-					mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+					-- mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 				else
 					-- nothing to do
 				end
@@ -245,7 +245,7 @@ local function drawEveryMarker()
 				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,leftoffset)	-- the centre for drawing purposes is a little to the 'left'
 				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, frontoffset)	-- this nudges the image forward to align with the centre of the marker
 
-                love.graphics.setColor(1,1,1,1)
+                love.graphics.setColor(red,green,blue,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
 				-- draw the guns
@@ -278,6 +278,73 @@ function marker.draw()
     drawEveryMarker()
 end
 
+function marker.unselectAll()
+    -- cycles through every marker and clears all 'selection' flags
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                mark.isTarget = false
+                mark.isSelected = false
+			end
+		end
+	end
+end
+
+function marker.getClosest(x,y, ...)
+    -- scans every marker and returns the one closest to x/y.
+    -- if optional parameter is sent (string) then it will look for the closest marker matching that nation
+    -- input: the x/y of interest
+    -- input: optional string for nation of interest
+    -- output: a marker object/table
+
+    local arg = {...}   -- [1] is an optional string noting the nation of interest
+    local bestdistance = -1
+	local closestmarker    -- this is returned by this function
+
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if arg[1] == nil or flot.nation == arg[1] then
+     		        local disttomarker = cf.GetDistance(x, y, mark.positionX, mark.positionY)
+        			if (disttomarker < bestdistance) or (bestdistance < 0) then
+        				bestdistance = disttomarker
+        				closestmarker = mark		-- this is an object/table
+                	end
+                end
+            end
+		end
+	end
+	-- print("***")
+	return closestmarker	-- an object/table
+end
+
+function marker.getSelected()
+    -- cycles through every marker looking for the one that is selected.
+    -- output: the marker that is selected (object/table) or nil
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if mark.isSelected then
+                    return mark
+                end
+            end
+        end
+    end
+    return nil
+end
+
+function marker.unselectAllTargetedMarkers()
+    -- cycles through every marker and clears the isTargetted flag
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                if mark.isTarget then
+                    mark.isTarget = false
+                end
+			end
+		end
+	end
+end
 
 -- ******************************** British makers ******************************
 function marker.addAgincourt(form)
