@@ -241,7 +241,6 @@ local function drawEveryMarker()
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
 				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
 
--- love.graphics.setColor(red, green, blue, alphavalue)
                 love.graphics.setColor(1,1,1,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
@@ -394,7 +393,55 @@ function marker.addFriedrichDerGrosse(thisform)
     return mymarker
 end
 
+function marker.addGrosserKurfurst(thisform)
+    -- flot and form are numnbers (index)
+    local mymarker = {}
+    initaliseMarker(thisform, mymarker)   -- sets up some boring generic default values
+    mymarker.markerName = "Grosser Kerflirst"
+    mymarker.movementFactor = 8
+    mymarker.protectionFactor = 14
+    mymarker.markerType = "BB"
+    mymarker.initialHeading = thisform.heading
+    mymarker.heading = thisform.heading
 
+    mymarker.structure = {}
+    mymarker.structure[1] = {}
+    mymarker.structure[1].location = "Bow"        -- location of the structure on the marker
+    mymarker.structure[1].fireDirections = {}
+    mymarker.structure[1].fireDirections[1] = "Bow"
+    mymarker.structure[1].fireDirections[2] = "Port"
+    mymarker.structure[1].fireDirections[3] = "Starboard"
+
+    mymarker.structure[2] = {}
+    mymarker.structure[2].location = "Midships"        -- location of the structure on the marker
+    mymarker.structure[2].fireDirections = {}
+    mymarker.structure[2].fireDirections[1] = "Port"
+    mymarker.structure[2].fireDirections[2] = "Starboard"
+
+    mymarker.structure[3] = {}
+    mymarker.structure[3].location = "Stern"        -- location of the structure on the marker
+    mymarker.structure[3].fireDirections = {}
+    mymarker.structure[3].fireDirections[1] = "Starboard"
+    mymarker.structure[3].fireDirections[2] = "Port"
+    mymarker.structure[3].fireDirections[3] = "Stern"
+
+    mymarker.structure[1].turret = {}
+    mymarker.structure[2].turret = {}
+    mymarker.structure[3].turret = {}
+
+
+    for i = 1,5 do
+        AddTurret(mymarker.structure[1].turret, 1, 0)
+    end
+    for i = 1,2 do
+        AddTurret(mymarker.structure[2].turret, 1, 0)
+    end
+    for i = 1,5 do
+        AddTurret(mymarker.structure[3].turret, 1, 0)
+    end
+    table.insert (thisform.marker, mymarker)
+    return mymarker
+end
 
 
 
