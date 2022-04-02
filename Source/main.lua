@@ -38,7 +38,7 @@ TRANSLATEX = cf.round(SCREEN_WIDTH / 2)		-- starts the camera in the middle of t
 TRANSLATEY = cf.round(SCREEN_HEIGHT / 2)	-- need to round because this is working with pixels
 
 -- used to control game flow. Move and Combat modes are opposites and should never be the same
-GAME_MODE = enum.gamemodePlanning
+GAME_MODE = 0
 PLAYER_TURN = 1		-- which player is in control - 1 or 2?
 TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
@@ -68,9 +68,6 @@ function love.keypressed( key, scancode, isrepeat )
 	if rightpressed then TRANSLATEX = TRANSLATEX + translatefactor end
 	if uppressed then TRANSLATEY = TRANSLATEY - translatefactor end
 	if downpressed then TRANSLATEY = TRANSLATEY + translatefactor end
-
-print(TRANSLATEX, TRANSLATEY)
-
 	if key == "kp5" then
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
@@ -97,8 +94,72 @@ print(TRANSLATEX, TRANSLATEY)
 			GAME_MODE = 1
 		end
 
+		form.unselectAll()
+		mark.unselectAll()
+
 		fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
 
+	end
+end
+
+function love.mousepressed( x, y, button, istouch )
+	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+
+	if button == 1 then
+		if GAME_MODE == enum.gamemodePlanning then
+			-- clear all formations
+			form.unselectAll()
+
+			-- determine formation closest to the mouse click
+			local closestformation = form.getClosest(wx, wy)	-- returns a formation object/table
+
+			-- get the distance between the mouse click and the closest formation
+			local formx, formy = form.getCentre(closestformation)
+			local dist = cf.GetDistance(wx, wy, formx, formy)
+			if dist <= 25 then
+				-- set selection flag for that formation
+				closestformation.isSelected = true
+			end
+		elseif GAME_MODE == enum.gamemodeTargeting then
+			-- select the closest marker
+			mark.unselectAll()
+			local closestmarker
+			if PLAYER_TURN == 1 then
+				closestmarker = mark.getClosest(wx,wy, "British")
+			else
+				closestmarker = mark.getClosest(wx,wy, "German")
+			end
+			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
+			if dist <= 25 then
+				closestmarker.isSelected = true
+				-- ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
+			end
+		elseif GAME_MODE == enum.gamemodeMoving then
+
+		elseif GAME_MODE == enum.gamemodeTargeting then
+
+		elseif GAME_MODE == 0 then 	-- main menu
+		else
+			error("mouse pressed during an unknown game mode")
+		end
+	elseif button == 2 then
+		-- set selected marker as a target
+		if GAME_MODE == enum.gamemodeTargeting then
+			local selectedMarker = mark.getSelected()
+			if selectedMarker ~= nil then
+				-- clear all targets
+				mark.unselectAllTargetedMarkers()
+				-- determine marker closest to the mouse click
+				local closestmarker = mark.getClosest(wx,wy)
+				local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
+				if dist <= 25 then
+					closestmarker.isTarget = true
+					selectedMarker.targetMarker = closestmarker
+				end
+			end
+		end
+	else
+		error("Unexpected button pressed")
 	end
 end
 
@@ -112,7 +173,6 @@ function love.wheelmoved(x, y)
 	end
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
 end
-
 
 function love.load()
     if love.filesystem.isFused( ) then
@@ -187,7 +247,7 @@ function love.update(dt)
 	cam:setZoom(ZOOMFACTOR)
     Slab.Update(dt)
 
-    assert(GAME_MODE > 0)
+    assert(GAME_MODE >= 0)
 	assert(GAME_MODE <= enum.NumGameModes)
 end
 

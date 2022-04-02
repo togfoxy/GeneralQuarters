@@ -44,7 +44,7 @@ function formation.getSizeOfColumn(thisform, thiscol)
     return colsize[thiscol]
 end
 
-function getFormationCentre(thisform)
+local function getFormationCentre(thisform)
     -- gets the centre of a formation by doing vector things
     -- returns a single x/y
     -- input: thisform = object/table
@@ -64,7 +64,11 @@ function drawCentre()
 	for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
 			local formx, formy = getFormationCentre(form)
-			love.graphics.setColor(1, 1, 1, alphavalue)
+            if form.isSelected then
+	            love.graphics.setColor(0, 1, 0, 1)
+            else
+                love.graphics.setColor(1, 1, 1, 1)
+            end
 			love.graphics.circle("line", formx, formy, 5)
 			-- draw line out from circle to show heading of formation
 			x1, y1 = formx, formy
@@ -72,7 +76,53 @@ function drawCentre()
 			love.graphics.line(x1,y1,x2,y2)
 		end
 	end
+end
 
+function formation.unselectAll()
+	-- cycles through all formations and clears the 'isSelected' flag
+	-- often called right before a mouse click/selection of a new formation
+
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			form.isSelected = false
+		end
+	end
+end
+
+function formation.getClosest(x, y)
+	-- scans all formations and returns the one closest to x/y. Checks that formation is on the same side
+    -- output: a formation object/table
+	local bestdistance = -1
+	local closestformation
+
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            if (PLAYER_TURN == 1 and flot.nation == "British") or (PLAYER_TURN == 2 and flot.nation == "German") then
+    			local formx, formy = getFormationCentre(form)
+    			local disttoformation = cf.GetDistance(x, y, formx, formy)
+    			if (disttoformation < bestdistance) or (bestdistance < 0) then
+    				bestdistance = disttoformation
+    				closestformation = form		-- this is an object/table
+    			end
+            end
+		end
+	end
+	return closestformation	-- an object/table
+end
+
+function formation.getCentre(thisform)
+    -- gets the centre of a formation by doing vector things
+    -- returns a single x/y
+    -- input: thisform = object/table
+    -- output: x/y pair (number)
+
+    local xcentre, ycentre, count = 0,0,0
+    for k, mark in pairs(thisform.marker) do
+        xcentre = xcentre + mark.positionX
+        ycentre = ycentre + mark.positionY
+        count = count + 1
+    end
+    return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
 function formation.draw()

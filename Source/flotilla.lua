@@ -60,6 +60,8 @@ function flot.Initialise()
     -- input: none
     -- output: none
 
+    GAME_MODE = enum.gamemodePlanning
+
     -- create a new flotilla and add that flotilla to the global table
     -- the 'nation' could be anything but for now it's hardcoded to 'British' and 'German'
     newflotilla = createNewFlotilla("British")
