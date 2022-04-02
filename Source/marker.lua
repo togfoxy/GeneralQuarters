@@ -232,14 +232,18 @@ local function drawEveryMarker()
 				-- love.graphics.line(x1,y1,x2,y2)
 				-- love.graphics.circle("fill", x2, y2, 3)
 
-				-- draw centre
-				-- love.graphics.circle("fill", xcentre, ycentre, 3)
+
 
 				-- draw marker image
 				-- the image needs to be shifted left and forward. These next two lines will do that.
 				local drawingheading = cf.adjustHeading(heading, -90)
-				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,4)	-- the centre for drawing purposes is a little to the 'left'
-				local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, 25)	-- this nudges the image forward to align with the centre of the marker
+                local drawingcentrex = xcentre
+                local drawingcentrey = ycentre
+
+                local leftoffset = 16
+                local frontoffset = 110
+				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,leftoffset)	-- the centre for drawing purposes is a little to the 'left'
+				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, frontoffset)	-- this nudges the image forward to align with the centre of the marker
 
                 love.graphics.setColor(1,1,1,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
@@ -249,6 +253,9 @@ local function drawEveryMarker()
 				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
 				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
 				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
+
+                -- draw centre of marker
+				love.graphics.circle("fill", xcentre, ycentre, 3)
 
 				-- draw correct position
 				if mark.correctX ~= nil then
