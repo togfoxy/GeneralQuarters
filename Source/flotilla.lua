@@ -97,7 +97,19 @@ function flot.Initialise()
     newmarker.isFlagship = true
     newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
+    local newmarker = mark.addAjax(newbritformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
+    local newmarker = mark.addBarham(newbritformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+    local newmarker = mark.addBellerophon(newbritformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+    --/////////--------------
 
     local newmarker = mark.addFriedrichDerGrosse(newgermformation)
     newmarker.isFlagship = true
@@ -107,8 +119,15 @@ function flot.Initialise()
     newmarker.isFlagship = false
     newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
+    local newmarker = mark.addHelgoland(newgermformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
 
-	fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
+    local newmarker = mark.addKaiser(newgermformation)
+    newmarker.isFlagship = false
+    newmarker.positionX, newmarker.positionY = mark.getCorrectPositionInFormation(newmarker)
+
+	fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position for the current player
     -- *************************************
 
     -- do some QA to make sure nothing broke
