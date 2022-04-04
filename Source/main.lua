@@ -68,12 +68,27 @@ function love.keypressed( key, scancode, isrepeat )
 	if rightpressed then TRANSLATEX = TRANSLATEX + translatefactor end
 	if uppressed then TRANSLATEY = TRANSLATEY - translatefactor end
 	if downpressed then TRANSLATEY = TRANSLATEY + translatefactor end
-	if key == "kp5" then
+
+	if key == "kp7" then
+		form.changeFacing(-15)
+	end
+
+	if key == "kp8" then
+		if GAME_MODE == enum.gamemodePlanning then
+			mark.addOneStep()
+		end
+	end
+
+	if key == "kp9" then
+		form.changeFacing(15)
+	end
+
+	if key == "kp5" then	-- end phase
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
 		if PLAYER_TURN == 1 then
 			if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
-				-- changing from Moving/Comnat into planning/targeting for player 1
+				-- changing from Moving/Combat into planning/targeting for player 1
 				GAME_MODE = GAME_MODE + 1
 				PLAYER_TURN = 1
 				ZOOMFACTOR = PREFERRED_ZOOM_BRITISH
@@ -88,6 +103,9 @@ function love.keypressed( key, scancode, isrepeat )
 			PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
 			ZOOMFACTOR = 0.1		-- most zoomed out possible
 			GAME_MODE = GAME_MODE + 1
+			if GAME_MODE == enum.gamemodeMoving then
+
+			end
 			PLAYER_TURN = 1
 		end
 		if GAME_MODE > enum.NumGameModes then
@@ -98,7 +116,6 @@ function love.keypressed( key, scancode, isrepeat )
 		mark.unselectAll()
 
 		fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
-
 	end
 end
 
