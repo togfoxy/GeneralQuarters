@@ -125,10 +125,28 @@ function formation.getCentre(thisform)
     return cf.round(xcentre / count), cf.round(ycentre / count)
 end
 
+function formation.changeFacing(value)
+    -- turns the currently selected formation by the provided value.
+    -- if no formation is selected then there is nothing to do
+	-- input: value = degrees to turn. A negative value turns left.
+	-- output: none. Operates directly on the selected formation
+    if GAME_MODE == enum.gamemodePlanning then
+        for k,flot in pairs(flotilla) do
+    		for q,form in pairs(flot.formation) do
+                if form.isSelected then
+                	form.heading = form.heading + value
+                	if form.heading < 0 then form.heading = 360 + form.heading end 	-- this is '+' because the heading is negative
+                	if form.heading > 459 then form.heading = form.heading - 360 end
+                end
+            end
+        end
+    end
+end
+
 function formation.draw()
     -- draw every formation
-    drawCentre()
     mark.draw()
+    drawCentre()    -- draw formation centre AFTER all the markers are drawn
 end
 
 

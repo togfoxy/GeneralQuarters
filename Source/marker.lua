@@ -160,6 +160,46 @@ local function getMarkerPoints(m)
     return x1, y1, x2, y2
 end
 
+local function getDrawingCentre(thismarker)
+    -- Gets the correct centre of the marker for drawing purposes noting that love.graphics.draw origin is the top left corner of each image.
+    -- input: a marker table (could also be a planned step/ghost table)
+    -- output: an x/y pair that will correctly draw the marker in the right spot
+
+    -- need to determine if thismarker is a real marker or a planned step/ghost
+    -- this is done by checking for nil values
+    local drawingheading
+    local markerheading
+    local drawingcentrex
+    local drawingcentrey
+    local offset, frontoffset
+
+    if thismarker.newx == nil then
+        -- real marker
+        offset = 15         -- Move left this much. Negatives don't work. See 'drawingheadng' below. Correct number depends on image
+        frontoffset = 110       -- larger number moves image forward of centre. Correct number depends on image
+        drawingheading = cf.adjustHeading(thismarker.heading, -90)  -- points left (-90) to move the image left
+        markerheading = thismarker.heading          -- direction to shift the image when adjusting forward
+        drawingcentrex = thismarker.positionX
+        drawingcentrey = thismarker.positionY
+    elseif thismarker.newx ~= nil then
+        offset = 15       -- larger numbers move the image left of centre. Correct number depends on image
+        frontoffset = 110       -- larger number moves image forward of centre. Correct number depends on image
+        drawingheading = cf.adjustHeading(thismarker.newheading, -90)  -- points left (-90) to move the image left
+        markerheading = thismarker.newheading
+        drawingcentrex = thismarker.newx
+        drawingcentrey = thismarker.newy
+    else
+        error("Unexpected ELSE statement")
+    end
+
+    -- this moves the image left/right by 'offset' amount
+    drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex,drawingcentrey,drawingheading,offset)	-- the centre for drawing purposes is a little to the 'left'
+    -- this moves the image forward/back by frontoffset amount
+    drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, markerheading, frontoffset)	-- this nudges the image forward to align with the centre of the marker
+
+    return drawingcentrex, drawingcentrey
+end
+
 local function drawEveryMarker()
 	-- draw every marker
 
@@ -232,19 +272,9 @@ local function drawEveryMarker()
 				-- love.graphics.line(x1,y1,x2,y2)
 				-- love.graphics.circle("fill", x2, y2, 3)
 
-
-
 				-- draw marker image
 				-- the image needs to be shifted left and forward. These next two lines will do that.
-				local drawingheading = cf.adjustHeading(heading, -90)
-                local drawingcentrex = xcentre
-                local drawingcentrey = ycentre
-
-                local leftoffset = 16
-                local frontoffset = 110
-				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,leftoffset)	-- the centre for drawing purposes is a little to the 'left'
-				drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, frontoffset)	-- this nudges the image forward to align with the centre of the marker
-
+                local drawingcentrex, drawingcentrey = getDrawingCentre(mark)   -- get the correct x/y value (with offsets) for the provided marker
                 love.graphics.setColor(red,green,blue,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
@@ -258,9 +288,9 @@ local function drawEveryMarker()
 				love.graphics.circle("fill", xcentre, ycentre, 3)
 
 				-- draw correct position
-				if mark.correctX ~= nil then
+				-- if mark.correctX ~= nil then
 					-- love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
-				end
+				-- end
 
 				-- debugging
 				-- draw tempx/tempy if that has been set anywhere
@@ -274,8 +304,19 @@ local function drawEveryMarker()
 	end
 end
 
-function marker.draw()
-    drawEveryMarker()
+local function drawEveryGhost()
+    love.graphics.setColor(1, 1, 1, 0.5)
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for w,mark in pairs(form.marker) do
+                for e,step in pairs(mark.planningstep) do
+                    local headingrad = math.rad(step.newheading)
+                    local drawingcentrex, drawingcentrey = getDrawingCentre(step)   -- get the correct x/y value (with offsets) for the provided marker
+                    love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
+                end
+            end
+        end
+    end
 end
 
 function marker.unselectAll()
@@ -344,6 +385,121 @@ function marker.unselectAllTargetedMarkers()
 			end
 		end
 	end
+end
+
+local function getNewFlagshipHeading(m, desiredheading)
+    -- returns the new/future heading for the marker. Usually only applies to flagships
+    -- input: m = marker (object/table). Usually a flagship
+    -- input: desiredheading = number between 0 -> 359 inclusive
+    -- output: the new/future heading for m
+
+    -- determine the original heading.
+    -- if no steps are planned then use m.heading
+    -- if steps are planned then use that heading instead
+    local currentheading
+    local laststepnumber = #m.planningstep
+    if laststepnumber == 0 then
+        currentheading = m.heading
+    else
+        currentheading = m.planningstep[laststepnumber].newheading
+    end
+
+    local newheading
+    local steeringamount = 15   -- this is the steering amount. Increase it to permit larger turns
+    local angledelta = desiredheading - m.heading
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+
+    -- determine if cheaper to turn left or right
+    local leftdistance = currentheading - desiredheading
+    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
+
+    local rightdistance = desiredheading - currentheading
+    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
+
+    -- print(currentheading, desiredheading, leftdistance, rightdistance)
+
+    if leftdistance < rightdistance then
+        -- print("turning left " .. adjsteeringamount)
+        newheading = currentheading - (adjsteeringamount)
+    else
+       -- print("turning right " .. adjsteeringamount)
+        newheading = currentheading + (adjsteeringamount)
+    end
+    if newheading < 0 then newheading = 360 + newheading end
+    if newheading > 359 then newheading = newheading - 360 end
+    return newheading
+end
+
+local function getNewMarkerPosition(mymarker)
+    -- determines the new/future marker position based on current direction
+    -- new marker is based off last planned step i.e not always from current position
+    -- input: a marker object
+    -- output: a new x/y pair
+
+    local xcentre
+    local ycentre
+    local heading
+    local dist
+    local laststepnumber = #mymarker.planningstep
+    if laststepnumber == 0 then
+        -- no steps are planned. Just move from current position
+        xcentre = (mymarker.positionX)
+        ycentre = (mymarker.positionY)
+        heading = (mymarker.heading)
+    else
+        -- get the latest planned step and calculate from that
+        xcentre = (mymarker.planningstep[laststepnumber].newx)
+        ycentre = (mymarker.planningstep[laststepnumber].newy)
+        heading = (mymarker.planningstep[laststepnumber].newheading)
+    end
+    if mymarker.isFlagship then
+        dist = mymarker.length
+    else
+        dist = mymarker.length
+        -- get distance to correct position then ensure it is not overshot
+        local dist2 = cf.GetDistance(xcentre,ycentre, mymarker.correctX, mymarker.correctY)
+        dist = math.min(dist,dist2)
+    end
+
+    local newx, newy = cf.AddVectorToPoint(xcentre,ycentre,heading, dist)
+    return newx, newy
+end
+
+function marker.addOneStep()
+    -- adds one step (ghost) to the flagship planned moves
+
+    -- get the selected formation
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            if form.isSelected then
+                for w,mark in pairs(form.marker) do
+                    if mark.isFlagship then
+                        -- ensure flagship hasn't expended all steps/movement
+                        if #mark.planningstep < mark.movementFactor then
+                            -- get future heading x, y and heading
+                            local newheading = getNewFlagshipHeading(mark, form.heading)    -- provide the marker and desired heading and get the future heading
+                            local newx, newy = getNewMarkerPosition(mark)   -- takes the last planned step + desired heading and adds marker.length to get that x/y
+
+                            local newplan = {}
+                            newplan.newx = newx
+                            newplan.newy = newy
+                            newplan.newheading = newheading
+                            table.insert(mark.planningstep, newplan)
+
+    print("Planned x/y: " .. newx, newy)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function marker.draw()
+    drawEveryMarker()
+    if GAME_MODE == enum.gamemodePlanning then
+        drawEveryGhost()    -- planned steps
+    end
 end
 
 -- ******************************** British makers ******************************
@@ -597,6 +753,8 @@ function marker.addBellerophon(thisform)
     table.insert (thisform.marker, mymarker)
     return mymarker
 end
+
+
 
 -- ******************************** German makers ******************************
 function marker.addFriedrichDerGrosse(thisform)
