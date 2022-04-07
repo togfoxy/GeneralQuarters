@@ -143,6 +143,17 @@ function formation.changeFacing(value)
     end
 end
 
+function formation.getFlagship(thisform)
+    -- scans the provided flotilla/formation for the marker that is the flagship
+    -- input: formation (number/index)
+    -- output: a marker object that is the flagship
+    for w,mrk in pairs(thisform.marker) do
+        if mrk.isFlagship then
+            return mrk
+        end
+    end
+end
+
 function formation.draw()
     -- draw every formation
     mark.draw()

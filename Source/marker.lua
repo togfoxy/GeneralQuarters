@@ -485,8 +485,6 @@ function marker.addOneStep()
                             newplan.newy = newy
                             newplan.newheading = newheading
                             table.insert(mark.planningstep, newplan)
-
-    print("Planned x/y: " .. newx, newy)
                         end
                     end
                 end
@@ -500,6 +498,34 @@ function marker.draw()
     if GAME_MODE == enum.gamemodePlanning then
         drawEveryGhost()    -- planned steps
     end
+end
+
+function marker.moveOneStep()
+    -- moves all markers just one step. Returns FALSE if no markers moved (all moves exhausted)
+    -- input: nothing. Operates on every marker
+    -- output: a boolean. True means at least one marker moved.
+    local markermoved = false
+    for q,flot in pairs(flotilla) do
+        for w,frm in pairs(flot.formation) do
+            local flagshipmarker = form.getFlagship(frm)    -- returns the flagship for this formation
+            for w,mrk in pairs(frm.marker) do
+                if mrk == flagshipmarker then
+                    -- the flagship already has 'ghosts' outlined so just follow that
+                    if mrk.planningstep[1] ~= nil then
+                        mrk.positionX = mrk.planningstep[1].newx
+                        mrk.positionY = mrk.planningstep[1].newy
+                        mrk.heading = mrk.planningstep[1].newheading
+                        table.remove(mrk.planningstep, 1)
+
+                        markermoved = true
+                    end
+                else
+
+                end
+            end
+        end
+    end
+    return markermoved      -- calling function can know if all moves are exhausted
 end
 
 -- ******************************** British makers ******************************

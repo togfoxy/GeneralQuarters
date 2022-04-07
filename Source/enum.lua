@@ -18,3 +18,6 @@ gamemodeMoving = 2
 gamemodeTargeting = 3
 gamemodeCombat = 4
 NumGameModes = 4
+
+-- timers (seconds)
+timerMovingMode = 1.5

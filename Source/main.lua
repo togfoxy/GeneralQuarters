@@ -43,7 +43,7 @@ PLAYER_TURN = 1		-- which player is in control - 1 or 2?
 TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
-flotilla = {}
+flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
 
 function love.keyreleased( key, scancode )
@@ -86,36 +86,9 @@ function love.keypressed( key, scancode, isrepeat )
 	if key == "kp5" then	-- end phase
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
-		if PLAYER_TURN == 1 then
-			if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
-				-- changing from Moving/Combat into planning/targeting for player 1
-				GAME_MODE = GAME_MODE + 1
-				PLAYER_TURN = 1
-				ZOOMFACTOR = PREFERRED_ZOOM_BRITISH
-			else
-				--moving from planning/targetting for player 1 into planning/targeting for player 2
-				PREFERRED_ZOOM_BRITISH = ZOOMFACTOR
-				PLAYER_TURN = 2
-				ZOOMFACTOR = PREFERRED_ZOOM_GERMAN
-			end
-		else
-			-- moving from planning/targetting for player 2 into moving/combat mode (both players)
-			PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
-			ZOOMFACTOR = 0.1		-- most zoomed out possible
-			GAME_MODE = GAME_MODE + 1
-			if GAME_MODE == enum.gamemodeMoving then
 
-			end
-			PLAYER_TURN = 1
-		end
-		if GAME_MODE > enum.NumGameModes then
-			GAME_MODE = 1
-		end
+		fun.advanceMode()
 
-		form.unselectAll()
-		mark.unselectAll()
-
-		fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
 	end
 end
 
@@ -256,9 +229,22 @@ function love.update(dt)
 	local strCurrentScreen = cf.CurrentScreenName(SCREEN_STACK)
 
 	if strCurrentScreen == "GameLoop" then
+		if GAME_MODE == enum.gamemodeMoving then
+			-- move markers within formations
+			GAME_TIMER = GAME_TIMER - dt
+			if GAME_TIMER <= 0 then
+				local markermoved = mark.moveOneStep()	-- returns FALSE if all moves exhausted
+				GAME_TIMER = enum.timerMovingMode
+				if not markermoved then
+					fun.advanceMode()		-- all moves exhausted so move to next mode
+				end
+			end
+		end
 	else
 
 	end
+
+
 
 	cam:setPos(TRANSLATEX,	TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
