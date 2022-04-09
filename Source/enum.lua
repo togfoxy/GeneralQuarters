@@ -4,6 +4,8 @@ module(...,package.seeall)
 markerBattleship = 1
 markerBattleshipGun = 2
 mainmenu = 3
+britishflag = 4
+germanflag = 5
 
 -- fonts
 fontHeavyMetalLarge = 1
