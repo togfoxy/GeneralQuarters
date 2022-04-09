@@ -83,6 +83,13 @@ function love.keypressed( key, scancode, isrepeat )
 		form.changeFacing(15)
 	end
 
+	if key == "backspace" then
+		-- undo
+		if GAME_MODE == enum.gamemodePlanning then
+			mark.undoOneStepFromFlagship()
+		end
+	end
+
 	if key == "kp5" then	-- end phase
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component

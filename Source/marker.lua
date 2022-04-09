@@ -606,6 +606,26 @@ function marker.addOneStepsToMarkers()
     end
 end
 
+function marker.undoOneStepFromFlagship()
+    -- removes one ghost from the flagship for the currently selected formation
+    for q,flot in pairs(flotilla) do
+        for w,frm in pairs(flot.formation) do
+            if frm.isSelected then
+                for w,mrk in pairs(frm.marker) do
+                    if mrk.isFlagship then
+                        if mrk.planningstep ~= nil then
+                            local stepsplanned = #mrk.planningstep
+                            if stepsplanned > 0 then
+                                table.remove(mrk.planningstep, stepsplanned)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function drawEveryMarker()
 	-- draw every marker
 
