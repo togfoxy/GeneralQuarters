@@ -76,9 +76,6 @@ function functions.advanceMode()
         end
     else
         -- moving from planning/targetting for player 2 into moving/combat mode (both players)
-
-
-
         PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
         ZOOMFACTOR = 0.1		-- most zoomed out possible
         GAME_MODE = GAME_MODE + 1
