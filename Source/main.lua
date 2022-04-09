@@ -75,7 +75,7 @@ function love.keypressed( key, scancode, isrepeat )
 
 	if key == "kp8" then
 		if GAME_MODE == enum.gamemodePlanning then
-			mark.addOneStep()
+			mark.addOneStepToFlagship()	-- will add a ghost to flagship of selected formation
 		end
 	end
 
@@ -87,8 +87,10 @@ function love.keypressed( key, scancode, isrepeat )
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
 
-		fun.advanceMode()
-
+		if GAME_MODE ~= enum.gamemodeMoving then	-- disable kp5 if moving/combat is being resolved
+			--! will also need to do same for gamemodeCombat at some point
+			fun.advanceMode()
+		end
 	end
 end
 
@@ -126,10 +128,11 @@ function love.mousepressed( x, y, button, istouch )
 			end
 		elseif GAME_MODE == enum.gamemodeMoving then
 
-		elseif GAME_MODE == enum.gamemodeTargeting then
+		elseif GAME_MODE == enum.gamemodeCombat then
 
 		elseif GAME_MODE == 0 then 	-- main menu
 		else
+			print("Game mode = ", GAME_MODE)		-- keep this print for debugging
 			error("mouse pressed during an unknown game mode")
 		end
 	elseif button == 2 then

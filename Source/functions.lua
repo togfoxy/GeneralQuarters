@@ -74,10 +74,15 @@ function functions.advanceMode()
         end
     else
         -- moving from planning/targetting for player 2 into moving/combat mode (both players)
+
+
+
         PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
         ZOOMFACTOR = 0.1		-- most zoomed out possible
         GAME_MODE = GAME_MODE + 1
         if GAME_MODE == enum.gamemodeMoving then
+            -- add planned steps/ghosts to markers that are not flagships. Applies to all flotilla's
+            mark.addOneStepsToMarkers()
             -- prep the timer to move markers during the update loop
             GAME_TIMER = enum.timerMovingMode
         end
