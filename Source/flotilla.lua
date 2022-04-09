@@ -60,6 +60,8 @@ function flot.Initialise()
     -- input: none
     -- output: none
 
+    flotilla = {}	-- flotilla[x].formation[x].marker[x]
+    PLAYER_TURN = 1
     GAME_MODE = enum.gamemodePlanning
 
     -- create a new flotilla and add that flotilla to the global table
