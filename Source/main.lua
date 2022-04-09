@@ -108,7 +108,7 @@ function love.mousepressed( x, y, button, istouch )
 			-- get the distance between the mouse click and the closest formation
 			local formx, formy = form.getCentre(closestformation)
 			local dist = cf.GetDistance(wx, wy, formx, formy)
-			if dist <= 25 then
+			if dist <= 75 then
 				-- set selection flag for that formation
 				closestformation.isSelected = true
 			end

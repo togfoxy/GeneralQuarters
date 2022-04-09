@@ -6,6 +6,8 @@ function functions.LoadImages()
     image[enum.markerBattleship] = love.graphics.newImage("assets/images/ShipBattleshipHull.png")
 	image[enum.markerBattleshipGun] = love.graphics.newImage("assets/images/WeaponBattleshipStandardGun.png")
     image[enum.mainmenu] = love.graphics.newImage("assets/images/HMS_Nelson_during_gunnery_trials.jpg")
+    image[enum.britishflag] = love.graphics.newImage("assets/images/British-Navy-Flags_173_F.jpg")
+    image[enum.germanflag] = love.graphics.newImage("assets/images/warflag2a.jpg")
 end
 
 function functions.LoadFonts()

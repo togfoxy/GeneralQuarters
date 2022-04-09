@@ -54,11 +54,22 @@ function drawCentre()
             else
                 love.graphics.setColor(1, 1, 1, 1)
             end
-			love.graphics.circle("line", frmx, frmy, 15)
+			--love.graphics.circle("line", frmx, frmy, 75)
 			-- draw line out from circle to show heading of formation
 			x1, y1 = frmx, frmy
-			x2, y2 = cf.AddVectorToPoint(x1,y1,frm.heading, 32)
+			x2, y2 = cf.AddVectorToPoint(x1,y1,frm.heading, 175)
+            love.graphics.setLineWidth(3)
 			love.graphics.line(x1,y1,x2,y2)
+
+            local img
+            if flot.nation == "British" then
+                img = image[enum.britishflag]
+            else
+                img = image[enum.germanflag]
+            end
+            local imgwidth = img:getWidth()
+            local imgheight = img:getHeight()
+            love.graphics.draw(img,(frmx - imgwidth / 2),(frmy - imgheight / 2))
 		end
 	end
 end
