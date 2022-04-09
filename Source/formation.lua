@@ -44,35 +44,20 @@ function formation.getSizeOfColumn(thisform, thiscol)
     return colsize[thiscol]
 end
 
-local function getFormationCentre(thisform)
-    -- gets the centre of a formation by doing vector things
-    -- returns a single x/y
-    -- input: thisform = object/table
-    -- output: x/y pair (number)
-
-    local xcentre, ycentre, count = 0,0,0
-    for k, mark in pairs(thisform.marker) do
-        xcentre = xcentre + mark.positionX
-        ycentre = ycentre + mark.positionY
-        count = count + 1
-    end
-    return cf.round(xcentre / count), cf.round(ycentre / count)
-end
-
 function drawCentre()
     -- draw centre of formations
 	for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-			local formx, formy = getFormationCentre(form)
-            if form.isSelected then
+		for q,frm in pairs(flot.formation) do
+			local frmx, frmy = form.getCentre(frm)
+            if frm.isSelected then
 	            love.graphics.setColor(0, 1, 0, 1)
             else
                 love.graphics.setColor(1, 1, 1, 1)
             end
-			love.graphics.circle("line", formx, formy, 5)
+			love.graphics.circle("line", frmx, frmy, 15)
 			-- draw line out from circle to show heading of formation
-			x1, y1 = formx, formy
-			x2, y2 = cf.AddVectorToPoint(x1,y1,form.heading, 8)
+			x1, y1 = frmx, frmy
+			x2, y2 = cf.AddVectorToPoint(x1,y1,frm.heading, 32)
 			love.graphics.line(x1,y1,x2,y2)
 		end
 	end
@@ -96,13 +81,13 @@ function formation.getClosest(x, y)
 	local closestformation
 
     for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
+		for q,frm in pairs(flot.formation) do
             if (PLAYER_TURN == 1 and flot.nation == "British") or (PLAYER_TURN == 2 and flot.nation == "German") then
-    			local formx, formy = getFormationCentre(form)
-    			local disttoformation = cf.GetDistance(x, y, formx, formy)
+    			local frmx, frmy = form.getCentre(frm)
+    			local disttoformation = cf.GetDistance(x, y, frmx, frmy)
     			if (disttoformation < bestdistance) or (bestdistance < 0) then
     				bestdistance = disttoformation
-    				closestformation = form		-- this is an object/table
+    				closestformation = frm		-- this is an object/table
     			end
             end
 		end
@@ -143,11 +128,21 @@ function formation.changeFacing(value)
     end
 end
 
+function formation.getFlagship(thisform)
+    -- scans the provided flotilla/formation for the marker that is the flagship
+    -- input: formation (number/index)
+    -- output: a marker object that is the flagship
+    for w,mrk in pairs(thisform.marker) do
+        if mrk.isFlagship then
+            return mrk
+        end
+    end
+end
+
 function formation.draw()
     -- draw every formation
     mark.draw()
     drawCentre()    -- draw formation centre AFTER all the markers are drawn
 end
-
 
 return formation

@@ -58,4 +58,44 @@ function functions.changeCameraPosition()
     cam:setPos(TRANSLATEX, TRANSLATEY)
 end
 
+function functions.advanceMode()
+    -- advances the phase to the next phase and if necessary, the mode as well
+    if PLAYER_TURN == 1 then
+        if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
+            -- changing from Moving/Combat into planning/targeting for player 1
+            GAME_MODE = GAME_MODE + 1
+            PLAYER_TURN = 1
+            ZOOMFACTOR = PREFERRED_ZOOM_BRITISH
+        else
+            --moving from planning/targetting for player 1 into planning/targeting for player 2
+            PREFERRED_ZOOM_BRITISH = ZOOMFACTOR
+            PLAYER_TURN = 2
+            ZOOMFACTOR = PREFERRED_ZOOM_GERMAN
+        end
+    else
+        -- moving from planning/targetting for player 2 into moving/combat mode (both players)
+
+
+
+        PREFERRED_ZOOM_GERMAN = ZOOMFACTOR
+        ZOOMFACTOR = 0.1		-- most zoomed out possible
+        GAME_MODE = GAME_MODE + 1
+        if GAME_MODE == enum.gamemodeMoving then
+            -- add planned steps/ghosts to markers that are not flagships. Applies to all flotilla's
+            mark.addOneStepsToMarkers()
+            -- prep the timer to move markers during the update loop
+            GAME_TIMER = enum.timerMovingMode
+        end
+        PLAYER_TURN = 1
+    end
+    if GAME_MODE > enum.NumGameModes then
+        GAME_MODE = 1
+    end
+
+    form.unselectAll()
+    mark.unselectAll()
+
+    fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
+end
+
 return functions

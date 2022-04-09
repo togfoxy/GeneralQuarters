@@ -36,44 +36,56 @@ local function AddTurret(struct, gf, tf)
 end
 
 function marker.getCorrectPositionInFormation(thismark)
-    -- determine the correct x/y position for this marker
-
+    -- determine the correct x/y position for this marker by determining the formation, the flagship and the column the marker belongs to
+    -- input: a marker object
+    -- output: the x/y reflecting the preferred location with in the formation
     local thisform, flagship
+    local fsheading, fsX, fsY   -- key flagship attributes
 
-    -- determine which formation the marker is in
+    -- determine which formation the marker is in and get the flagship for that formation
     for q,flot in pairs(flotilla) do
-        for w,form in pairs(flot.formation) do
-            for e, mark in pairs(form.marker) do
-                if mark == thismark then
-                    -- found the correct formation
-                    thisform = form
-                end
-                if mark.isFlagship then
-                    flagship = mark
+        for w,frm in pairs(flot.formation) do
+            for e, mrk in pairs(frm.marker) do
+                if mrk == thismark then
+                    -- found the correct marker so capture the formation
+                    thisform = frm
                 end
             end
         end
     end
+    assert(thisform ~= nil)
+
+    -- get the flagship for the captured formation
+    flagship = form.getFlagship(thisform)
+    assert(flagship ~= nil)
 
     -- determine if thismark should be left or right of the flagship by checking numOfColumns
-    local columndelta = thismark.columnNumber - flagship.columnNumber    -- a negative number means m should be left of fs
-    local fsheading, fsX, fsY
-    local laststepnumber = #thisform.planningstep
+    local columndelta = thismark.columnNumber - flagship.columnNumber    -- a negative number means m should be left of flagship
+    local laststepnumber = #flagship.planningstep
 
-    if  laststepnumber == 0 then
-        -- there is no plan so far so just use real position
-        fsheading = thisform.heading
-        fsX = thisform.positionX
-        fsY = thisform.positionY
+    -- determine the flagship x/y
+    if laststepnumber == 0 then
+        -- no planned moves
+        -- the first time this is called for a marker during initialising, the posx/y will be null so fall back to the formation x/y
+        if flagship.positionX == nil then
+            fsX = thisform.positionX
+            fsY = thisform.positionY
+            fsheading = thisform.heading
+        else
+            fsX = flagship.positionX
+            fsY = flagship.positionY
+            fsheading = flagship.heading
+        end
     else
-        -- flagship has a plan so use the last position in the plan
-        fsheading = thisform.planningstep[laststepnumber].newheading
-        fsX = thisform.planningstep[laststepnumber].newx
-        fsY = thisform.planningstep[laststepnumber].newy
+        -- use the future position
+        fsX = flagship.planningstep[laststepnumber].newx
+        fsY = flagship.planningstep[laststepnumber].newy
+        fsheading = flagship.planningstep[laststepnumber].newheading
     end
 
     assert(fsX ~= nil and fsY ~= nil)
 
+    -- determine position in formation based on flagship x/y and the column number for the marker
     if columndelta < 0 then
         -- left side of the flagship
         -- determine head position of this column
@@ -143,7 +155,6 @@ function marker.getCorrectPositionInFormation(thismark)
     else
         error("Unexpected program flow")
     end
-
 end
 
 local function getMarkerPoints(m)
@@ -198,110 +209,6 @@ local function getDrawingCentre(thismarker)
     drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, markerheading, frontoffset)	-- this nudges the image forward to align with the centre of the marker
 
     return drawingcentrex, drawingcentrey
-end
-
-local function drawEveryMarker()
-	-- draw every marker
-
-	local degangle = ""
-	mousetext = ""
-	local alphavalue = 1
-	for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-
-			if form.isSelected then
-				alphavalue = 1
-			else
-				alphavalue = 0.33
-			end
-
-			for w,mark in pairs(form.marker) do
-				local xcentre = (mark.positionX)
-				local ycentre = (mark.positionY)
-				local heading = (mark.heading)
-				local headingrad = math.rad(heading)
-				local x1,y1,x2,y2 = getMarkerPoints(mark)
-
-				local red,green,blue = 1,1,1
-
-				if mark.isFlagship then
-					blue = 0
-				end
-				if mark.isTarget then
-					green = green / 2
-					blue = blue / 2
-					--alphavalue = 1
-				elseif mark.isSelected then
-					red = red / 2
-					blue = blue / 2
-
-					local mousex, mousey = love.mouse.getPosition()
-					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
-					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
-					-- degangle is the angle assuming 0 = north.
-					-- it needs to be adjusted to be relative to the ship heading
-					-- degangle == 0 means directly ahead of the marker
-					-- degangle == 90 means directly off starboard
-
-					-- print(degangle, mark.heading)
-					degangle = cf.adjustHeading(degangle, mark.heading * -1)
-
-					local mousearc
-
-					-- +/- 15 degree = front of marker (345 -> 15)
-					if degangle >= 345 or degangle <= 15 then
-						mousearc = "Bow"
-					elseif degangle >= 165 and degangle <= 195 then
-						mousearc = "Stern"
-					elseif degangle > 165 and degangle < 345 then
-						mousearc = "Port"
-					elseif degangle > 15 and degangle < 165 then
-						mousearc = "Starboard"
-					else
-						error(degangle)
-					end
-
-					-- local gunsdownrange = fun.getGunsInArc(mark, mousearc)
-					-- print(gunsdownrange)
-					-- mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
-				else
-					-- nothing to do
-				end
-
-				-- draw line and circle
-				-- love.graphics.line(x1,y1,x2,y2)
-				-- love.graphics.circle("fill", x2, y2, 3)
-
-				-- draw marker image
-				-- the image needs to be shifted left and forward. These next two lines will do that.
-                local drawingcentrex, drawingcentrey = getDrawingCentre(mark)   -- get the correct x/y value (with offsets) for the provided marker
-                love.graphics.setColor(red,green,blue,1)
-                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
-
-				-- draw the guns
-				-- local drawingheading = cf.adjustHeading(heading, -90)
-				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
-				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
-				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
-
-                -- draw centre of marker
-				love.graphics.circle("fill", xcentre, ycentre, 3)
-
-				-- draw correct position
-				-- if mark.correctX ~= nil then
-					-- love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
-				-- end
-
-				-- debugging
-				-- draw tempx/tempy if that has been set anywhere
-				if tempx ~= nil then
-					love.graphics.setColor(1, 0, 0, alphavalue)
-					love.graphics.circle("fill", tempx, tempy, 5)
-				end
-
-			end
-		end
-	end
 end
 
 local function drawEveryGhost()
@@ -465,34 +372,342 @@ local function getNewMarkerPosition(mymarker)
     return newx, newy
 end
 
-function marker.addOneStep()
-    -- adds one step (ghost) to the flagship planned moves
+local function getTargetQuadrant(x1, y1, x2, y2)
+    -- returns the quadrant the target is in relative to the viewer/shooter
+    -- the 'target' might not be a marker but an area of space/ocean
+    -- Relative to north/0 degrees so north east is quadrant 1 and south east is quadrant 2 etc
+    -- Note: a target on an axis (x/y) will still return a quadrant
+    -- input: a marker object
+    -- input: the x/y of the target
+    -- output: a number between 0 and 4 inclusive. Returns zero if target is on smae location as marker
+    if x1 == x2 and y1 == y2 then return 0 end
+    if x2 >= x1 and y2 <= y1 then return 1 end
+    if x2 > x1 and y2 > y1 then return 2 end
+    if x2 <= x1 and y2 >= y1 then return 3 end
+    if x2 < x1 and y2 < y1 then return 4 end
+    -- this next error should never haqppen
+    print("alpha", x1,y1,x2,y2)  -- keep this print for error debugging
+    error("Unexpected program flow")
+end
+
+local function getAbsoluteHeadingToTarget(x1,y1, x2,y2)
+    -- return the absoluting heading. 0 - north and 90 = east etc
+    -- input: m = marker table
+    -- input: target x,y
+    -- output: number representing compass direction
+
+    -- if there is an imaginary triangle from the positionx/y to the correctx/y then calculate opp/adj/hyp
+    local targetqudrant = getTargetQuadrant(x1, y1, x2, y2)
+
+    if targetqudrant == 0 then
+        return 0    -- just face north I guess
+    elseif targetqudrant == 1 then
+        -- tan(angle) = opp / adj
+        -- angle = atan(opp/adj)
+        local adj = x2 - x1
+        local opp = y1 - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 - angletocorrectposition)
+    elseif targetqudrant == 2 then
+        local adj = x2 - x1
+        local opp = y2 - y1
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(90 + angletocorrectposition)
+    elseif targetqudrant == 3 then
+        local adj = x1 - x2
+        local opp = y2 - y1
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 - angletocorrectposition)
+    elseif targetqudrant == 4 then
+        local adj = x1 - x2
+        local opp = y1 - y2
+        local angletocorrectposition = math.deg( math.atan(opp/adj) )   -- atan returns radians. Convert to degrees from east (90 degrees)
+        -- convert so it is relative to zero/north
+        return cf.round(270 + angletocorrectposition)
+    end
+end
+
+local function getNewMarkerHeading(m)
+    -- turns the marker towards the correct position within the formation without breaking turning rules
+    -- assumes m.correctX/Y has been previously set
+    -- input: m = marker object/table
+    -- output: number reflecting the desired heading without breaking turning rules
+
+    assert(m.correctX ~= nil)
+    assert(m.correctY ~= nil)
+
+    local steeringamount = 15   -- max turn rate
+    local newheading
+
+    local laststepnumber = #m.planningstep
+    if laststepnumber == 0 then
+        currentx = m.positionX
+        currenty = m.positionY
+        correctx = m.correctX
+        correcty = m.correctY
+        currentheading = m.heading
+
+    else
+        currentx = m.planningstep[laststepnumber].newx
+        currenty = m.planningstep[laststepnumber].newy
+        correctx = m.correctX
+        correcty = m.correctY
+        currentheading = m.planningstep[laststepnumber].newheading
+    end
+    local desiredheading = getAbsoluteHeadingToTarget(currentx, currenty, correctx, correcty)
+    local angledelta = desiredheading - currentheading
+    local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+
+    -- print("adjsteeringamount = " .. adjsteeringamount)
+
+    -- determine if cheaper to turn left or right
+    local leftdistance = currentheading - desiredheading
+    if leftdistance < 0 then leftdistance = 360 + leftdistance end      -- this is '+' because leftdistance is a negative value
+
+    local rightdistance = desiredheading - currentheading
+    if rightdistance < 0 then rightdistance = 360 + rightdistance end   -- this is '+' because leftdistance is a negative value
+
+    if leftdistance < rightdistance then
+        -- print("turning left " .. adjsteeringamount)
+        newheading = currentheading - (adjsteeringamount)
+    else
+        -- print("turning right " .. adjsteeringamount)
+        newheading = currentheading + (adjsteeringamount)
+    end
+    if newheading < 0 then newheading = 360 + newheading end
+    if newheading > 359 then newheading = newheading - 360 end
+    return newheading
+end
+
+local function getFlagShip(thisform)
+    -- scans the provided flotilla/formation for the marker ID (index) that is the flagship
+    -- input: flotilla (number/index)
+    -- input: formation (number/index)
+    -- output: a marker object that is the flagship
+    for w,mrk in pairs(thisform.marker) do
+        if mrk.isFlagship then
+            return mrk
+        end
+    end
+    error("Unexpected program flow")
+end
+
+function marker.addOneStepToFlagship()
+    -- adds one step (ghost) to the flagship planned moves if the formation is selected. This is determined by the formation facing/direction
 
     -- get the selected formation
     for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-            if form.isSelected then
-                for w,mark in pairs(form.marker) do
-                    if mark.isFlagship then
-                        -- ensure flagship hasn't expended all steps/movement
-                        if #mark.planningstep < mark.movementFactor then
+		for q,frm in pairs(flot.formation) do
+            if frm.isSelected then
+                local flagship = getFlagShip(frm)
+                for w,mrk in pairs(frm.marker) do
+                    if #mrk.planningstep < mrk.movementFactor then    -- ensure marker hasn't expended all steps/movement
+                        if mrk.isFlagship then  -- can also say if mrk == flagship
                             -- get future heading x, y and heading
-                            local newheading = getNewFlagshipHeading(mark, form.heading)    -- provide the marker and desired heading and get the future heading
-                            local newx, newy = getNewMarkerPosition(mark)   -- takes the last planned step + desired heading and adds marker.length to get that x/y
+                            local newheading = getNewFlagshipHeading(mrk, frm.heading)    -- provide the marker and desired heading and get the future heading
+                            local newx, newy = getNewMarkerPosition(mrk)   -- takes the last planned step + desired heading and adds marker.length to get that x/y
 
                             local newplan = {}
                             newplan.newx = newx
                             newplan.newy = newy
                             newplan.newheading = newheading
-                            table.insert(mark.planningstep, newplan)
+                            table.insert(mrk.planningstep, newplan)
+                        else
 
-    print("Planned x/y: " .. newx, newy)
+                        end
+                    else
+                        -- all ghosts exahausted. Do nothing.
+                    end
+                end
+            end
+        end
+    end
+end
+
+function marker.moveOneStep()
+    -- moves all markers just one step. Returns FALSE if no markers moved (all moves exhausted)
+    -- input: nothing. Operates on every marker
+    -- output: a boolean. True means at least one marker moved.
+    local markermoved = false
+    for q,flot in pairs(flotilla) do
+        for w,frm in pairs(flot.formation) do
+            local flagshipmarker = form.getFlagship(frm)    -- returns the flagship for this formation
+            for w,mrk in pairs(frm.marker) do
+                if mrk.planningstep[1] ~= nil then
+                    mrk.positionX = mrk.planningstep[1].newx
+                    mrk.positionY = mrk.planningstep[1].newy
+                    mrk.heading = mrk.planningstep[1].newheading
+                    table.remove(mrk.planningstep, 1)
+                    markermoved = true
+                end
+            end
+        end
+    end
+    return markermoved      -- calling function can know if all moves are exhausted
+end
+
+function marker.addOneStepsToMarkers()
+    -- add planned steps/ghosts to markers that are not flagships. Applies to all flotilla's
+    -- called after all formations have moved but before movement is resolved
+    for q,flot in pairs(flotilla) do
+        for w,frm in pairs(flot.formation) do
+            for w,mrk in pairs(frm.marker) do
+                if not mrk.isFlagship then
+                    if mrk.planningstep ~= nil then
+                        local stepsleft = mrk.movementFactor - #mrk.planningstep
+                        if stepsleft > 0 then
+                            for i = 1,stepsleft do
+                                -- not a flagship so need to determine the correct place in formation
+                                --      this uses the dot product to detect if the marker is in front or behind the correct position within the formation.
+                                --      if it is in front - then don't move. Stay still and wait for the formation to catch up
+                                --      if it is behind the correct position, then it is free to move with the formation
+
+                                -- get the correct position within the formation and save that inside the marker table
+                                mrk.correctX, mrk.correctY = mark.getCorrectPositionInFormation(mrk) -- sets marker.correctX and marker.correctY
+
+                                --      add a planned step/ghost in that direction
+                                local newheading = getNewMarkerHeading(mrk) -- gets preferred heading based on correct position in formation
+                                local newplan = {}
+                                newplan.newx = mrk.positionX       -- this is set here as a default value
+                                newplan.newy = mrk.positionY       -- and might be updated down below if marker actually moves
+                                newplan.newheading = newheading
+
+                                -- get the new marker x,y pair. The length is an arbitrary number to create the vector
+                                local markernewx, markernewy = cf.AddVectorToPoint(mrk.positionX,mrk.positionY, mrk.heading, mrk.length)    -- creates a vector reflecting facting
+
+                                -- get the delta for use in the dot product
+                                local facingdeltax = markernewx - mrk.positionX
+                                local facingdeltay = markernewy - mrk.positionY
+
+                                -- determine the position of corrextx/y relative to the marker
+                                local correctxdelta = mrk.correctX - mrk.positionX
+                                local correctydelta = mrk.correctY - mrk.positionY
+
+                                -- see if correct position is ahead or behind marker
+                                -- x1/y1 vector is facing/looking
+                                -- x2/y2 is the position relative to the object doing the looking
+                                local dotproduct = cf.dotVectors(facingdeltax,facingdeltay,correctxdelta,correctydelta)
+                                if dotproduct > 0 then
+                                    -- marker is behind the correct position so allowed to move
+                                    local newx, newy = getNewMarkerPosition(mrk)
+                                    newplan.newx = newx
+                                    newplan.newy = newy
+                                end
+                                table.insert(mrk.planningstep, newplan)
+                            end
                         end
                     end
                 end
             end
         end
     end
+end
+
+local function drawEveryMarker()
+	-- draw every marker
+
+	local degangle = ""
+	mousetext = ""
+	local alphavalue = 1
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+
+			if form.isSelected then
+				alphavalue = 1
+			else
+				alphavalue = 0.33
+			end
+
+			for w,mark in pairs(form.marker) do
+				local xcentre = (mark.positionX)
+				local ycentre = (mark.positionY)
+				local heading = (mark.heading)
+				local headingrad = math.rad(heading)
+				local x1,y1,x2,y2 = getMarkerPoints(mark)
+
+				local red,green,blue = 1,1,1
+
+				if mark.isFlagship then
+					blue = 0
+				end
+				if mark.isTarget then
+					green = green / 2
+					blue = blue / 2
+					--alphavalue = 1
+				elseif mark.isSelected then
+					red = red / 2
+					blue = blue / 2
+
+					local mousex, mousey = love.mouse.getPosition()
+					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
+					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
+					-- degangle is the angle assuming 0 = north.
+					-- it needs to be adjusted to be relative to the ship heading
+					-- degangle == 0 means directly ahead of the marker
+					-- degangle == 90 means directly off starboard
+
+					-- print(degangle, mark.heading)
+					degangle = cf.adjustHeading(degangle, mark.heading * -1)
+
+					local mousearc
+
+					-- +/- 15 degree = front of marker (345 -> 15)
+					if degangle >= 345 or degangle <= 15 then
+						mousearc = "Bow"
+					elseif degangle >= 165 and degangle <= 195 then
+						mousearc = "Stern"
+					elseif degangle > 165 and degangle < 345 then
+						mousearc = "Port"
+					elseif degangle > 15 and degangle < 165 then
+						mousearc = "Starboard"
+					else
+						error(degangle)
+					end
+
+					-- local gunsdownrange = fun.getGunsInArc(mark, mousearc)
+					-- print(gunsdownrange)
+					-- mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+				else
+					-- nothing to do
+				end
+
+				-- draw line and circle
+				-- love.graphics.line(x1,y1,x2,y2)
+				-- love.graphics.circle("fill", x2, y2, 3)
+
+				-- draw marker image
+				-- the image needs to be shifted left and forward. These next two lines will do that.
+                local drawingcentrex, drawingcentrey = getDrawingCentre(mark)   -- get the correct x/y value (with offsets) for the provided marker
+                love.graphics.setColor(red,green,blue,1)
+                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
+
+				-- draw the guns
+				-- local drawingheading = cf.adjustHeading(heading, -90)
+				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
+				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
+
+                -- draw centre of marker
+				-- love.graphics.circle("fill", xcentre, ycentre, 3)
+
+				-- draw correct position
+				-- if mark.correctX ~= nil then
+				-- 	love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+				-- end
+
+				-- debugging
+				-- draw tempx/tempy if that has been set anywhere
+				if tempx ~= nil then
+					love.graphics.setColor(1, 0, 0, alphavalue)
+					love.graphics.circle("fill", tempx, tempy, 5)
+				end
+
+			end
+		end
+	end
 end
 
 function marker.draw()
