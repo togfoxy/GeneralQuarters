@@ -37,8 +37,9 @@ function functions.changeCameraPosition()
         end
     elseif GAME_MODE == enum.gamemodeMoving then
         -- zoom out and focus on centre
-        camx = MAP_CENTRE
-        camy = MAP_CENTRE
+        camx = (britishx + germanx) / 2
+        camy = (britishy + germany) / 2
+
     elseif GAME_MODE == enum.gamemodeTargeting then
         if PLAYER_TURN == 1 then
             -- focus on player 1 flotilla
