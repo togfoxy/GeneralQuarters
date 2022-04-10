@@ -35,6 +35,8 @@ function flot.getAveragePosition(nation)
     -- used to know where the 'middle' of the flotilla is for positioning camera etc
     -- input: nation - string
     -- output: x, y - integer (pixels) reflecting the average x and average y for all markers of that nation
+    -- input: sting - the nation of interest
+    -- output: x/y pair reflecting the average position of all flotilla's for the provided nation
 
     -- cycle through, add totals, keep a count, then do an average (total/count)
     local totalx = 0
@@ -52,7 +54,7 @@ function flot.getAveragePosition(nation)
             end
         end
     end
-    return cf.round(totalx/markercount), cf.round(totaly/markercount)       -- this is pixes so must round off
+    return cf.round(totalx/markercount), cf.round(totaly/markercount)       -- this is pixels so must round off
 end
 
 function flot.Initialise()
