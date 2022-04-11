@@ -127,11 +127,11 @@ function rays:draw (Bdraw_text, txt)
 		love.graphics.line(self.position.x, self.position.y, self.point.x, self.point.y)
 		love.graphics.circle("line", self.point.x, self.point.y, 4)
 		if Bdraw_text then
-			local raytext = "length: " .. math.floor(self.length*1000+0.5)/1000 .. "\n" .. txt
+			local raytext = math.floor(self.length*1000+0.5)/1000 .. "\n" .. txt
 			love.graphics.print(raytext,
 			(self.position.x+self.point.x)/2,
-			(self.position.y+self.point.y)/2,
-			(self.angle+math.pi/2)%math.pi-math.pi/2)
+			(self.position.y+self.point.y + 15)/2,
+			(self.angle+math.pi/2)%math.pi-math.pi/2)	-- the +15 on the y axis draws the text below the linge
 		end
 		love.graphics.setColor(self.dark_color)
 		love.graphics.line(self.point.x, self.point.y, self.target.x, self.target.y)

@@ -22,4 +22,4 @@ gamemodeCombat = 4
 NumGameModes = 4
 
 -- timers (seconds)
-timerMovingMode = 1.5
+timerMovingMode = 0.75

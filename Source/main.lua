@@ -129,9 +129,11 @@ function love.mousepressed( x, y, button, istouch )
 				closestmarker = mark.getClosest(wx,wy, "German")
 			end
 			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
-			if dist <= 25 then
+			if dist <= 30 then
 				closestmarker.isSelected = true
-				-- ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
+				ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
+			else
+				ray1.position = nil	-- no marker is selected - clear the ray x/y
 			end
 		elseif GAME_MODE == enum.gamemodeMoving then
 
@@ -195,6 +197,8 @@ function love.load()
 	TRANSLATEX = 7960
 	TRANSLATEY = 7440
 
+	ray1 = rays:new({name = "ray1", color = {0,1,0}})		-- green
+
     Slab.Initialize()
 end
 
@@ -249,12 +253,12 @@ function love.update(dt)
 					fun.advanceMode()		-- all moves exhausted so move to next mode
 				end
 			end
+		elseif GAME_MODE == enum.gamemodeTargeting then
+			fun.updateLoSRay()
 		end
 	else
 
 	end
-
-
 
 	cam:setPos(TRANSLATEX,	TRANSLATEY)
 	cam:setZoom(ZOOMFACTOR)
