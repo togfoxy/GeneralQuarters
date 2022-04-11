@@ -95,7 +95,35 @@ function functions.advanceMode()
     form.unselectAll()
     mark.unselectAll()
 
+    ray1.position = nil	-- no marker is selected - clear the ray x/y
+
     fun.changeCameraPosition()		-- will set TRANSLATEX/TRANSLATEY to the formation position
+end
+
+function functions.updateLoSRay()
+    -- cylce through every marker in every flotilla, determine the 'line' each marker creates from bow to stern, then add that to the 'lines' table
+    -- send that lines table to ray1:update so the ray can correctly detect collisions
+
+    local lines = {}
+	for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mrk in pairs(form.marker) do
+				if GAME_MODE == enum.gamemodeTargeting and mrk.isSelected then
+                    local x, y = love.mouse.getPosition()
+                	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+                	ray1.angle = math.atan2(wy-ray1.position.y, wx-ray1.position.x)
+				else
+					local x1,y1,x2,y2 = mark.getMarkerPoints(mrk)
+					local myline = {x1,y1,x2,y2}
+					table.insert(lines, myline)
+				end
+			end
+		end
+	end
+
+    if ray1.position ~= nil then    -- position will be nill if a marker is not selected
+        ray1:update (lines)    -- ray1 is a global set in love.load()
+    end
 end
 
 return functions

@@ -157,8 +157,8 @@ function marker.getCorrectPositionInFormation(thismark)
     end
 end
 
-local function getMarkerPoints(m)
-    -- given a marker (m) return the xy that starts the line and the xy that ends the line
+function marker.getMarkerPoints(m)
+    -- given a marker (m) return two x/y pairs that describe the start of the marker to the end of the marker, i.e. the length of the marker.
     -- this is determined by the centre point and the heading that is stored inside m
     -- output: two xy pairs (x1, y1, x2, y2)
     local xcentre = (m.positionX)
@@ -641,23 +641,23 @@ local function drawEveryMarker()
 				alphavalue = 0.33
 			end
 
-			for w,mark in pairs(form.marker) do
-				local xcentre = (mark.positionX)
-				local ycentre = (mark.positionY)
-				local heading = (mark.heading)
+			for w,mrk in pairs(form.marker) do
+				local xcentre = (mrk.positionX)
+				local ycentre = (mrk.positionY)
+				local heading = (mrk.heading)
 				local headingrad = math.rad(heading)
-				local x1,y1,x2,y2 = getMarkerPoints(mark)
+                local markerstartx, markerstarty, markerstopx, markerstopy = mark.getMarkerPoints(mrk)  -- get the x/y pairs that describe the line the marker creates
 
 				local red,green,blue = 1,1,1
 
-				if mark.isFlagship then
+				if mrk.isFlagship then
 					blue = 0
 				end
-				if mark.isTarget then
+				if mrk.isTarget then
 					green = green / 2
 					blue = blue / 2
 					--alphavalue = 1
-				elseif mark.isSelected then
+				elseif mrk.isSelected then
 					red = red / 2
 					blue = blue / 2
 
@@ -670,10 +670,8 @@ local function drawEveryMarker()
 					-- degangle == 90 means directly off starboard
 
 					-- print(degangle, mark.heading)
-					degangle = cf.adjustHeading(degangle, mark.heading * -1)
-
+					degangle = cf.adjustHeading(degangle, mrk.heading * -1)
 					local mousearc
-
 					-- +/- 15 degree = front of marker (345 -> 15)
 					if degangle >= 345 or degangle <= 15 then
 						mousearc = "Bow"
@@ -687,7 +685,7 @@ local function drawEveryMarker()
 						error(degangle)
 					end
 
-					-- local gunsdownrange = fun.getGunsInArc(mark, mousearc)
+					-- local gunsdownrange = fun.getGunsInArc(mrk, mousearc)
 					-- print(gunsdownrange)
 					-- mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 				else
@@ -700,22 +698,22 @@ local function drawEveryMarker()
 
 				-- draw marker image
 				-- the image needs to be shifted left and forward. These next two lines will do that.
-                local drawingcentrex, drawingcentrey = getDrawingCentre(mark)   -- get the correct x/y value (with offsets) for the provided marker
+                local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the provided marker
                 love.graphics.setColor(red,green,blue,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
 
 				-- draw the guns
 				-- local drawingheading = cf.adjustHeading(heading, -90)
 				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
-				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mark.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mrk.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
 				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
                 -- draw centre of marker
 				-- love.graphics.circle("fill", xcentre, ycentre, 3)
 
 				-- draw correct position
-				-- if mark.correctX ~= nil then
-				-- 	love.graphics.circle("fill", mark.correctX, mark.correctY, 3)
+				-- if mrk.correctX ~= nil then
+				-- 	love.graphics.circle("fill", mrk.correctX, mrk.correctY, 3)
 				-- end
 
 				-- debugging
@@ -734,6 +732,10 @@ function marker.draw()
     drawEveryMarker()
     if GAME_MODE == enum.gamemodePlanning then
         drawEveryGhost()    -- planned steps
+    elseif GAME_MODE == enum.gamemodeTargeting then
+        if ray1.position ~= nil and ray1.target ~= nil then  -- target is set by ray1:update() when a target is specified. Don't draw a ray if no target
+            ray1:draw(true, "")	-- requires ray:update(to be invoked with start/stop x/y pairs)
+        end
     end
 end
 
