@@ -121,7 +121,6 @@ function love.mousepressed( x, y, button, istouch )
 			end
 		elseif GAME_MODE == enum.gamemodeTargeting then
 			-- select the closest marker
-			mark.unselectAll()
 			local closestmarker
 			if PLAYER_TURN == 1 then
 				closestmarker = mark.getClosest(wx,wy, "British")
@@ -130,6 +129,7 @@ function love.mousepressed( x, y, button, istouch )
 			end
 			local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
 			if dist <= 30 then
+				mark.unselectAll()
 				closestmarker.isSelected = true
 				ray1.position = {x=closestmarker.positionX, y=closestmarker.positionY}
 			else
@@ -150,13 +150,19 @@ function love.mousepressed( x, y, button, istouch )
 			local selectedMarker = mark.getSelected()
 			if selectedMarker ~= nil then
 				-- clear all targets
-				mark.unselectAllTargetedMarkers()
+				mark.clearTarget(selectedMarker)
+
 				-- determine marker closest to the mouse click
 				local closestmarker = mark.getClosest(wx,wy)
 				local dist = cf.GetDistance(wx,wy,closestmarker.positionX, closestmarker.positionY)
-				if dist <= 25 then
-					closestmarker.isTarget = true
-					selectedMarker.targetMarker = closestmarker
+
+				local selectednation = mark.getNation(selectedMarker)
+				local targetnation = mark.getNation(closestmarker)
+				if dist <= 30 and (selectednation ~= targetnation) then
+					if mark.targetInLoS(wx, wy) then		-- use the current mouse click as parameters
+						closestmarker.isTarget = true
+						selectedMarker.targetMarker = closestmarker
+					end
 				end
 			end
 		end
