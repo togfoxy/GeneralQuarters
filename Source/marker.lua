@@ -231,7 +231,7 @@ function marker.unselectAll()
     for k,flot in pairs(flotilla) do
 		for q,form in pairs(flot.formation) do
             for w,mark in pairs(form.marker) do
-                mark.isTarget = false
+                -- mark.isTarget = false
                 mark.isSelected = false
 			end
 		end
@@ -281,17 +281,39 @@ function marker.getSelected()
     return nil
 end
 
-function marker.unselectAllTargetedMarkers()
-    -- cycles through every marker and clears the isTargetted flag
+local function updateIsTarget()
+    -- cycles through every marker and correctly updates it's 'isTarget' boolean status
+    -- first wipe all isTarget values
     for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-            for w,mark in pairs(form.marker) do
-                if mark.isTarget then
-                    mark.isTarget = false
+		for q,frm in pairs(flot.formation) do
+            for w,mrk in pairs(frm.marker) do
+                mrk.isTarget = false
+            end
+        end
+    end
+    -- now reset isTarget to correct values
+    for k,flot in pairs(flotilla) do
+		for q,frm in pairs(flot.formation) do
+            for w,mrk in pairs(frm.marker) do
+                if mrk.targetMarker ~= nil then
+                    mrk.targetMarker.isTarget = true
                 end
-			end
-		end
-	end
+            end
+        end
+    end
+end
+
+function marker.clearTarget(thismarker)
+    -- clears the target for the provided marker
+    -- clears the target for the marker and also sets the target as not target (.isTarget = false)
+    -- each 'shooter' stores the marker they have targeted in 'targetMarker' (object)
+    -- need to be careful because two shooters might have the same target. Removing one target must not remove both
+
+    local targetmarker = thismarker.targetMarker
+    if targetmarker ~= nil then
+        thismarker.targetMarker = nil
+    end
+    updateIsTarget()    -- updates the 'isTarget' boolean status for every marker
 end
 
 local function getNewFlagshipHeading(m, desiredheading)
@@ -626,6 +648,39 @@ function marker.undoOneStepFromFlagship()
     end
 end
 
+function marker.getNation(m)
+    -- returns the nation for the marker
+    for q,flot in pairs(flotilla) do
+        local nation = flot.nation
+        for w,frm in pairs(flot.formation) do
+            for w,mrk in pairs(frm.marker) do
+                if mrk == m then
+                    return nation
+                end
+            end
+        end
+    end
+end
+
+function marker.targetInLoS(targetx, targety)
+    -- checks if the targeted x/y is in line of sight of the selected marker
+    -- assumes a marker is selected
+    -- uses the global ray1.point.x/y to understand where LoS is blocked
+
+    -- see how far away the mouse is from the ray1 point
+    if ray1.point ~= nil then   -- no points = no ray collision = LoS is true
+        local xdelta = math.abs(targetx - ray1.point.x)     --ray1.point.x/y stores the first point where LoS is blocked
+        local ydelta = math.abs(targety - ray1.point.y)
+        if xdelta <= 100 and ydelta <= 100 then
+            return true
+        else
+            return false
+        end
+    else
+        return true
+    end
+end
+
 local function drawEveryMarker()
 	-- draw every marker
 
@@ -658,9 +713,11 @@ local function drawEveryMarker()
 					blue = blue / 2
 					--alphavalue = 1
 				elseif mrk.isSelected then
+                    -- adjust colour
 					red = red / 2
 					blue = blue / 2
 
+                    -- do some ray stuff for later use
 					local mousex, mousey = love.mouse.getPosition()
 					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
 					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
@@ -668,8 +725,6 @@ local function drawEveryMarker()
 					-- it needs to be adjusted to be relative to the ship heading
 					-- degangle == 0 means directly ahead of the marker
 					-- degangle == 90 means directly off starboard
-
-					-- print(degangle, mark.heading)
 					degangle = cf.adjustHeading(degangle, mrk.heading * -1)
 					local mousearc
 					-- +/- 15 degree = front of marker (345 -> 15)

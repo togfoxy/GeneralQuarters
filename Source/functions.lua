@@ -109,9 +109,11 @@ function functions.updateLoSRay()
 		for q,form in pairs(flot.formation) do
 			for w,mrk in pairs(form.marker) do
 				if GAME_MODE == enum.gamemodeTargeting and mrk.isSelected then
-                    local x, y = love.mouse.getPosition()
-                	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
-                	ray1.angle = math.atan2(wy-ray1.position.y, wx-ray1.position.x)
+                    if ray1.position ~= nil then
+                        local x, y = love.mouse.getPosition()
+                    	local wx,wy = cam:toWorld(x, y)	-- converts screen x/y to world x/y
+                    	ray1.angle = math.atan2(wy-ray1.position.y, wx-ray1.position.x)
+                    end
 				else
 					local x1,y1,x2,y2 = mark.getMarkerPoints(mrk)
 					local myline = {x1,y1,x2,y2}
