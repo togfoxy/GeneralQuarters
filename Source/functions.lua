@@ -128,4 +128,46 @@ function functions.updateLoSRay()
     end
 end
 
+function functions.resolveCombat()
+
+
+    -- for every marker in every formation
+        -- if has a target then
+            -- add "gunfire" animation to the animation queue
+            -- determine engagement outcome
+            -- if miss then
+                -- add "miss" animation to the animation queue
+            -- else
+                -- add "hit" animation to the animation queue
+                -- if sunk then
+                    -- process sinking (remove marker etc)
+                    -- add "sunk" animation to the animation queue
+    -- end
+
+    -- cycle through every marker in every flotilla and see if that marker has a target
+    for k,flot in pairs(flotilla) do
+		for q,frm in pairs(flot.formation) do
+			for w,mrk in pairs(frm.marker) do
+                If mrk.targetMarker ~= nil then
+                    --! add gunfire animation to queue
+
+
+
+
+
+
+
+
+
+                end
+            end
+        end
+    end
+    
+
+
+
+
+end
+
 return functions
