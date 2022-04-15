@@ -13,6 +13,7 @@ end
 function functions.LoadFonts()
     font[enum.fontHeavyMetalLarge] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf")
     font[enum.fontHeavyMetalSmall] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf",10)
+    font[enum.fontDefault] = love.graphics.newFont("assets/fonts/Vera.ttf", 12)
 end
 
 function functions.changeCameraPosition()
@@ -126,6 +127,48 @@ function functions.updateLoSRay()
     if ray1.position ~= nil then    -- position will be nill if a marker is not selected
         ray1:update (lines)    -- ray1 is a global set in love.load()
     end
+end
+
+function functions.resolveCombat()
+
+
+    -- for every marker in every formation
+        -- if has a target then
+            -- add "gunfire" animation to the animation queue
+            -- determine engagement outcome
+            -- if miss then
+                -- add "miss" animation to the animation queue
+            -- else
+                -- add "hit" animation to the animation queue
+                -- if sunk then
+                    -- process sinking (remove marker etc)
+                    -- add "sunk" animation to the animation queue
+    -- end
+
+    -- cycle through every marker in every flotilla and see if that marker has a target
+    for k,flot in pairs(flotilla) do
+		for q,frm in pairs(flot.formation) do
+			for w,mrk in pairs(frm.marker) do
+                if mrk.targetMarker ~= nil then
+                    --! add gunfire animation to queue
+
+
+
+
+
+
+
+
+
+                end
+            end
+        end
+    end
+
+
+
+
+
 end
 
 return functions

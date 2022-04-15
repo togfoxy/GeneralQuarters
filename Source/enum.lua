@@ -10,6 +10,7 @@ germanflag = 5
 -- fonts
 fontHeavyMetalLarge = 1
 fontHeavyMetalSmall = 2
+fontDefault = 3         -- default love font is bitstream vera sans size 12
 
 -- timers
 timerMoveMode = 0.6       -- how quickly ships move in move mode
