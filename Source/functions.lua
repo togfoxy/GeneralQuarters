@@ -13,6 +13,7 @@ end
 function functions.LoadFonts()
     font[enum.fontHeavyMetalLarge] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf")
     font[enum.fontHeavyMetalSmall] = love.graphics.newFont("assets/fonts/Heavy Metal Box.ttf",10)
+    font[enum.fontDefault] = love.graphics.newFont("assets/fonts/Vera.ttf", 12)
 end
 
 function functions.changeCameraPosition()
@@ -148,7 +149,7 @@ function functions.resolveCombat()
     for k,flot in pairs(flotilla) do
 		for q,frm in pairs(flot.formation) do
 			for w,mrk in pairs(frm.marker) do
-                If mrk.targetMarker ~= nil then
+                if mrk.targetMarker ~= nil then
                     --! add gunfire animation to queue
 
 
@@ -163,7 +164,7 @@ function functions.resolveCombat()
             end
         end
     end
-    
+
 
 
 

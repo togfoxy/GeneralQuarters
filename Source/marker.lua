@@ -13,7 +13,7 @@ local function initaliseMarker(thisform, m)
     m.isSelected = false
     m.isTarget = false
     m.missileFactor = 0
-    m.missileCount = 0
+    m.torpedoCount = 0
     m.topedoHitsSustained = 0
     m.isSunk = false
     m.targetID = "" -- flotilla, formation, marker
@@ -681,6 +681,65 @@ function marker.targetInLoS(targetx, targety)
     end
 end
 
+local function getGunsInArc(thismarker, arc)
+    -- for the provided marker, return the number of guns that can shoot in the provided arc
+    -- does not account for battle damage
+    -- input: thismarker - marker (object/table)
+    -- input: arc - the arc of interest. A string "Bow", "Stern", "Port", "Starbourd"
+    -- output: number - the number of guns that can fire
+
+    -- NOTE: does not return torpedo's in arc (but can be easily modified)
+
+    local gf, tf = 0,0  -- gun factor, torpedo factor
+    for k, struct in pairs(thismarker.structure) do
+        for q, firedirection in pairs(struct.fireDirections) do
+            if firedirection == arc then
+                for w, tur in pairs(struct.turret) do
+                    gf = gf + tur.gunfactor
+                    tf = tf + tur.torpedoFactor
+                end
+            end
+        end
+    end
+    return gf
+end
+
+local function determineMouseText(mrk)
+    -- mousetext is a glboal value that holds the text to draw on the LoS ray
+    -- this function determines what that text needs to be
+    -- input: marker (object)
+    -- output: none. Operates directly on the global: mousetext
+    -- do some ray stuff for later use
+
+    local xcentre = (mrk.positionX)
+    local ycentre = (mrk.positionY)
+    local heading = (mrk.heading)
+    local mousex, mousey = love.mouse.getPosition()
+    local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
+    degangle = cf.getBearing(xcentre,ycentre,wx,wy)
+    -- degangle is the angle assuming 0 = north.
+    -- it needs to be adjusted to be relative to the ship heading
+    -- degangle == 0 means directly ahead of the marker
+    -- degangle == 90 means directly off starboard
+    degangle = cf.adjustHeading(degangle, heading * -1)
+    local mousearc
+    -- +/- 15 degree = front of marker (345 -> 15)
+    if degangle >= 345 or degangle <= 15 then
+        mousearc = "Bow"
+    elseif degangle >= 165 and degangle <= 195 then
+        mousearc = "Stern"
+    elseif degangle > 165 and degangle < 345 then
+        mousearc = "Port"
+    elseif degangle > 15 and degangle < 165 then
+        mousearc = "Starboard"
+    else
+        error(degangle)
+    end
+
+    local gunsdownrange = getGunsInArc(mrk, mousearc)
+    mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+end
+
 local function drawEveryMarker()
 	-- draw every marker
 
@@ -717,34 +776,9 @@ local function drawEveryMarker()
 					red = red / 2
 					blue = blue / 2
 
-                    -- do some ray stuff for later use
-					local mousex, mousey = love.mouse.getPosition()
-					local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
-					degangle = cf.getBearing(xcentre,ycentre,wx,wy)
-					-- degangle is the angle assuming 0 = north.
-					-- it needs to be adjusted to be relative to the ship heading
-					-- degangle == 0 means directly ahead of the marker
-					-- degangle == 90 means directly off starboard
-					degangle = cf.adjustHeading(degangle, mrk.heading * -1)
-					local mousearc
-					-- +/- 15 degree = front of marker (345 -> 15)
-					if degangle >= 345 or degangle <= 15 then
-						mousearc = "Bow"
-					elseif degangle >= 165 and degangle <= 195 then
-						mousearc = "Stern"
-					elseif degangle > 165 and degangle < 345 then
-						mousearc = "Port"
-					elseif degangle > 15 and degangle < 165 then
-						mousearc = "Starboard"
-					else
-						error(degangle)
-					end
-
-					-- local gunsdownrange = fun.getGunsInArc(mrk, mousearc)
-					-- print(gunsdownrange)
-					-- mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+                    determineMouseText(mrk)
 				else
-					-- nothing to do
+					-- nothing to do. Accept default rgb values of (1,1,1)
 				end
 
 				-- draw line and circle
@@ -789,7 +823,7 @@ function marker.draw()
         drawEveryGhost()    -- planned steps
     elseif GAME_MODE == enum.gamemodeTargeting then
         if ray1.position ~= nil and ray1.target ~= nil then  -- target is set by ray1:update() when a target is specified. Don't draw a ray if no target
-            ray1:draw(true, "")	-- requires ray:update(to be invoked with start/stop x/y pairs)
+            ray1:draw(true, mousetext)	-- requires ray:update(to be invoked with start/stop x/y pairs) (moustext is a global value)
         end
     end
 end

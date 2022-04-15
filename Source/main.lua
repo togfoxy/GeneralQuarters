@@ -262,7 +262,7 @@ function love.update(dt)
 		elseif GAME_MODE == enum.gamemodeTargeting then
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
-			fun.resolveCombat
+			fun.resolveCombat()
 		end
 	else
 
