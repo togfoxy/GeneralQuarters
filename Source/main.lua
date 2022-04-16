@@ -151,6 +151,7 @@ function love.mousepressed( x, y, button, istouch )
 			if selectedMarker ~= nil then
 				-- clear all targets
 				mark.clearTarget(selectedMarker)
+				selectedMarker.gunsDownrange = 0
 
 				-- determine marker closest to the mouse click
 				local closestmarker = mark.getClosest(wx,wy)
@@ -162,6 +163,8 @@ function love.mousepressed( x, y, button, istouch )
 					if mark.targetInLoS(wx, wy) then		-- use the current mouse click as parameters
 						closestmarker.isTarget = true
 						selectedMarker.targetMarker = closestmarker
+						local arc = fun.getArc(selectedMarker.positionX, selectedMarker.positionY, selectedMarker.heading, closestmarker.positionX, closestmarker.positionY)    -- returns a string
+						selectedMarker.gunsDownrange = mark.getGunsInArc(selectedMarker, arc)	-- object + arc (string)
 					end
 				end
 			end

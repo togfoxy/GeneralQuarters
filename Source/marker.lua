@@ -19,6 +19,7 @@ local function initaliseMarker(thisform, m)
     m.targetID = "" -- flotilla, formation, marker
     m.planningstep = {}     -- holds future moves determined during the planning stage
     m.frontGunPosition = 20     -- draws the front gun image 20 pixels from the centre of the marker
+    m.damageSustained = 0       -- tracks damage taken each combat round
 
 end
 
@@ -35,7 +36,7 @@ local function AddTurret(struct, gf, tf)
     table.insert(struct, myturret)
 end
 
-function marker.getCorrectPositionInFormation(thismark)
+function marker.getCorrectPositionInFormation(thismarker)
     -- determine the correct x/y position for this marker by determining the formation, the flagship and the column the marker belongs to
     -- input: a marker object
     -- output: the x/y reflecting the preferred location with in the formation
@@ -46,7 +47,7 @@ function marker.getCorrectPositionInFormation(thismark)
     for q,flot in pairs(flotilla) do
         for w,frm in pairs(flot.formation) do
             for e, mrk in pairs(frm.marker) do
-                if mrk == thismark then
+                if mrk == thismarker then
                     -- found the correct marker so capture the formation
                     thisform = frm
                 end
@@ -59,8 +60,8 @@ function marker.getCorrectPositionInFormation(thismark)
     flagship = form.getFlagship(thisform)
     assert(flagship ~= nil)
 
-    -- determine if thismark should be left or right of the flagship by checking numOfColumns
-    local columndelta = thismark.columnNumber - flagship.columnNumber    -- a negative number means m should be left of flagship
+    -- determine if thismarker should be left or right of the flagship by checking numOfColumns
+    local columndelta = thismarker.columnNumber - flagship.columnNumber    -- a negative number means m should be left of flagship
     local laststepnumber = #flagship.planningstep
 
     -- determine the flagship x/y
@@ -104,7 +105,7 @@ function marker.getCorrectPositionInFormation(thismark)
         local colheadx, colheady = cf.AddVectorToPoint(fsX,fsY,relativeheadingfromfs,hyp)
 
         -- move back through the column to find correct position in sequence
-        if thismark.sequenceInColumn == 1 then
+        if thismarker.sequenceInColumn == 1 then
             return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
@@ -112,7 +113,7 @@ function marker.getCorrectPositionInFormation(thismark)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = thismark.length * 1.5 * thismark.sequenceInColumn
+            local dist = thismarker.length * 1.5 * thismarker.sequenceInColumn
             local x, y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
             return x, y
         end
@@ -124,7 +125,7 @@ function marker.getCorrectPositionInFormation(thismark)
         local colheadx, colheady = cf.AddVectorToPoint(fsX,fsY,relativeheadingfromfs,hyp)
 
         -- move back through the column to find correct position in sequence
-        if thismark.sequenceInColumn == 1 then
+        if thismarker.sequenceInColumn == 1 then
             return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
@@ -132,7 +133,7 @@ function marker.getCorrectPositionInFormation(thismark)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = thismark.length * 1.5 * thismark.sequenceInColumn
+            local dist = thismarker.length * 1.5 * thismarker.sequenceInColumn
             local x,y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
             return x, y
         end
@@ -140,7 +141,7 @@ function marker.getCorrectPositionInFormation(thismark)
         local colheadx, colheady = fsX, fsY
 
         -- move back through the column to find correct position in sequence
-        if thismark.sequenceInColumn == 1 then
+        if thismarker.sequenceInColumn == 1 then
             return colheadx, colheady
         else
             -- marker is not at head of column so need to work out how far back to place it
@@ -148,7 +149,7 @@ function marker.getCorrectPositionInFormation(thismark)
             -- from the head of the column, move backwards length * sequenceInColumn
             local direction = fsheading + 180
             if direction > 359 then direction = direction - 360 end
-            local dist = thismark.length * 1.5 * thismark.sequenceInColumn
+            local dist = thismarker.length * 1.5 * thismarker.sequenceInColumn
             local x, y = cf.AddVectorToPoint(colheadx, colheady, direction, dist)
             return x, y
         end
@@ -681,7 +682,7 @@ function marker.targetInLoS(targetx, targety)
     end
 end
 
-local function getGunsInArc(thismarker, arc)
+function marker.getGunsInArc(thismarker, arc)
     -- for the provided marker, return the number of guns that can shoot in the provided arc
     -- does not account for battle damage
     -- input: thismarker - marker (object/table)
@@ -689,6 +690,7 @@ local function getGunsInArc(thismarker, arc)
     -- output: number - the number of guns that can fire
 
     -- NOTE: does not return torpedo's in arc (but can be easily modified)
+    --! needs to be adjusted to account for damaged turrets
 
     local gf, tf = 0,0  -- gun factor, torpedo factor
     for k, struct in pairs(thismarker.structure) do
@@ -727,27 +729,8 @@ local function determineMouseText(mrk)
     local heading = (mrk.heading)
     local mousex, mousey = love.mouse.getPosition()
     local wx,wy = cam:toWorld(mousex, mousey)	-- converts screen x/y to world x/y
-    degangle = cf.getBearing(xcentre,ycentre,wx,wy)
-    -- degangle is the angle assuming 0 = north.
-    -- it needs to be adjusted to be relative to the ship heading
-    -- degangle == 0 means directly ahead of the marker
-    -- degangle == 90 means directly off starboard
-    degangle = cf.adjustHeading(degangle, heading * -1)
-    local mousearc
-    -- +/- 15 degree = front of marker (345 -> 15)
-    if degangle >= 345 or degangle <= 15 then
-        mousearc = "Bow"
-    elseif degangle >= 165 and degangle <= 195 then
-        mousearc = "Stern"
-    elseif degangle > 165 and degangle < 345 then
-        mousearc = "Port"
-    elseif degangle > 15 and degangle < 165 then
-        mousearc = "Starboard"
-    else
-        error(degangle)
-    end
-
-    local gunsdownrange = getGunsInArc(mrk, mousearc)
+    mousearc = fun.getArc(xcentre, ycentre, heading, wx,wy)    -- returns a string
+    local gunsdownrange = mark.getGunsInArc(mrk, mousearc)
     mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 end
 

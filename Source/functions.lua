@@ -62,11 +62,26 @@ function functions.changeCameraPosition()
     cam:setPos(TRANSLATEX, TRANSLATEY)
 end
 
+local function cleanUpAfterCombat()
+    -- resets the damage taken this turn. Should be called after each combat phase
+    -- clears targets
+    for k,flot in pairs(flotilla) do
+		for q,frm in pairs(flot.formation) do
+			for w,mrk in pairs(frm.marker) do
+                mrk.damageSustained = 0
+                mrk.targetMarker = nil
+                mrk.isTarget = nil
+            end
+        end
+    end
+end
+
 function functions.advanceMode()
     -- advances the phase to the next phase and if necessary, the mode as well
     if PLAYER_TURN == 1 then
         if GAME_MODE == enum.gamemodeMoving or GAME_MODE == enum.gamemodeCombat then
             -- changing from Moving/Combat into planning/targeting for player 1
+            cleanUpAfterCombat()      -- removes the 'damage taken this turn' tracker
             GAME_MODE = GAME_MODE + 1
             PLAYER_TURN = 1
             ZOOMFACTOR = PREFERRED_ZOOM_BRITISH
@@ -130,23 +145,42 @@ function functions.updateLoSRay()
 end
 
 local function determineHitMiss()
-
-    return false    --!
-
+    -- turns out that there is no such thing as hit/miss!
+    return true
 end
 
-local function getDamageInflicted()
+local function getDamageInflicted(gf)
+    -- looks up table for rndom number and gunfactor. Lower rndnum is better
+    -- input: gunfactor or gunsDownrange
+    -- output: integer for damage inflicted
+    local hittable = {}
+    hittable[1] = {1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5}
+    hittable[2] = {1,1,1,1,1,1,1,1,1,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4}
+    hittable[3] = {0,0,0,1,1,1,1,1,1,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4}
+    hittable[4] = {0,0,0,0,0,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4}
+    hittable[5] = {0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,3}
 
-    return false
+    local rndnum = love.math.random(1, 5)
+    local result = hittable[rndnum][gf]
+    return result
 end
 
-local function willBeSunk()
-    return false
+local function willBeSunk(thismarker)
+    -- a marker is sunk if the damage sustained in one combat turn >= that marker's protectionFactor
+    -- input: marker object
+    -- output: yes/no boolean
 
+    if thismarker.damageSustained >= thismarker.protectionFactor then
+print(thismarker.markerName .. " is sunk!")
+        return true
+
+    else
+        return false
+    end
 end
 
 local function removeMarker()
-    return false
+
 end
 
 local function doActions(que)
@@ -173,6 +207,33 @@ local function getNumberOfShooters(nation)
     return result
 end
 
+function functions.getArc(x1, y1, heading, x2, y2)
+    -- gets the arc or quadrant x2/y2 is relative to x1/y1
+    -- input: x1,y1,heading of first point.
+    -- input: x2,y2 of second point (heading irrelevant)
+    -- output: string.
+    local result
+    degangle = cf.getBearing(x1,y1,x2,y2)
+    -- degangle is the angle assuming 0 = north.
+    -- it needs to be adjusted to be relative to the ship heading
+    -- degangle == 0 means directly ahead of the marker
+    -- degangle == 90 means directly off starboard
+    degangle = cf.adjustHeading(degangle, heading * -1)
+    -- +/- 15 degree = front of marker (345 -> 15)
+    if degangle >= 345 or degangle <= 15 then
+        result = "Bow"
+    elseif degangle >= 165 and degangle <= 195 then
+        result = "Stern"
+    elseif degangle > 165 and degangle < 345 then
+        result = "Port"
+    elseif degangle > 15 and degangle < 165 then
+        result = "Starboard"
+    else
+        error(degangle)
+    end
+    return result
+end
+
 function functions.resolveCombat()
     -- resolves combat by crunching numbers and then adding 'actions' to a queue (table). This is for animations and sounds etc that
     -- will need to be played simultaneously
@@ -190,7 +251,7 @@ function functions.resolveCombat()
 		for q,frm in pairs(flot.formation) do
 			for w,mrk in pairs(frm.marker) do
                 if mrk.targetMarker ~= nil then
-                    local disttomarker = getDistanceToTarget()  -- used to get meaning sequencing of animations
+                    local disttomarker = mark.getDistanceToTarget(mrk)  -- used to get meaning sequencing of animations
                     -- add gunfire animation to queue
                     actionitem = {}
                     actionitem.action = "gunfire animation"
@@ -208,10 +269,13 @@ function functions.resolveCombat()
                         actionitem.action = "hit animation"
                         actionitem.value = mrk.targetMarker     -- object
                         table.insert(actionqueue, actionitem)
-                        local damageinflicted = getDamageInflicted(mrk)
+                        local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
+                        mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
+    print(mrk.targetMarker.markerName .. " has sustained ".. mrk.targetMarker.damageSustained .. " damage. PF = " .. mrk.targetMarker.protectionFactor)
                         actionitem = {}
                         actionitem.action = "apply damage"
                         actionitem.value = mrk.targetMarker     -- object
+                        actionitem.value2 = damageinflicted
                         table.insert(actionqueue, actionitem)
 
                         local targetIsSunk = willBeSunk(mrk.targetMarker, damageinflicted)
@@ -223,6 +287,7 @@ function functions.resolveCombat()
                             table.insert(actionqueue, actionitem)
                         end
                     end
+                    mrk.targetMarker = nil
                 end
             end
         end
