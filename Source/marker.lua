@@ -704,6 +704,17 @@ local function getGunsInArc(thismarker, arc)
     return gf
 end
 
+function marker.getDistanceToTarget(thismarker)
+    -- provde a marker and get the distance to it's nominated target
+    -- input: marker object
+    -- output: number or nil
+    local result = nil
+    if thismarker.targetMarker ~= nil then
+        result = cf.GetDistance(thismarker.positionX, thismarker.positionY, thismarker.targetMarker.positionX, thismarker.targetMarker.positionY)
+    end
+    return result
+end
+
 local function determineMouseText(mrk)
     -- mousetext is a glboal value that holds the text to draw on the LoS ray
     -- this function determines what that text needs to be

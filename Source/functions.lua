@@ -129,45 +129,105 @@ function functions.updateLoSRay()
     end
 end
 
+local function determineHitMiss()
+
+    return false    --!
+
+end
+
+local function getDamageInflicted()
+
+    return false
+end
+
+local function willBeSunk()
+    return false
+
+end
+
+local function removeMarker()
+    return false
+end
+
+local function doActions(que)
+    -- cycles through actionqueue and applies animations/actions etc
+
+end
+
+local function getNumberOfShooters(nation)
+    -- determine how many markers will shoot. Used for animations and timing
+    -- input: nation. String
+    -- output: integer
+    local result = 0
+    for k,flot in pairs(flotilla) do
+        if flot.nation == nation then
+    		for q,frm in pairs(flot.formation) do
+    			for w,mrk in pairs(frm.marker) do
+                    if mrk.targetMarker ~= nil then
+                        result = result + 1
+                    end
+                end
+            end
+        end
+    end
+    return result
+end
+
 function functions.resolveCombat()
+    -- resolves combat by crunching numbers and then adding 'actions' to a queue (table). This is for animations and sounds etc that
+    -- will need to be played simultaneously
 
+    local actionqueue = {}  -- a non-specific table to hold actions/animations/sounds
+    local actionitem = {}
+    local numofbritshooters = getNumberOfShooters("British")     -- count how many markers have a target. Used for timing animations
+    local numofgermshooters = getNumberOfShooters("German")
 
-    -- for every marker in every formation
-        -- if has a target then
-            -- add "gunfire" animation to the animation queue
-            -- determine engagement outcome
-            -- if miss then
-                -- add "miss" animation to the animation queue
-            -- else
-                -- add "hit" animation to the animation queue
-                -- if sunk then
-                    -- process sinking (remove marker etc)
-                    -- add "sunk" animation to the animation queue
-    -- end
+    local britTimeScale = numofbritshooters / 2 -- used to sequeence animations inside this time frame/sequence
+    local germTimeScale = britTimeScale + numofgermshooters / 2 -- german sequence happens after british sequence
 
     -- cycle through every marker in every flotilla and see if that marker has a target
     for k,flot in pairs(flotilla) do
 		for q,frm in pairs(flot.formation) do
 			for w,mrk in pairs(frm.marker) do
                 if mrk.targetMarker ~= nil then
-                    --! add gunfire animation to queue
+                    local disttomarker = getDistanceToTarget()  -- used to get meaning sequencing of animations
+                    -- add gunfire animation to queue
+                    actionitem = {}
+                    actionitem.action = "gunfire animation"
+                    actionitem.value = mrk
+                    table.insert(actionqueue, actionitem)
 
+                    local targetIsHit = determineHitMiss()
+                    if not targetIsHit then
+                        actionitem = {}
+                        actionitem.action = "miss animation"
+                        actionitem.value = mrk.targetMarker     -- object
+                        table.insert(actionqueue, actionitem)
+                    else
+                        actionitem = {}
+                        actionitem.action = "hit animation"
+                        actionitem.value = mrk.targetMarker     -- object
+                        table.insert(actionqueue, actionitem)
+                        local damageinflicted = getDamageInflicted(mrk)
+                        actionitem = {}
+                        actionitem.action = "apply damage"
+                        actionitem.value = mrk.targetMarker     -- object
+                        table.insert(actionqueue, actionitem)
 
-
-
-
-
-
-
-
+                        local targetIsSunk = willBeSunk(mrk.targetMarker, damageinflicted)
+                        if targetIsSunk then
+                            removeMarker(mrk.targetMarker)
+                            actionitem = {}
+                            actionitem.action = "sunk animation"
+                            actionitem.value = mrk.targetMarker     -- object
+                            table.insert(actionqueue, actionitem)
+                        end
+                    end
                 end
             end
         end
     end
-
-
-
-
+    doActions(actionqueue)     -- apply all the actions stored in the action queue
 
 end
 
