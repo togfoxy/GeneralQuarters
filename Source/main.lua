@@ -170,6 +170,7 @@ function love.mousepressed( x, y, button, istouch )
 						selectedMarker.targetMarker = closestmarker
 						local arc = fun.getArc(selectedMarker.positionX, selectedMarker.positionY, selectedMarker.heading, closestmarker.positionX, closestmarker.positionY)    -- returns a string
 						selectedMarker.gunsDownrange = mark.getGunsInArc(selectedMarker, arc)	-- object + arc (string)
+						selectedMarker.isSelected = false	-- unselecting the shooting marker is a type of positive feedback that the target was selected
 					end
 				end
 			end

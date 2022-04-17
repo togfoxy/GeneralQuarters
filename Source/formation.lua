@@ -132,7 +132,7 @@ function formation.changeFacing(value)
                 if form.isSelected then
                 	form.heading = form.heading + value
                 	if form.heading < 0 then form.heading = 360 + form.heading end 	-- this is '+' because the heading is negative
-                	if form.heading > 459 then form.heading = form.heading - 360 end
+                	if form.heading > 359 then form.heading = form.heading - 360 end
                 end
             end
         end
