@@ -12,6 +12,9 @@ Camera = require 'lib.cam11.cam11'	-- Returns the Camera class.
 Slab = require 'lib.Slab.Slab'
 -- https://github.com/coding-jackalope/Slab/wiki
 
+anim8 = require 'lib.anim8'
+-- https://github.com/kikito/anim8
+
 cf = require 'lib.commonfunctions'
 enum = require 'enum'
 rays = require 'lib.rays'
@@ -43,8 +46,10 @@ PLAYER_TURN = 1		-- which player is in control - 1 or 2?
 TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
+quad = {}		-- quads for animations
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
+actionqueue = {}	-- used to store animations etc during combat phase
 
 function love.keyreleased( key, scancode )
 	if key == "escape" then
@@ -151,6 +156,7 @@ function love.mousepressed( x, y, button, istouch )
 			if selectedMarker ~= nil then
 				-- clear all targets
 				mark.clearTarget(selectedMarker)
+				selectedMarker.gunsDownrange = 0
 
 				-- determine marker closest to the mouse click
 				local closestmarker = mark.getClosest(wx,wy)
@@ -162,6 +168,8 @@ function love.mousepressed( x, y, button, istouch )
 					if mark.targetInLoS(wx, wy) then		-- use the current mouse click as parameters
 						closestmarker.isTarget = true
 						selectedMarker.targetMarker = closestmarker
+						local arc = fun.getArc(selectedMarker.positionX, selectedMarker.positionY, selectedMarker.heading, closestmarker.positionX, closestmarker.positionY)    -- returns a string
+						selectedMarker.gunsDownrange = mark.getGunsInArc(selectedMarker, arc)	-- object + arc (string)
 					end
 				end
 			end
@@ -180,6 +188,8 @@ function love.wheelmoved(x, y)
 		ZOOMFACTOR = ZOOMFACTOR - 0.1
 	end
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
+
+	print("Zoom is now " .. ZOOMFACTOR)
 end
 
 function love.load()
@@ -208,6 +218,19 @@ function love.load()
     Slab.Initialize()
 end
 
+local function drawMuzzleFlashes()
+	-- do all the muzzle flashing display
+    for i = 1, #actionqueue do
+print(actionqueue[i].action)
+print(actionqueue[i].timeleft)
+        if actionqueue[i].action == "muzzleflash" then
+            -- draw muzzle flash
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.draw(image[enum.muzzle1], actionqueue[i].marker.positionX, actionqueue[i].marker.positionY, 0, 1, 1)  -- file, x, y, radians, scalex, scaley
+        end
+    end
+end
+
 function love.draw()
 
     res.start()
@@ -218,11 +241,14 @@ function love.draw()
 		love.graphics.setBackgroundColor( 0, 0, 0, 1 )
 		menus.DrawMainMenu()
 	end
+
 	if currentscreen == "GameLoop" then
-		-- menus.DrawMainMenu()
 		ocean.draw()
 		flot.draw()
 
+		drawMuzzleFlashes()
+
+		love.graphics.setColor(1,1,1,1)
 		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
 	end
 
@@ -262,7 +288,7 @@ function love.update(dt)
 		elseif GAME_MODE == enum.gamemodeTargeting then
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
-			fun.resolveCombat()
+			fun.resolveCombat(dt)
 		end
 	else
 

@@ -24,7 +24,7 @@ function hud.printGameMode()
         text = ""
     else
         if PLAYER_TURN == 1 then
-            text = "BRITAN"
+            text = "BRITIAN"
         else
             text = "GERMANY"
         end
