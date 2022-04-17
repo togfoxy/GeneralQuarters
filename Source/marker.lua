@@ -336,8 +336,11 @@ local function getNewFlagshipHeading(m, desiredheading)
 
     local newheading
     local steeringamount = 15   -- this is the steering amount. Increase it to permit larger turns
-    local angledelta = desiredheading - m.heading
+    local angledelta = desiredheading - currentheading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
+
+print("current, desired, delta, adjust")
+print(m.heading,desiredheading, angledelta, adjsteeringamount)
 
     -- determine if cheaper to turn left or right
     local leftdistance = currentheading - desiredheading
