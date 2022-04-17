@@ -49,6 +49,7 @@ image = {}		-- table that holds the images
 quad = {}		-- quads for animations
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
+actionqueue = {}	-- used to store animations etc during combat phase
 
 function love.keyreleased( key, scancode )
 	if key == "escape" then
@@ -187,6 +188,8 @@ function love.wheelmoved(x, y)
 		ZOOMFACTOR = ZOOMFACTOR - 0.1
 	end
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
+
+	print("Zoom is now " .. ZOOMFACTOR)
 end
 
 function love.load()
@@ -218,14 +221,12 @@ end
 local function drawMuzzleFlashes()
 	-- do all the muzzle flashing display
     for i = 1, #actionqueue do
+print(actionqueue[i].action)
+print(actionqueue[i].timeleft)
         if actionqueue[i].action == "muzzleflash" then
             -- draw muzzle flash
             love.graphics.setColor(1,1,1,1)
-            love.graphics.draw(image[enum.muzzle1], actionqueue[i].marker.positionX, actionqueue[i].marker.positionX, 0, 1, 1)  -- file, x, y, radians, scalex, scaley
-            actionqueue[i].timeleft = actionqueue[i].timeleft - dt
-            if actionqueue[i].timeleft <= 0 then
-                -- table.remove(actionqueue, i)
-            end
+            love.graphics.draw(image[enum.muzzle1], actionqueue[i].marker.positionX, actionqueue[i].marker.positionY, 0, 1, 1)  -- file, x, y, radians, scalex, scaley
         end
     end
 end
@@ -240,13 +241,14 @@ function love.draw()
 		love.graphics.setBackgroundColor( 0, 0, 0, 1 )
 		menus.DrawMainMenu()
 	end
+
 	if currentscreen == "GameLoop" then
-		-- menus.DrawMainMenu()
 		ocean.draw()
 		flot.draw()
 
 		drawMuzzleFlashes()
 
+		love.graphics.setColor(1,1,1,1)
 		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
 	end
 

@@ -245,7 +245,7 @@ function functions.getArc(x1, y1, heading, x2, y2)
     return result
 end
 
-local function doShootingAnimations(nation, dt)
+local function determineShootingAnimations(nation, dt)
     for k,flt in pairs(flotilla) do
         if flt.nation == nation then
     		for q,frm in pairs(flt.formation) do
@@ -256,12 +256,18 @@ local function doShootingAnimations(nation, dt)
                         TRANSLATEX = britishx
                         TRANSLATEY = britishy
                         cam:setPos(TRANSLATEX, TRANSLATEY)
+                        ZOOMFACTOR = 0.5
 
                         actionitem = {}
                         actionitem.action = "muzzleflash"
                         actionitem.marker = mrk
                         actionitem.timeleft = 1
                         table.insert(actionqueue, actionitem)
+                        actionitem = {}
+                        actionitem.action = "gunsound"
+                        actionitem.marker = mrk
+                        actionitem.timeleft = 1 -- timeleft is not relevant for sounds but setting it > 0 stops it being immediately erased
+
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
                         mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
@@ -270,21 +276,25 @@ local function doShootingAnimations(nation, dt)
             end
         end
     end
-
-
 end
 
 function functions.resolveCombat(dt)
 
-    actionqueue = {}                    -- a global that is only effective during combat resolution
-    doShootingAnimations("British", dt)
+    determineShootingAnimations("British", dt)
     --! doExplosionAnimations("German")     -- includes misses/splashes
     --! doSinkingAnimations("German")
 
-    --! doShootingAnimations("German", dt)
+    --! determineShootingAnimations("German", dt)
     --! doExplosionAnimations("British")     -- includes misses/splashes
     --! doSinkingAnimations("British")
 
+    -- the timer for each image/animtation is stored in the action queue
+    for k,action in pairs(actionqueue) do
+        action.timeleft = action.timeleft - dt
+        if action.timeleft <= 0 then
+            table.remove(actionqueue, k)
+        end
+    end
 end
 
 
