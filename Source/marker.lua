@@ -212,21 +212,6 @@ local function getDrawingCentre(thismarker)
     return drawingcentrex, drawingcentrey
 end
 
-local function drawEveryGhost()
-    love.graphics.setColor(1, 1, 1, 0.5)
-    for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-            for w,mark in pairs(form.marker) do
-                for e,step in pairs(mark.planningstep) do
-                    local headingrad = math.rad(step.newheading)
-                    local drawingcentrex, drawingcentrey = getDrawingCentre(step)   -- get the correct x/y value (with offsets) for the provided marker
-                    love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
-                end
-            end
-        end
-    end
-end
-
 function marker.unselectAll()
     -- cycles through every marker and clears all 'selection' flags
     for k,flot in pairs(flotilla) do
@@ -338,9 +323,6 @@ local function getNewFlagshipHeading(m, desiredheading)
     local steeringamount = 15   -- this is the steering amount. Increase it to permit larger turns
     local angledelta = desiredheading - currentheading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
-
-print("current, desired, delta, adjust")
-print(m.heading,desiredheading, angledelta, adjsteeringamount)
 
     -- determine if cheaper to turn left or right
     local leftdistance = currentheading - desiredheading
@@ -737,6 +719,24 @@ local function determineMouseText(mrk)
     mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 end
 
+local function drawEveryGhost(nation)
+    love.graphics.setColor(1, 1, 1, 0.5)
+
+    for k,flot in pairs(flotilla) do
+        if flot.nation == nation then
+    		for q,form in pairs(flot.formation) do
+                for w,mark in pairs(form.marker) do
+                    for e,step in pairs(mark.planningstep) do
+                        local headingrad = math.rad(step.newheading)
+                        local drawingcentrex, drawingcentrey = getDrawingCentre(step)   -- get the correct x/y value (with offsets) for the provided marker
+                        love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
+                    end
+                end
+            end
+        end
+    end
+end
+
 local function drawEveryMarker()
 	-- draw every marker
 
@@ -817,7 +817,11 @@ end
 function marker.draw()
     drawEveryMarker()
     if GAME_MODE == enum.gamemodePlanning then
-        drawEveryGhost()    -- planned steps
+        if PLAYER_TURN == 1 then
+            drawEveryGhost("British")    -- planned steps
+        else
+            drawEveryGhost("German")
+        end
     elseif GAME_MODE == enum.gamemodeTargeting then
         if ray1.position ~= nil and ray1.target ~= nil then  -- target is set by ray1:update() when a target is specified. Don't draw a ray if no target
             ray1:draw(true, mousetext)	-- requires ray:update(to be invoked with start/stop x/y pairs) (moustext is a global value)
