@@ -783,7 +783,7 @@ local function drawEveryMarker()
 				-- the image needs to be shifted left and forward. These next two lines will do that.
                 local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the provided marker
                 love.graphics.setColor(red,green,blue,1)
-                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)		-- 1
+                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
 				-- draw the guns
 				-- local drawingheading = cf.adjustHeading(heading, -90)

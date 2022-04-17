@@ -12,6 +12,9 @@ Camera = require 'lib.cam11.cam11'	-- Returns the Camera class.
 Slab = require 'lib.Slab.Slab'
 -- https://github.com/coding-jackalope/Slab/wiki
 
+anim8 = require 'lib.anim8'
+-- https://github.com/kikito/anim8
+
 cf = require 'lib.commonfunctions'
 enum = require 'enum'
 rays = require 'lib.rays'
@@ -43,6 +46,7 @@ PLAYER_TURN = 1		-- which player is in control - 1 or 2?
 TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
+quad = {}		-- quads for animations
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
 
@@ -211,6 +215,21 @@ function love.load()
     Slab.Initialize()
 end
 
+local function drawMuzzleFlashes()
+	-- do all the muzzle flashing display
+    for i = 1, #actionqueue do
+        if actionqueue[i].action == "muzzleflash" then
+            -- draw muzzle flash
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.draw(image[enum.muzzle1], actionqueue[i].marker.positionX, actionqueue[i].marker.positionX, 0, 1, 1)  -- file, x, y, radians, scalex, scaley
+            actionqueue[i].timeleft = actionqueue[i].timeleft - dt
+            if actionqueue[i].timeleft <= 0 then
+                -- table.remove(actionqueue, i)
+            end
+        end
+    end
+end
+
 function love.draw()
 
     res.start()
@@ -225,6 +244,8 @@ function love.draw()
 		-- menus.DrawMainMenu()
 		ocean.draw()
 		flot.draw()
+
+		drawMuzzleFlashes()
 
 		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
 	end
@@ -265,7 +286,7 @@ function love.update(dt)
 		elseif GAME_MODE == enum.gamemodeTargeting then
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
-			fun.resolveCombat()
+			fun.resolveCombat(dt)
 		end
 	else
 

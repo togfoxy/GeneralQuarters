@@ -3,11 +3,25 @@ local functions = {}
 function functions.LoadImages()
     -- called during love.load() to pre-load images
 
+    -- static images
     image[enum.markerBattleship] = love.graphics.newImage("assets/images/ShipBattleshipHull.png")
 	image[enum.markerBattleshipGun] = love.graphics.newImage("assets/images/WeaponBattleshipStandardGun.png")
     image[enum.mainmenu] = love.graphics.newImage("assets/images/HMS_Nelson_during_gunnery_trials.jpg")
     image[enum.britishflag] = love.graphics.newImage("assets/images/British-Navy-Flags_173_F.jpg")
     image[enum.germanflag] = love.graphics.newImage("assets/images/warflag2a.jpg")
+    image[enum.muzzle1] = love.graphics.newImage("assets/images/m_1.png")
+    image[enum.muzzle2] = love.graphics.newImage("assets/images/m_2.png")
+    image[enum.muzzle3] = love.graphics.newImage("assets/images/m_3.png")
+    image[enum.muzzle4] = love.graphics.newImage("assets/images/m_4.png")
+    image[enum.muzzle5] = love.graphics.newImage("assets/images/m_6.png")
+    image[enum.muzzle6] = love.graphics.newImage("assets/images/m_7.png")
+    image[enum.muzzle7] = love.graphics.newImage("assets/images/m_8.png")
+    image[enum.muzzle8] = love.graphics.newImage("assets/images/m_9.png")
+    image[enum.muzzle9] = love.graphics.newImage("assets/images/m_11.png")
+
+    -- quads for animations
+    quad[enum.smokefire] = love.graphics.newImage("assets/images/SmokeFire.png")
+
 end
 
 function functions.LoadFonts()
@@ -169,11 +183,8 @@ local function willBeSunk(thismarker)
     -- a marker is sunk if the damage sustained in one combat turn >= that marker's protectionFactor
     -- input: marker object
     -- output: yes/no boolean
-
     if thismarker.damageSustained >= thismarker.protectionFactor then
-print(thismarker.markerName .. " is sunk!")
         return true
-
     else
         return false
     end
@@ -234,7 +245,50 @@ function functions.getArc(x1, y1, heading, x2, y2)
     return result
 end
 
-function functions.resolveCombat()
+local function doShootingAnimations(nation, dt)
+    for k,flt in pairs(flotilla) do
+        if flt.nation == nation then
+    		for q,frm in pairs(flt.formation) do
+    			for w,mrk in pairs(frm.marker) do
+                    if mrk.targetMarker ~= nil then
+                        -- setcameratomarker()
+                        local britishx, britishy = flot.getAveragePosition("British")
+                        TRANSLATEX = britishx
+                        TRANSLATEY = britishy
+                        cam:setPos(TRANSLATEX, TRANSLATEY)
+
+                        actionitem = {}
+                        actionitem.action = "muzzleflash"
+                        actionitem.marker = mrk
+                        actionitem.timeleft = 1
+                        table.insert(actionqueue, actionitem)
+                        local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
+                        mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
+                        mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
+                    end
+                end
+            end
+        end
+    end
+
+
+end
+
+function functions.resolveCombat(dt)
+
+    actionqueue = {}                    -- a global that is only effective during combat resolution
+    doShootingAnimations("British", dt)
+    --! doExplosionAnimations("German")     -- includes misses/splashes
+    --! doSinkingAnimations("German")
+
+    --! doShootingAnimations("German", dt)
+    --! doExplosionAnimations("British")     -- includes misses/splashes
+    --! doSinkingAnimations("British")
+
+end
+
+
+function functions.oldresolveCombat()
     -- resolves combat by crunching numbers and then adding 'actions' to a queue (table). This is for animations and sounds etc that
     -- will need to be played simultaneously
 
@@ -271,7 +325,6 @@ function functions.resolveCombat()
                         table.insert(actionqueue, actionitem)
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
-    print(mrk.targetMarker.markerName .. " has sustained ".. mrk.targetMarker.damageSustained .. " damage. PF = " .. mrk.targetMarker.protectionFactor)
                         actionitem = {}
                         actionitem.action = "apply damage"
                         actionitem.value = mrk.targetMarker     -- object
