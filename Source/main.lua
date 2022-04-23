@@ -175,6 +175,8 @@ function love.mousepressed( x, y, button, istouch )
 				end
 			end
 		end
+	elseif button == 3 then
+		-- do nothing
 	else
 		error("Unexpected button pressed")
 	end
@@ -222,12 +224,33 @@ end
 local function drawMuzzleFlashes()
 	-- do all the muzzle flashing display
     for i = 1, #actionqueue do
-print(actionqueue[i].action)
-print(actionqueue[i].timeleft)
         if actionqueue[i].action == "muzzleflash" then
             -- draw muzzle flash
-            love.graphics.setColor(1,1,1,1)
-            love.graphics.draw(image[enum.muzzle1], actionqueue[i].marker.positionX, actionqueue[i].marker.positionY, 0, 1, 1)  -- file, x, y, radians, scalex, scaley
+
+			-- key data is stored in the action queue. Unpack that so clever things can be done
+			local shooter = actionqueue[i].marker	-- object
+			local target = actionqueue[i].target		-- object
+
+			-- get orientation to target so the flash can be aligned correctly
+			local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
+
+
+
+			targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
+			if targetbearing < 0 then targetbearing = 360 + targetbearing end
+
+			-- the image needs to be offset towards the target bearing
+			local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
+
+
+			local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
+
+			-- next two lines are for debugging
+            -- love.graphics.setColor(1,1,1,0.5)
+			-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+
+			love.graphics.setColor(1,1,1,1)
+			love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
         end
     end
 end

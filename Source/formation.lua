@@ -46,6 +46,7 @@ end
 
 function drawCentre()
     -- draw centre of formations
+    -- this is a flag
 	for k,flot in pairs(flotilla) do
 		for q,frm in pairs(flot.formation) do
 			local frmx, frmy = form.getCentre(frm)
@@ -69,6 +70,7 @@ function drawCentre()
             end
             local imgwidth = img:getWidth()
             local imgheight = img:getHeight()
+            love.graphics.setColor(1,1,1,0.5)
             love.graphics.draw(img,(frmx - imgwidth / 2),(frmy - imgheight / 2))
 		end
 	end
