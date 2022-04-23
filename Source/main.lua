@@ -50,6 +50,7 @@ quad = {}		-- quads for animations
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
 actionqueue = {}	-- used to store animations etc during combat phase
+audio = {}
 
 function love.keyreleased( key, scancode )
 	if key == "escape" then
@@ -210,6 +211,7 @@ function love.load()
 
     fun.LoadImages()
 	fun.LoadFonts()
+	fun.LoadAudio()
 
     cam = Camera.new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1)
 	-- cam:setPos(7960, 7440)	-- puts cam approximately in centre of battle map
@@ -225,34 +227,54 @@ local function drawMuzzleFlashes()
 	-- do all the muzzle flashing display
     for i = 1, #actionqueue do
         if actionqueue[i].action == "muzzleflash" then
-            -- draw muzzle flash
+			if actionqueue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+	            -- draw muzzle flash
 
-			-- key data is stored in the action queue. Unpack that so clever things can be done
-			local shooter = actionqueue[i].marker	-- object
-			local target = actionqueue[i].target		-- object
+				-- key data is stored in the action queue. Unpack that so clever things can be done
+				local shooter = actionqueue[i].marker	-- object
+				local target = actionqueue[i].target		-- object
 
-			-- get orientation to target so the flash can be aligned correctly
-			local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
+				-- get orientation to target so the flash can be aligned correctly
+				local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
 
+				targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
+				if targetbearing < 0 then targetbearing = 360 + targetbearing end
 
-
-			targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
-			if targetbearing < 0 then targetbearing = 360 + targetbearing end
-
-			-- the image needs to be offset towards the target bearing
-			local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
+				-- the image needs to be offset towards the target bearing
+				local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
 
 
-			local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
+				local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
 
-			-- next two lines are for debugging
-            -- love.graphics.setColor(1,1,1,0.5)
-			-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+				-- next two lines are for debugging
+	            -- love.graphics.setColor(1,1,1,0.5)
+				-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
 
-			love.graphics.setColor(1,1,1,1)
-			love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+				love.graphics.setColor(1,1,1,1)
+				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+			end
         end
     end
+end
+
+local function playAudioActions()
+
+-- print(inspect(actionqueue))
+
+	for i = 1, #actionqueue do
+		for i, action in pairs(actionqueue) do
+	        if action.action == "gunsound" then
+				if action.timestart <= 0 and action.started == false then
+					-- play audio
+					local newaudio = audio[enum.audiogunfire1]:clone()
+					newaudio:play()
+
+					action.started = true
+					action.timestop = -1	-- this will 'clean up' this action and remove it later
+				end
+			end
+		end
+	end
 end
 
 function love.draw()
@@ -271,6 +293,7 @@ function love.draw()
 		flot.draw()
 
 		drawMuzzleFlashes()
+
 
 		love.graphics.setColor(1,1,1,1)
 		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
@@ -313,6 +336,7 @@ function love.update(dt)
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
 			fun.resolveCombat(dt)
+			playAudioActions()
 		end
 	else
 
@@ -325,26 +349,3 @@ function love.update(dt)
     assert(GAME_MODE >= 0)
 	assert(GAME_MODE <= enum.NumGameModes)
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---

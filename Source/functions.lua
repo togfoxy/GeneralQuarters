@@ -30,6 +30,12 @@ function functions.LoadFonts()
     font[enum.fontDefault] = love.graphics.newFont("assets/fonts/Vera.ttf", 12)
 end
 
+function functions.LoadAudio()
+    audio[enum.audiogunfire1] = love.audio.newSource("assets/audio/cannon_fire.ogg", "static")
+
+
+end
+
 function functions.changeCameraPosition()
     -- determines where the camera should focus on depending on game_mode and phase
     -- input: nothing
@@ -202,11 +208,6 @@ local function removeMarker()
 
 end
 
-local function doActions(que)
-    -- cycles through actionqueue and applies animations/actions etc
-
-end
-
 local function getNumberOfShooters(nation)
     -- determine how many markers will shoot. Used for animations and timing
     -- input: nation. String
@@ -261,17 +262,22 @@ local function determineShootingAnimations(nation, dt)
                     if mrk.targetMarker ~= nil then
                         fun.setCameraPosition("British")
 
+                        local timestart = love.math.random(0, 10) / 10   -- start the muzzle flash at a random time
+                        local timestop = timestart + 1
                         actionitem = {}
                         actionitem.action = "muzzleflash"
                         actionitem.marker = mrk
                         actionitem.target = mrk.targetMarker        -- capture this here before it is deleted down below
-                        actionitem.timeleft = 1
+                        actionitem.timestart = timestart
+                        actionitem.timestop = timestop
+                        actionitem.started = false
                         table.insert(actionqueue, actionitem)
 
                         actionitem = {}
                         actionitem.action = "gunsound"
-                        actionitem.marker = mrk
-                        actionitem.timeleft = 1 -- timeleft is not relevant for sounds but setting it > 0 stops it being immediately erased
+                        actionitem.timestart = timestart
+                        actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
+                        actionitem.started = false
                         table.insert(actionqueue, actionitem)
 
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
@@ -294,10 +300,12 @@ function functions.resolveCombat(dt)
     --! doExplosionAnimations("British")     -- includes misses/splashes
     --! doSinkingAnimations("British")
 
+
     -- the timer for each image/animtation is stored in the action queue
     for k,action in pairs(actionqueue) do
-        action.timeleft = action.timeleft - dt
-        if action.timeleft <= 0 then
+        action.timestart = action.timestart - dt
+        action.timestop = action.timestop - dt
+         if action.timestop <= 0 then
             table.remove(actionqueue, k)
         end
     end

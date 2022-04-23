@@ -47,33 +47,36 @@ end
 function drawCentre()
     -- draw centre of formations
     -- this is a flag
-	for k,flot in pairs(flotilla) do
-		for q,frm in pairs(flot.formation) do
-			local frmx, frmy = form.getCentre(frm)
-            if frm.isSelected then
-	            love.graphics.setColor(0, 1, 0, 1)
-            else
-                love.graphics.setColor(1, 1, 1, 1)
-            end
-			--love.graphics.circle("line", frmx, frmy, 75)
-			-- draw line out from circle to show heading of formation
-			x1, y1 = frmx, frmy
-			x2, y2 = cf.AddVectorToPoint(x1,y1,frm.heading, 175)
-            love.graphics.setLineWidth(3)
-			love.graphics.line(x1,y1,x2,y2)
 
-            local img
-            if flot.nation == "British" then
-                img = image[enum.britishflag]
-            else
-                img = image[enum.germanflag]
-            end
-            local imgwidth = img:getWidth()
-            local imgheight = img:getHeight()
-            love.graphics.setColor(1,1,1,0.5)
-            love.graphics.draw(img,(frmx - imgwidth / 2),(frmy - imgheight / 2))
-		end
-	end
+    if GAME_MODE ~= enum.gamemodeCombat then
+    	for k,flot in pairs(flotilla) do
+    		for q,frm in pairs(flot.formation) do
+    			local frmx, frmy = form.getCentre(frm)
+                if frm.isSelected then
+    	            love.graphics.setColor(0, 1, 0, 1)
+                else
+                    love.graphics.setColor(1, 1, 1, 1)
+                end
+    			--love.graphics.circle("line", frmx, frmy, 75)
+    			-- draw line out from circle to show heading of formation
+    			x1, y1 = frmx, frmy
+    			x2, y2 = cf.AddVectorToPoint(x1,y1,frm.heading, 175)
+                love.graphics.setLineWidth(3)
+    			love.graphics.line(x1,y1,x2,y2)
+
+                local img
+                if flot.nation == "British" then
+                    img = image[enum.britishflag]
+                else
+                    img = image[enum.germanflag]
+                end
+                local imgwidth = img:getWidth()
+                local imgheight = img:getHeight()
+                love.graphics.setColor(1,1,1,0.5)
+                love.graphics.draw(img,(frmx - imgwidth / 2),(frmy - imgheight / 2))
+    		end
+    	end
+    end
 end
 
 function formation.unselectAll()
