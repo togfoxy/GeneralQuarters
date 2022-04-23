@@ -398,8 +398,8 @@ local function getTargetQuadrant(x1, y1, x2, y2)
     error("Unexpected program flow")
 end
 
-local function getAbsoluteHeadingToTarget(x1,y1, x2,y2)
-    -- return the absoluting heading. 0 - north and 90 = east etc
+function marker.getAbsoluteHeadingToTarget(x1,y1, x2,y2)
+    -- return the absoluting heading to the target. 0 - north and 90 = east etc
     -- input: m = marker table
     -- input: target x,y
     -- output: number representing compass direction
@@ -465,7 +465,7 @@ local function getNewMarkerHeading(m)
         correcty = m.correctY
         currentheading = m.planningstep[laststepnumber].newheading
     end
-    local desiredheading = getAbsoluteHeadingToTarget(currentx, currenty, correctx, correcty)
+    local desiredheading = mark.getAbsoluteHeadingToTarget(currentx, currenty, correctx, correcty)
     local angledelta = desiredheading - currentheading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
