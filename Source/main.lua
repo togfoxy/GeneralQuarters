@@ -234,6 +234,10 @@ local function drawMuzzleFlashes()
 				local shooter = actionqueue[i].marker	-- object
 				local target = actionqueue[i].target		-- object
 
+				-- set camera to the formation of the shooter
+				local nation = mark.getNation(shooter)
+				fun.setCameraPosition(nation)
+
 				-- get orientation to target so the flash can be aligned correctly
 				local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
 

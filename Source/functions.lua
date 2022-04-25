@@ -254,13 +254,12 @@ function functions.getArc(x1, y1, heading, x2, y2)
     return result
 end
 
-local function determineShootingAnimations(nation, dt)
+local function determineShootingAnimations(nation)
     for k,flt in pairs(flotilla) do
         if flt.nation == nation then
     		for q,frm in pairs(flt.formation) do
     			for w,mrk in pairs(frm.marker) do
                     if mrk.targetMarker ~= nil then
-                        fun.setCameraPosition("British")
 
                         local timestart = love.math.random(0, 10) / 10   -- start the muzzle flash at a random time
                         local timestop = timestart + 1
@@ -282,6 +281,31 @@ local function determineShootingAnimations(nation, dt)
 
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
+
+                        actionitem = {}
+                        if damageinflicted <= 0 then
+                            actionitem.action = "splashsound"
+                        else
+                            actionitem.action = "damagesound"
+                        end
+                        actionitem.target = mrk.targetMarker
+                        actionitem.timestart = timestart + 3
+                        actionitem.timestop = timestart + 1
+                        actionitem.started = false
+                        table.insert(actionqueue, actionitem)
+
+                        actionitem = {}
+                        if damageinflicted <= 0 then
+                            actionitem.action = "waterimage"
+                        else
+                            actionitem.action = "damageimage"
+                        end
+                        actionitem.target = mrk.targetMarker
+                        actionitem.timestart = timestart + 3
+                        actionitem.timestop = timestart + 1
+                        actionitem.started = false
+                        table.insert(actionqueue, actionitem)
+
                         mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
                     end
                 end
@@ -292,11 +316,11 @@ end
 
 function functions.resolveCombat(dt)
 
-    determineShootingAnimations("British", dt)
+    determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
     --! doExplosionAnimations("German")     -- includes misses/splashes
     --! doSinkingAnimations("German")
 
-    --! determineShootingAnimations("German", dt)
+    determineShootingAnimations("German")
     --! doExplosionAnimations("British")     -- includes misses/splashes
     --! doSinkingAnimations("British")
 
