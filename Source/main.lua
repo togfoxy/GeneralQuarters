@@ -50,6 +50,8 @@ quad = {}		-- quads for animations
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
 actionqueue = {}	-- used to store animations etc during combat phase
+actionqueue[1] = {}	-- assumes two nations
+actionqueue[2] = {}
 audio = {}
 
 function love.keyreleased( key, scancode )
@@ -225,14 +227,22 @@ end
 
 local function drawMuzzleFlashes()
 	-- do all the muzzle flashing display
-    for i = 1, #actionqueue do
-        if actionqueue[i].action == "muzzleflash" then
-			if actionqueue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+
+	local queue = {}
+	if #actionqueue[1] > 0 then
+		queue = actionqueue[1]
+	else
+		queue = actionqueue[2]
+	end
+
+    for i = 1, #queue do
+        if queue[i].action == "muzzleflash" then
+			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
 	            -- draw muzzle flash
 
 				-- key data is stored in the action queue. Unpack that so clever things can be done
-				local shooter = actionqueue[i].marker	-- object
-				local target = actionqueue[i].target		-- object
+				local shooter = queue[i].marker	-- object
+				local target = queue[i].target	-- object
 
 				-- set camera to the formation of the shooter
 				local nation = mark.getNation(shooter)
@@ -259,14 +269,20 @@ local function drawMuzzleFlashes()
 			end
         end
     end
+
 end
 
 local function playAudioActions()
 
--- print(inspect(actionqueue))
+	local queue = {}
+	if #actionqueue[1] > 0 then
+		queue = actionqueue[1]
+	else
+		queue = actionqueue[2]
+	end
 
-	for i = 1, #actionqueue do
-		for i, action in pairs(actionqueue) do
+	for i = 1, #queue do
+		for i, action in pairs(queue) do
 	        if action.action == "gunsound" then
 				if action.timestart <= 0 and action.started == false then
 					-- play audio
@@ -297,7 +313,6 @@ function love.draw()
 		flot.draw()
 
 		drawMuzzleFlashes()
-
 
 		love.graphics.setColor(1,1,1,1)
 		love.graphics.circle("fill", MAP_CENTRE, MAP_CENTRE, 40)
@@ -339,7 +354,7 @@ function love.update(dt)
 		elseif GAME_MODE == enum.gamemodeTargeting then
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
-			fun.resolveCombat(dt)
+			fun.resolveCombat(dt)	-- adds actions to actionqueue[1] and actionqueue[2]
 			playAudioActions()
 		end
 	else

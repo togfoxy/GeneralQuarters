@@ -260,6 +260,14 @@ local function determineShootingAnimations(nation)
     		for q,frm in pairs(flt.formation) do
     			for w,mrk in pairs(frm.marker) do
                     if mrk.targetMarker ~= nil then
+                        local queue = {}
+                        if nation == "British" then
+                            queue = actionqueue[1]
+                        elseif nation == "German" then
+                            queue = actionqueue[2]
+                        else
+                            error()
+                        end
 
                         local timestart = love.math.random(0, 10) / 10   -- start the muzzle flash at a random time
                         local timestop = timestart + 1
@@ -270,14 +278,14 @@ local function determineShootingAnimations(nation)
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
                         actionitem.started = false
-                        table.insert(actionqueue, actionitem)
+                        table.insert(queue, actionitem)
 
                         actionitem = {}
                         actionitem.action = "gunsound"
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
                         actionitem.started = false
-                        table.insert(actionqueue, actionitem)
+                        table.insert(queue, actionitem)
 
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
@@ -289,10 +297,10 @@ local function determineShootingAnimations(nation)
                             actionitem.action = "damagesound"
                         end
                         actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart + 3
+                        actionitem.timestart = timestart + 3        -- arbitrary 3 second delay
                         actionitem.timestop = timestart + 1
                         actionitem.started = false
-                        table.insert(actionqueue, actionitem)
+                        table.insert(queue, actionitem)
 
                         actionitem = {}
                         if damageinflicted <= 0 then
@@ -301,10 +309,10 @@ local function determineShootingAnimations(nation)
                             actionitem.action = "damageimage"
                         end
                         actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart + 3
+                        actionitem.timestart = timestart + 3        -- arbitrary 3 second delay
                         actionitem.timestop = timestart + 1
                         actionitem.started = false
-                        table.insert(actionqueue, actionitem)
+                        table.insert(queue, actionitem)
 
                         mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
                     end
@@ -324,14 +332,25 @@ function functions.resolveCombat(dt)
     --! doExplosionAnimations("British")     -- includes misses/splashes
     --! doSinkingAnimations("British")
 
-
     -- the timer for each image/animtation is stored in the action queue
-    for k,action in pairs(actionqueue) do
-        action.timestart = action.timestart - dt
-        action.timestop = action.timestop - dt
-         if action.timestop <= 0 then
-            table.remove(actionqueue, k)
+
+    if #actionqueue[1] > 0 then
+        for k,action in pairs(actionqueue[1]) do
+            action.timestart = action.timestart - dt
+            action.timestop = action.timestop - dt
+             if action.timestop <= 0 then
+                table.remove(actionqueue[1], k)
+            end
         end
+    else
+        for k,action in pairs(actionqueue[2]) do
+            action.timestart = action.timestart - dt
+            action.timestop = action.timestop - dt
+             if action.timestop <= 0 then
+                table.remove(actionqueue[2], k)
+            end
+        end
+
     end
 end
 
