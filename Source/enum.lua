@@ -30,7 +30,8 @@ fontDefault = 3         -- default love font is bitstream vera sans size 12
 
 -- audio
 audiogunfire1 = 1
-
+audiosplash1 = 2
+audiodamage1 = 3
 
 -- timers
 timerMoveMode = 0.6       -- how quickly ships move in move mode

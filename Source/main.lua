@@ -292,6 +292,24 @@ local function playAudioActions()
 					action.started = true
 					action.timestop = -1	-- this will 'clean up' this action and remove it later
 				end
+			elseif action.action == "splashsound" then
+				if action.timestart <= 0 and action.started == false then
+					-- play audio
+					local newaudio = audio[enum.audiosplash1]:clone()
+					newaudio:play()
+
+					action.started = true
+					action.timestop = -1	-- this will 'clean up' this action and remove it later
+				end
+			elseif	action.action == "damagesound" then
+				if action.timestart <= 0 and action.started == false then
+					-- play audio
+					local newaudio = audio[enum.audiodamage1]:clone()
+					newaudio:play()
+
+					action.started = true
+					action.timestop = -1	-- this will 'clean up' this action and remove it later
+				end
 			end
 		end
 	end

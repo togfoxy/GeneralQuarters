@@ -32,6 +32,9 @@ end
 
 function functions.LoadAudio()
     audio[enum.audiogunfire1] = love.audio.newSource("assets/audio/cannon_fire.ogg", "static")
+    audio[enum.audiosplash1] = love.audio.newSource("assets/audio/splash1.ogg", "static")
+    audio[enum.audiodamage1] = love.audio.newSource("assets/audio/cannon_hit.ogg", "static")
+
 
 
 end
@@ -260,11 +263,14 @@ local function determineShootingAnimations(nation)
     		for q,frm in pairs(flt.formation) do
     			for w,mrk in pairs(frm.marker) do
                     if mrk.targetMarker ~= nil then
-                        local queue = {}
+                        local queue = {}        -- a temporary pointer to the queue for this nation
+                        local otherqueue = {}   -- a temporary pointer to the queue for the other nation
                         if nation == "British" then
                             queue = actionqueue[1]
+                            otherqueue = actionqueue[2]
                         elseif nation == "German" then
                             queue = actionqueue[2]
+                            otherqueue = actionqueue[1]
                         else
                             error()
                         end
@@ -290,6 +296,8 @@ local function determineShootingAnimations(nation)
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
 
+                        local timestart = (love.math.random(0, 10) / 10) + 1.5
+                        local timestop = timestart + 1
                         actionitem = {}
                         if damageinflicted <= 0 then
                             actionitem.action = "splashsound"
@@ -297,10 +305,10 @@ local function determineShootingAnimations(nation)
                             actionitem.action = "damagesound"
                         end
                         actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart + 3        -- arbitrary 3 second delay
+                        actionitem.timestart = timestart
                         actionitem.timestop = timestart + 1
                         actionitem.started = false
-                        table.insert(queue, actionitem)
+                        table.insert(otherqueue, actionitem)
 
                         actionitem = {}
                         if damageinflicted <= 0 then
@@ -309,10 +317,10 @@ local function determineShootingAnimations(nation)
                             actionitem.action = "damageimage"
                         end
                         actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart + 3        -- arbitrary 3 second delay
+                        actionitem.timestart = timestart
                         actionitem.timestop = timestart + 1
                         actionitem.started = false
-                        table.insert(queue, actionitem)
+                        table.insert(otherqueue, actionitem)
 
                         mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
                     end
