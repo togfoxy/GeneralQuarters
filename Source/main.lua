@@ -47,12 +47,16 @@ TIMER_MOVEMODE = 0	-- used in conjunction with dt to control the game loop speed
 
 image = {}		-- table that holds the images
 quad = {}		-- quads for animations
+animation = {}	-- anim8 animations
+grid = {}		-- grids are used to load quads for anim8
+frames = {}		-- frames within the grid. Used by anim8
 flotilla = {}	-- flotilla[x].formation[x].marker[x]
 font = {}		-- table to hold different fonts
 actionqueue = {}	-- used to store animations etc during combat phase
 actionqueue[1] = {}	-- assumes two nations
 actionqueue[2] = {}
 audio = {}
+
 
 function love.keyreleased( key, scancode )
 	if key == "escape" then
@@ -267,9 +271,21 @@ local function drawMuzzleFlashes()
 				love.graphics.setColor(1,1,1,1)
 				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
 			end
-        end
-    end
+		elseif queue[i].action == "damageimage" then
+			-- draw animation
+			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = queue[i].animation
+				local drawscale = 8		-- multiple image size by this number
+				local drawx = queue[i].target.positionX
+				local drawy = queue[i].target.positionY
 
+				-- calculate the drawing offset
+				local offsetx = (16 / 2)
+				local offsety = (16 / 2)
+				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+		end
+    end
 end
 
 local function playAudioActions()

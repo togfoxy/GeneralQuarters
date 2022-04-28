@@ -17,9 +17,8 @@ muzzle7 = 12
 muzzle8 = 13
 muzzle9 = 14
 
-
 -- quads
-smokefire = 1
+smokefire = 101
 
 
 -- fonts

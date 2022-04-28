@@ -20,8 +20,11 @@ function functions.LoadImages()
     image[enum.muzzle9] = love.graphics.newImage("assets/images/m_11.png")
 
     -- quads for animations
-    quad[enum.smokefire] = love.graphics.newImage("assets/images/SmokeFire.png")
+    image[enum.smokefire] = love.graphics.newImage("assets/images/SmokeFireQuads.png")      -- used by anim8
 
+    -- animations
+    grid[1] = anim8.newGrid(16, 16, 64, 64)             -- specify the whole quad
+    frames[1] = grid[1]:getFrames(1,3,2,3,3,3,4,3,1,4,2,4,3,4,4,4)   -- each pair is col/row within the quad/grid
 end
 
 function functions.LoadFonts()
@@ -34,9 +37,6 @@ function functions.LoadAudio()
     audio[enum.audiogunfire1] = love.audio.newSource("assets/audio/cannon_fire.ogg", "static")
     audio[enum.audiosplash1] = love.audio.newSource("assets/audio/splash1.ogg", "static")
     audio[enum.audiodamage1] = love.audio.newSource("assets/audio/cannon_hit.ogg", "static")
-
-
-
 end
 
 function functions.changeCameraPosition()
@@ -296,8 +296,8 @@ local function determineShootingAnimations(nation)
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
 
-                        local timestart = (love.math.random(0, 10) / 10) + 1.5
-                        local timestop = timestart + 1
+                        timestart = timestart + 1.5 + (love.math.random(0, 10) / 10)
+                        timestop = timestart + 1
                         actionitem = {}
                         if damageinflicted <= 0 then
                             actionitem.action = "splashsound"
@@ -306,7 +306,7 @@ local function determineShootingAnimations(nation)
                         end
                         actionitem.target = mrk.targetMarker
                         actionitem.timestart = timestart
-                        actionitem.timestop = timestart + 1
+                        actionitem.timestop = timestop
                         actionitem.started = false
                         table.insert(otherqueue, actionitem)
 
@@ -315,10 +315,12 @@ local function determineShootingAnimations(nation)
                             actionitem.action = "waterimage"
                         else
                             actionitem.action = "damageimage"
+                            local newanim = anim8.newAnimation(frames[1], 0.1)        -- frames is the variable above and duration
+                            actionitem.animation = newanim                          -- create the animation and put it into the action queue
                         end
                         actionitem.target = mrk.targetMarker
                         actionitem.timestart = timestart
-                        actionitem.timestop = timestart + 1
+                        actionitem.timestop = timestop
                         actionitem.started = false
                         table.insert(otherqueue, actionitem)
 
@@ -346,7 +348,13 @@ function functions.resolveCombat(dt)
         for k,action in pairs(actionqueue[1]) do
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
-             if action.timestop <= 0 then
+
+            if action.action == "damageimage" then
+                -- advance animation
+                action.animation:update(dt)
+            end
+
+            if action.timestop <= 0 then
                 table.remove(actionqueue[1], k)
             end
         end
@@ -354,7 +362,13 @@ function functions.resolveCombat(dt)
         for k,action in pairs(actionqueue[2]) do
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
-             if action.timestop <= 0 then
+
+            if action.action == "damageimage" then
+                -- advance animation
+                action.animation:update(dt)
+            end
+
+            if action.timestop <= 0 then
                 table.remove(actionqueue[2], k)
             end
         end
