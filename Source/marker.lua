@@ -755,6 +755,7 @@ local function drawEveryMarker()
 			for w,mrk in pairs(form.marker) do
 				local xcentre = (mrk.positionX)
 				local ycentre = (mrk.positionY)
+                local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the marker image
 				local heading = (mrk.heading)
 				local headingrad = math.rad(heading)
                 local markerstartx, markerstarty, markerstopx, markerstopy = mark.getMarkerPoints(mrk)  -- get the x/y pairs that describe the line the marker creates
@@ -765,13 +766,20 @@ local function drawEveryMarker()
 					blue = 0
 				end
 				if mrk.isTarget then
-					green = green / 2
-					blue = blue / 2
+					-- green = green / 2
+					-- blue = blue / 2
 					--alphavalue = 1
+                    love.graphics.setColor(1, 0, 0, 1)
+                    love.graphics.circle("fill", xcentre, ycentre, 75)
+
+                    love.graphics.setColor(0, 0, 0, 1)
+                    love.graphics.circle("fill", xcentre, ycentre, 33)
+
 				elseif mrk.isSelected then
                     -- adjust colour
 					red = red / 2
 					blue = blue / 2
+
 
                     determineMouseText(mrk)
 				else
@@ -784,7 +792,7 @@ local function drawEveryMarker()
 
 				-- draw marker image
 				-- the image needs to be shifted left and forward. These next two lines will do that.
-                local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the provided marker
+
                 love.graphics.setColor(red,green,blue,1)
                 love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
