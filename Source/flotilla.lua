@@ -25,6 +25,8 @@ local function getAllFlotillaStartingPosition()
 
             -- location
             local distfromcentre = MAP_CENTRE
+
+            if love.filesystem.isFused( ) then distfromcentre = distfromcentre / 2 end  -- to help debugging
             form.positionX, form.positionY = cf.AddVectorToPoint(MAP_CENTRE, MAP_CENTRE, bearingfromcentre, distfromcentre)
         end
     end

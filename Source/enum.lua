@@ -20,6 +20,7 @@ muzzle9 = 14
 -- quads
 smokefire = 101
 splash = 102
+sinking = 103
 
 
 -- fonts
@@ -32,10 +33,6 @@ fontDefault = 3         -- default love font is bitstream vera sans size 12
 audiogunfire1 = 1
 audiosplash1 = 2
 audiodamage1 = 3
-
--- timers
-timerMoveMode = 0.6       -- how quickly ships move in move mode
-
 
 -- game modes
 gamemodePlanning = 1
