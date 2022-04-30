@@ -292,6 +292,7 @@ local function determineShootingAnimations(nation)
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
                         actionitem.started = false
+print("adding flash for ", mrk.positionX, mrk.positionY)
                         table.insert(queue, actionitem)
 
                         actionitem = {}
@@ -302,7 +303,6 @@ local function determineShootingAnimations(nation)
                         table.insert(queue, actionitem)
 
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
-    damageinflicted = 0
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
 
                         timestart = timestart + 1.5 + (love.math.random(0, 10) / 10)
@@ -332,7 +332,7 @@ local function determineShootingAnimations(nation)
                             actionitem.animation = newanim                          -- create the animation and put it into the action queue
                         end
                         actionitem.marker = mrk
-                        actionitem.target = mrk.targetMarker    
+                        actionitem.target = mrk.targetMarker
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
                         actionitem.started = false

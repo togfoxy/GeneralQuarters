@@ -236,25 +236,25 @@ local function drawMuzzleFlashes()
 	local queue = {}
 	if #actionqueue[1] > 0 then
 		queue = actionqueue[1]
+		fun.setCameraPosition("British")
 	else
 		if #actionqueue[2] > 0 then
 			queue = actionqueue[2]
+			fun.setCameraPosition("German")
 		end
 	end
 
 	if #queue > 0 then
-
-		local shooter = queue[1].marker
-		local target = queue[1].target
-
 	    for i = 1, #queue do
+			local shooter = queue[i].marker
+			local target = queue[i].target
+
 	        if queue[i].action == "muzzleflash" then
 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
 		            -- draw muzzle flash
 
-					-- set camera to the formation of the shooter
-					local nation = mark.getNation(shooter)
-					fun.setCameraPosition(nation)
+print("Muzzle", shooter.positionX,shooter.positionY, queue[i].timestart)
+
 
 					-- get orientation to target so the flash can be aligned correctly
 					local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
@@ -264,7 +264,6 @@ local function drawMuzzleFlashes()
 
 					-- the image needs to be offset towards the target bearing
 					local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
-
 
 					local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
 
@@ -276,9 +275,9 @@ local function drawMuzzleFlashes()
 					love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
 				end
 			elseif queue[i].action == "damageimage" then
-				-- set camera to the formation of the target
-				local nation = mark.getNation(target)
-				fun.setCameraPosition(nation)
+				-- -- set camera to the formation of the target
+				-- local nation = mark.getNation(target)
+				-- fun.setCameraPosition(nation)
 
 				-- draw explosion animation
 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
@@ -293,10 +292,10 @@ local function drawMuzzleFlashes()
 					anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
 				end
 			elseif queue[i].action == "splashimage" then
-
-				-- set camera to the formation of the target
-				local nation = mark.getNation(target)
-				fun.setCameraPosition(nation)
+				--
+				-- -- set camera to the formation of the target
+				-- local nation = mark.getNation(target)
+				-- fun.setCameraPosition(nation)
 
 				-- draw splash animation
 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
