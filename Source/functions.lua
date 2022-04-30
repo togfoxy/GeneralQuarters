@@ -137,6 +137,9 @@ function functions.advanceMode()
             mark.addOneStepsToMarkers()
             -- prep the timer to move markers during the update loop
             GAME_TIMER = enum.timerMovingMode
+            if not love.filesystem.isFused( ) then      -- to save sanity during debugging
+                GAME_TIMER = GAME_TIMER / 2
+            end
         end
         PLAYER_TURN = 1
     end
@@ -304,12 +307,14 @@ local function determineShootingAnimations(nation)
 
                         timestart = timestart + 1.5 + (love.math.random(0, 10) / 10)
                         timestop = timestart + 1
+
                         actionitem = {}
                         if damageinflicted <= 0 then
                             actionitem.action = "splashsound"
                         else
                             actionitem.action = "damagesound"
                         end
+                        actionitem.marker = mrk
                         actionitem.target = mrk.targetMarker
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
@@ -326,7 +331,8 @@ local function determineShootingAnimations(nation)
                             local newanim = anim8.newAnimation(frames[1], 0.1)        -- frames is the variable above and duration
                             actionitem.animation = newanim                          -- create the animation and put it into the action queue
                         end
-                        actionitem.target = mrk.targetMarker
+                        actionitem.marker = mrk
+                        actionitem.target = mrk.targetMarker    
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
                         actionitem.started = false

@@ -33,10 +33,6 @@ audiogunfire1 = 1
 audiosplash1 = 2
 audiodamage1 = 3
 
--- timers
-timerMoveMode = 0.6       -- how quickly ships move in move mode
-
-
 -- game modes
 gamemodePlanning = 1
 gamemodeMoving = 2

@@ -232,74 +232,88 @@ end
 local function drawMuzzleFlashes()
 	-- do all the muzzle flashing display
 
+	-- -- key data is stored in the action queue. Unpack that so clever things can be done
 	local queue = {}
 	if #actionqueue[1] > 0 then
 		queue = actionqueue[1]
 	else
-		queue = actionqueue[2]
+		if #actionqueue[2] > 0 then
+			queue = actionqueue[2]
+		end
 	end
 
-    for i = 1, #queue do
-        if queue[i].action == "muzzleflash" then
-			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
-	            -- draw muzzle flash
+	if #queue > 0 then
 
-				-- key data is stored in the action queue. Unpack that so clever things can be done
-				local shooter = queue[i].marker	-- object
-				local target = queue[i].target	-- object
+		local shooter = queue[1].marker
+		local target = queue[1].target
 
-				-- set camera to the formation of the shooter
-				local nation = mark.getNation(shooter)
+	    for i = 1, #queue do
+	        if queue[i].action == "muzzleflash" then
+				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+		            -- draw muzzle flash
+
+					-- set camera to the formation of the shooter
+					local nation = mark.getNation(shooter)
+					fun.setCameraPosition(nation)
+
+					-- get orientation to target so the flash can be aligned correctly
+					local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
+
+					targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
+					if targetbearing < 0 then targetbearing = 360 + targetbearing end
+
+					-- the image needs to be offset towards the target bearing
+					local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
+
+
+					local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
+
+					-- next two lines are for debugging
+		            -- love.graphics.setColor(1,1,1,0.5)
+					-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+
+					love.graphics.setColor(1,1,1,1)
+					love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+				end
+			elseif queue[i].action == "damageimage" then
+				-- set camera to the formation of the target
+				local nation = mark.getNation(target)
 				fun.setCameraPosition(nation)
 
-				-- get orientation to target so the flash can be aligned correctly
-				local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
+				-- draw explosion animation
+				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+					local anim = queue[i].animation
+					local drawscale = 8		-- multiple image size by this number
+					local drawx = queue[i].target.positionX
+					local drawy = queue[i].target.positionY
 
-				targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
-				if targetbearing < 0 then targetbearing = 360 + targetbearing end
+					-- calculate the drawing offset
+					local offsetx = (16 / 2)
+					local offsety = (16 / 2)
+					anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+				end
+			elseif queue[i].action == "splashimage" then
 
-				-- the image needs to be offset towards the target bearing
-				local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
+				-- set camera to the formation of the target
+				local nation = mark.getNation(target)
+				fun.setCameraPosition(nation)
 
+				-- draw splash animation
+				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+					local anim = queue[i].animation
+					local drawscale = 2		-- multiple image size by this number
+					local drawx = queue[i].target.positionX
+					local drawy = queue[i].target.positionY
 
-				local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
+					-- calculate the drawing offset
+					local offsetx = (62 / 2)
+					local offsety = (40)
+					anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+				end
 
-				-- next two lines are for debugging
-	            -- love.graphics.setColor(1,1,1,0.5)
-				-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
-
-				love.graphics.setColor(1,1,1,1)
-				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
 			end
-		elseif queue[i].action == "damageimage" then
-			-- draw explosion animation
-			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = queue[i].animation
-				local drawscale = 8		-- multiple image size by this number
-				local drawx = queue[i].target.positionX
-				local drawy = queue[i].target.positionY
-
-				-- calculate the drawing offset
-				local offsetx = (16 / 2)
-				local offsety = (16 / 2)
-				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-		elseif queue[i].action == "splashimage" then
-			-- draw splash animation
-			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = queue[i].animation
-				local drawscale = 2		-- multiple image size by this number
-				local drawx = queue[i].target.positionX
-				local drawy = queue[i].target.positionY
-
-				-- calculate the drawing offset
-				local offsetx = (62 / 2)
-				local offsety = (16 / 2)
-				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-
-		end
-    end
+	    end
+	end
 end
 
 local function playAudioActions()
@@ -395,6 +409,9 @@ function love.update(dt)
 			if GAME_TIMER <= 0 then
 				local markermoved = mark.moveOneStep()	-- returns FALSE if all moves exhausted
 				GAME_TIMER = enum.timerMovingMode
+				if not love.filesystem.isFused( ) then      -- to save sanity during debugging
+					GAME_TIMER = GAME_TIMER / 2
+				end
 				if not markermoved then
 					fun.advanceMode()		-- all moves exhausted so move to next mode
 				end
