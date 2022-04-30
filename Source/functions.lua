@@ -284,80 +284,145 @@ function functions.getArc(x1, y1, heading, x2, y2)
     return result
 end
 
-local function determineShootingAnimations(nation)
+local function determineAllActions()
+
+-- combataction = {}
+-- combataction[1] = {}		-- Player 1 shooting
+-- combataction[2] = {}		-- Player 2 getting shot/splash
+-- combataction[3] = {}		-- Player 2 shooting
+-- combataction[4] = {}		-- Player 1 getting shot
+-- combataction[5] = {}		-- Player 1 sinking
+-- combataction[6] = {}		-- Player 2 sinking
+
     for k,flt in pairs(flotilla) do
-        if flt.nation == nation then
-    		for q,frm in pairs(flt.formation) do
-    			for w,mrk in pairs(frm.marker) do
-                    if mrk.targetMarker ~= nil then
-                        local queue = {}        -- a temporary pointer to the queue for this nation
-                        local otherqueue = {}   -- a temporary pointer to the queue for the other nation
-                        if nation == "British" then
-                            queue = actionqueue[1]
-                            otherqueue = actionqueue[2]
-                        elseif nation == "German" then
-                            queue = actionqueue[2]
-                            otherqueue = actionqueue[1]
-                        else
-                            error()
-                        end
+		for q,frm in pairs(flt.formation) do
+			for w,mrk in pairs(frm.marker) do
+                if mrk.targetMarker ~= nil then
+                    local shooter = mrk                 -- shooting marker
+                    local target = mrk.targetMarker     -- target marker
+                    local playerqueue = {}
 
-                        local timestart = love.math.random(0, 10) / 10   -- start the muzzle flash at a random time
-                        local timestop = timestart + 1
-                        actionitem = {}
-                        actionitem.action = "muzzleflash"
-                        actionitem.marker = mrk
-                        actionitem.target = mrk.targetMarker        -- capture this here before it is deleted down below
-                        actionitem.timestart = timestart
-                        actionitem.timestop = timestop
-                        actionitem.started = false
-                        table.insert(queue, actionitem)
+                    local nation = mark.getNation(mrk)
 
-                        actionitem = {}
-                        actionitem.action = "gunsound"
-                        actionitem.timestart = timestart
-                        actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
-                        actionitem.started = false
-                        table.insert(queue, actionitem)
+                    local actionitem = {}
+                    local timestart = love.math.random(0, 10) / 10   -- start the muzzle flash at a random time
+                    local timestop = timestart + 1
+                    actionitem.action = "muzzleflash"
+                    actionitem.timestart = timestart
+                    actionitem.timestop = timestop
+                    actionitem.positionX = shooter.positionX
+                    actionitem.positionY = shooter.positionY
+                    actionitem.targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
+					actionitem.targetbearing = actionitem.targetbearing - 90		-- this now means '0' is now point to the north (90 degrees to the right)
+					if actionitem.targetbearing < 0 then actionitem.targetbearing = 360 + actionitem.targetbearing end
 
-                        local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
-                        mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
-
-                        timestart = timestart + 1.5 + (love.math.random(0, 10) / 10)
-                        timestop = timestart + 1
-
-                        actionitem = {}
-                        if damageinflicted <= 0 then
-                            actionitem.action = "splashsound"
-                        else
-                            actionitem.action = "damagesound"
-                        end
-                        actionitem.marker = mrk
-                        actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart
-                        actionitem.timestop = timestop
-                        actionitem.started = false
-                        table.insert(otherqueue, actionitem)
-
-                        actionitem = {}
-                        if damageinflicted <= 0 then
-                            actionitem.action = "splashimage"
-                            local newanim = anim8.newAnimation(frames[enum.splash], 0.1)
-                            actionitem.animation = newanim
-                        else
-                            actionitem.action = "damageimage"
-                            local newanim = anim8.newAnimation(frames[enum.smokefire], 0.1)        -- frames is the variable above and duration
-                            actionitem.animation = newanim                          -- create the animation and put it into the action queue
-                        end
-                        actionitem.marker = mrk
-                        actionitem.target = mrk.targetMarker
-                        actionitem.timestart = timestart
-                        actionitem.timestop = timestop
-                        actionitem.started = false
-                        table.insert(otherqueue, actionitem)
-
-                        mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
+                    if nation == "British" then
+                        playerqueue = combataction[1]
+                    else
+                        playerqueue = combataction[3]
                     end
+                    table.insert(playerqueue, actionitem)
+
+                    actionitem = {}
+                    actionitem.action = "gunsound"
+                    actionitem.timestart = timestart
+                    actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
+                    actionitem.started = false
+                    if nation == "British" then
+                        playerqueue = combataction[1]
+                    else
+                        playerqueue = combataction[3]
+                    end
+                    table.insert(playerqueue, actionitem)
+
+        --             -- after adding muzzle flash and gun sound, determine damage
+        --             local damageinflicted = getDamageInflicted(shooter.gunsDownrange)
+        --             target.damageSustained = target.damageSustained + damageinflicted
+        --
+        --             -- target animations. Put the animation right inside the table for later playback
+        --             local timestart = love.math.random(0, 10) / 10   -- start this action at a random time
+        --             local timestop = timestart + 1
+        --
+        --             if damageinflicted <= 0 then
+        --                 actionitem.action = "splashimage"
+        --                 local newanim = anim8.newAnimation(frames[enum.splash], 0.1)
+        --                 actionitem.animation = newanim
+        --             else
+        --                 actionitem.action = "damageimage"
+        --                 local newanim = anim8.newAnimation(frames[enum.smokefire], 0.1)        -- frames is the variable above and duration
+        --                 actionitem.animation = newanim                          -- create the animation and put it into the action queue
+        --             end
+        --
+        --             actionitem.timestart = timestart
+        --             actionitem.timestop = timestop
+        --             actionitem.started = false
+        --             actionitem.positionX = target.positionX
+        --             actionitem.positionY = target.positionY
+        --             if nation == "British" then
+        --                 playerqueue = combataction[2]
+        --             else
+        --                 playerqueue = combataction[4]
+        --             end
+        -- -- table.insert(playerqueue, actionitem)
+        --
+        --             -- target audio
+        --             actionitem = {}
+        --             if damageinflicted <= 0 then
+        --                 actionitem.action = "splashsound"
+        --             else
+        --                 actionitem.action = "damagesound"
+        --             end
+        --
+        --             actionitem.timestart = timestart
+        --             actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
+        --
+        -- -- table.insert(playerqueue, actionitem)
+
+                    mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
+                end
+            end
+        end
+    end
+end
+
+local function playSounds()
+    -- play any sounds that are queued
+
+    local abort = false     -- controls the moving between phases
+
+    if #combataction[1] > 0 then
+        abort = true
+        for i = 1, #combataction[1] do
+            -- play gunshots if any are queued
+
+            if combataction[1][i].action == "gunsound" then
+    			if combataction[1][i].timestart <= 0 and combataction[1][i].started == false then
+    				-- play audio
+    				local newaudio = audio[enum.audiogunfire1]:clone()
+    				newaudio:play()
+
+    				combataction[1][i].started = true
+    				combataction[1][i].timestop = -1	-- this will 'clean up' this action and remove it later
+    			end
+            end
+        end
+    end
+
+    if abort then return end
+
+    if #combataction[3] > 0 then
+        abort = true
+        for i = 1, #combataction[3] do
+            -- play gunshots if any are queued
+
+            if combataction[3][i].action == "gunsound" then
+                if combataction[3][i].timestart <= 0 and combataction[3][i].started == false then
+                    -- play audio
+                    local newaudio = audio[enum.audiogunfire1]:clone()
+                    newaudio:play()
+
+                    combataction[3][i].started = true
+                    combataction[3][i].timestop = -1	-- this will 'clean up' this action and remove it later
                 end
             end
         end
@@ -368,81 +433,118 @@ function functions.resolveCombat(dt)
     -- called during love.update()
 
     -- determine all the sounds, images and animations that need to be queued up
-    determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
-    determineShootingAnimations("German")
+    --determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
+    --determineShootingAnimations("German")
+    determineAllActions()
+
+    playSounds()
 
     -- each queued item has a time that needs to run down
     -- the timer for each image/animtation/sound is stored in the action queue
-    if #actionqueue[1] > 0 then     -- process the britsh queue OR the german queue but not both at the same time
-        for k,action in pairs(actionqueue[1]) do
-            action.timestart = action.timestart - dt
-            action.timestop = action.timestop - dt
 
-            if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
-                -- advance animation
-                action.animation:update(dt)
-            end
-
-            if action.timestop <= 0 then
-               
-    print(action.timestop)
-                if action.action == "sinkingimage" then
-                    -- destroy marker
-    print(action.marker.markerName .. " is destroyed")
-                    removeMarker(action.marker)
-                end
-                table.remove(actionqueue[1], k)
-            end
+    local abort = false     -- controls the flow between phases
+    for i = #combataction[1], 1, -1 do
+        abort = true
+        combataction[1][i].timestart = combataction[1][i].timestart - dt
+        combataction[1][i].timestop = combataction[1][i].timestop - dt
+        if combataction[1][i].timestop <= 0 then
+            table.remove(combataction[1], i)
         end
-    else
-        for k,action in pairs(actionqueue[2]) do
-            action.timestart = action.timestart - dt
-            action.timestop = action.timestop - dt
+    end
 
-            if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
-                -- advance animation
-                action.animation:update(dt)
-            end
-
-            if action.timestop <= 0 then
-                if action.action == "sinkingimage" then
-                    -- destroy marker
-                    removeMarker(action.marker)
-                end
-                table.remove(actionqueue[2], k)
+    if not abort then
+        for i = #combataction[2], 1, -1 do
+            abort = true
+            combataction[2][i].timestart = combataction[2][i].timestart - dt
+            combataction[2][i].timestop = combataction[2][i].timestop - dt
+            if combataction[2][i].timestop <= 0 then
+                table.remove(combataction[2], i)
             end
         end
     end
 
-    -- check for sinkages
-    for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-			for w,mrk in pairs(form.marker) do
-                if willBeSunk(mrk) then
-                    print(mrk.markerName .. "is sunk")
-                    --!
-                    actionitem = {}
-                    actionitem.action = "sinkingimage"
-                    local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
-                    actionitem.animation = newanim
-                    actionitem.marker = mrk
-                    actionitem.target = nil
-                    actionitem.timestart = 3 + (love.math.random(0, 20) / 10)
-                    actionitem.timestop = actionitem.timestart + 3
-                    actionitem.started = false
-
-                    -- add the sinking animation to the correct action queue
-                    if mark.getNation(mrk) == "British" then
-                        table.insert(actionqueue[1], actionitem)
-                    else
-                        table.insert(actionqueue[2], actionitem)
-                    end
-
-                    mrk.damageSustained = 0 -- stops the animation playing multiple times
-                end
+    if not abort then
+        for i = #combataction[3], 1, -1 do
+            abort = true
+            combataction[3][i].timestart = combataction[3][i].timestart - dt
+            combataction[3][i].timestop = combataction[3][i].timestop - dt
+            if combataction[3][i].timestop <= 0 then
+                table.remove(combataction[3], i)
             end
         end
     end
+
+
+    -- if #actionqueue[1] > 0 then     -- process the britsh queue OR the german queue but not both at the same time
+    --     for k,action in pairs(actionqueue[1]) do
+    --         action.timestart = action.timestart - dt
+    --         action.timestop = action.timestop - dt
+    --
+    --         if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
+    --             -- advance animation
+    --             action.animation:update(dt)
+    --         end
+    --
+    --         if action.timestop <= 0 then
+    --
+    -- print(action.timestop)
+    --             if action.action == "sinkingimage" then
+    --                 -- destroy marker
+    -- print(action.marker.markerName .. " is destroyed")
+    --                 removeMarker(action.marker)
+    --             end
+    --             table.remove(actionqueue[1], k)
+    --         end
+    --     end
+    -- else
+    --     for k,action in pairs(actionqueue[2]) do
+    --         action.timestart = action.timestart - dt
+    --         action.timestop = action.timestop - dt
+    --
+    --         if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
+    --             -- advance animation
+    --             action.animation:update(dt)
+    --         end
+    --
+    --         if action.timestop <= 0 then
+    --             if action.action == "sinkingimage" then
+    --                 -- destroy marker
+    --                 removeMarker(action.marker)
+    --             end
+    --             table.remove(actionqueue[2], k)
+    --         end
+    --     end
+    -- end
+    --
+    -- -- check for sinkages
+    -- for k,flot in pairs(flotilla) do
+	-- 	for q,form in pairs(flot.formation) do
+	-- 		for w,mrk in pairs(form.marker) do
+    --             if willBeSunk(mrk) then
+    --                 print(mrk.markerName .. "is sunk")
+    --                 --!
+    --                 actionitem = {}
+    --                 actionitem.action = "sinkingimage"
+    --                 local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
+    --                 actionitem.animation = newanim
+    --                 actionitem.marker = mrk
+    --                 actionitem.target = nil
+    --                 actionitem.timestart = 3 + (love.math.random(0, 20) / 10)
+    --                 actionitem.timestop = actionitem.timestart + 3
+    --                 actionitem.started = false
+    --
+    --                 -- add the sinking animation to the correct action queue
+    --                 if mark.getNation(mrk) == "British" then
+    --                     table.insert(actionqueue[1], actionitem)
+    --                 else
+    --                     table.insert(actionqueue[2], actionitem)
+    --                 end
+    --
+    --                 mrk.damageSustained = 0 -- stops the animation playing multiple times
+    --             end
+    --         end
+    --     end
+    -- end
 end
 
 return functions
