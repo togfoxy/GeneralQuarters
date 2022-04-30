@@ -22,13 +22,17 @@ function functions.LoadImages()
     -- quads for animations
     image[enum.smokefire] = love.graphics.newImage("assets/images/SmokeFireQuads.png")      -- used by anim8
     image[enum.splash] = love.graphics.newImage("assets/images/splash.png")      -- used by anim8
+    image[enum.sinking] = love.graphics.newImage("assets/images/ShipBattleshipHullSinkingQuad.png")      -- used by anim8
 
     -- animations
-    grid[1] = anim8.newGrid(16, 16, 64, 64)             -- specify the whole quad. tiles size and image size
-    frames[1] = grid[1]:getFrames(1,3,2,3,3,3,4,3,1,4,2,4,3,4,4,4)   -- each pair is col/row within the quad/grid
+    grid[enum.smokefire] = anim8.newGrid(16, 16, 64, 64)             -- specify the whole quad. tiles size and image size
+    frames[enum.smokefire] = grid[enum.smokefire]:getFrames(1,3,2,3,3,3,4,3,1,4,2,4,3,4,4,4)   -- each pair is col/row within the quad/grid
 
-    grid[2] = anim8.newGrid(62,33,image[enum.splash]:getWidth(), image[enum.splash]:getHeight())    -- tile width, height, image width, height
-    frames[2] = grid[2]:getFrames(1,1,2,1,3,1,4,1,1,2,2,2,3,2,4,2)   -- col/row pairs
+    grid[enum.splash] = anim8.newGrid(62,33,image[enum.splash]:getWidth(), image[enum.splash]:getHeight())    -- tile width, height, image width, height
+    frames[enum.splash] = grid[enum.splash]:getFrames(1,1,2,1,3,1,4,1,1,2,2,2,3,2,4,2)   -- col/row pairs
+
+    grid[enum.sinking] = anim8.newGrid(31, 209, image[enum.sinking]:getWidth(), image[enum.sinking]:getHeight())
+    frames[enum.sinking] = grid[enum.sinking]:getFrames(1,1,2,1,3,1,4,1,5,1,6,1,7,1,8,1,9,1,9,1,9,1)   -- col/row pairs
 
 end
 
@@ -208,15 +212,30 @@ local function willBeSunk(thismarker)
     -- a marker is sunk if the damage sustained in one combat turn >= that marker's protectionFactor
     -- input: marker object
     -- output: yes/no boolean
-    if thismarker.damageSustained >= thismarker.protectionFactor then
+
+    -- if thismarker.damageSustained >  0 then print(thismarker.damageSustained .. " / " .. thismarker.protectionFactor) end
+
+    if thismarker.damageSustained >= thismarker.protectionFactor / 2 then
         return true
     else
         return false
     end
 end
 
-local function removeMarker()
-    --!
+local function removeMarker(thismarker)
+    --!move to the marker module
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+            for i = 1, #form.marker do
+                if form.marker[i] == thismarker then
+                    -- delete marker
+                    table.remove(form.marker, i)
+                end
+            end
+        end
+    end
+
+    --! if flagship is sunk then need to determine new flagship
 end
 
 local function getNumberOfShooters(nation)
@@ -292,7 +311,6 @@ local function determineShootingAnimations(nation)
                         actionitem.timestart = timestart
                         actionitem.timestop = timestop
                         actionitem.started = false
-print("adding flash for ", mrk.positionX, mrk.positionY)
                         table.insert(queue, actionitem)
 
                         actionitem = {}
@@ -324,11 +342,11 @@ print("adding flash for ", mrk.positionX, mrk.positionY)
                         actionitem = {}
                         if damageinflicted <= 0 then
                             actionitem.action = "splashimage"
-                            local newanim = anim8.newAnimation(frames[2], 0.1)
+                            local newanim = anim8.newAnimation(frames[enum.splash], 0.1)
                             actionitem.animation = newanim
                         else
                             actionitem.action = "damageimage"
-                            local newanim = anim8.newAnimation(frames[1], 0.1)        -- frames is the variable above and duration
+                            local newanim = anim8.newAnimation(frames[enum.smokefire], 0.1)        -- frames is the variable above and duration
                             actionitem.animation = newanim                          -- create the animation and put it into the action queue
                         end
                         actionitem.marker = mrk
@@ -347,28 +365,32 @@ print("adding flash for ", mrk.positionX, mrk.positionY)
 end
 
 function functions.resolveCombat(dt)
+    -- called during love.update()
 
+    -- determine all the sounds, images and animations that need to be queued up
     determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
-    --! doExplosionAnimations("German")     -- includes misses/splashes
-    --! doSinkingAnimations("German")
-
     determineShootingAnimations("German")
-    --! doExplosionAnimations("British")     -- includes misses/splashes
-    --! doSinkingAnimations("British")
 
-    -- the timer for each image/animtation is stored in the action queue
-
-    if #actionqueue[1] > 0 then
+    -- each queued item has a time that needs to run down
+    -- the timer for each image/animtation/sound is stored in the action queue
+    if #actionqueue[1] > 0 then     -- process the britsh queue OR the german queue but not both at the same time
         for k,action in pairs(actionqueue[1]) do
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
 
-            if action.action == "damageimage" or action.action == "splashimage" then
+            if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
                 -- advance animation
                 action.animation:update(dt)
             end
 
             if action.timestop <= 0 then
+               
+    print(action.timestop)
+                if action.action == "sinkingimage" then
+                    -- destroy marker
+    print(action.marker.markerName .. " is destroyed")
+                    removeMarker(action.marker)
+                end
                 table.remove(actionqueue[1], k)
             end
         end
@@ -377,20 +399,50 @@ function functions.resolveCombat(dt)
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
 
-            if action.action == "damageimage" or action.action == "splashimage" then
+            if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
                 -- advance animation
                 action.animation:update(dt)
             end
 
             if action.timestop <= 0 then
+                if action.action == "sinkingimage" then
+                    -- destroy marker
+                    removeMarker(action.marker)
+                end
                 table.remove(actionqueue[2], k)
             end
         end
+    end
 
+    -- check for sinkages
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mrk in pairs(form.marker) do
+                if willBeSunk(mrk) then
+                    print(mrk.markerName .. "is sunk")
+                    --!
+                    actionitem = {}
+                    actionitem.action = "sinkingimage"
+                    local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
+                    actionitem.animation = newanim
+                    actionitem.marker = mrk
+                    actionitem.target = nil
+                    actionitem.timestart = 3 + (love.math.random(0, 20) / 10)
+                    actionitem.timestop = actionitem.timestart + 3
+                    actionitem.started = false
+
+                    -- add the sinking animation to the correct action queue
+                    if mark.getNation(mrk) == "British" then
+                        table.insert(actionqueue[1], actionitem)
+                    else
+                        table.insert(actionqueue[2], actionitem)
+                    end
+
+                    mrk.damageSustained = 0 -- stops the animation playing multiple times
+                end
+            end
+        end
     end
 end
-
-
-
 
 return functions

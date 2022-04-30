@@ -253,8 +253,6 @@ local function drawMuzzleFlashes()
 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
 		            -- draw muzzle flash
 
-print("Muzzle", shooter.positionX,shooter.positionY, queue[i].timestart)
-
 
 					-- get orientation to target so the flash can be aligned correctly
 					local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
@@ -309,7 +307,21 @@ print("Muzzle", shooter.positionX,shooter.positionY, queue[i].timestart)
 					local offsety = (40)
 					anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
 				end
+			elseif queue[i].action == "sinkingimage" then
+				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+					local anim = queue[i].animation
+					local drawscale = 1		-- multiple image size by this number
+					local drawx = queue[i].marker.positionX
+					local drawy = queue[i].marker.positionY
 
+					-- calculate the drawing offset
+					local offsetx = (62 / 2)
+					local offsety = (40)
+
+					local heading = queue[i].marker.heading
+					local headingrad = math.rad(heading)
+					anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
+				end
 			end
 	    end
 	end

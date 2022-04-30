@@ -20,6 +20,7 @@ muzzle9 = 14
 -- quads
 smokefire = 101
 splash = 102
+sinking = 103
 
 
 -- fonts

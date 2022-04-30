@@ -500,7 +500,7 @@ local function getFlagShip(thisform)
             return mrk
         end
     end
-    error("Unexpected program flow")
+    error("Unexpected program flow. Flotilla has no flagship")
 end
 
 function marker.addOneStepToFlagship()
