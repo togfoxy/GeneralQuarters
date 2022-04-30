@@ -272,7 +272,7 @@ local function drawMuzzleFlashes()
 				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
 			end
 		elseif queue[i].action == "damageimage" then
-			-- draw animation
+			-- draw explosion animation
 			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
 				local anim = queue[i].animation
 				local drawscale = 8		-- multiple image size by this number
@@ -284,6 +284,20 @@ local function drawMuzzleFlashes()
 				local offsety = (16 / 2)
 				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
 			end
+		elseif queue[i].action == "splashimage" then
+			-- draw splash animation
+			if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = queue[i].animation
+				local drawscale = 2		-- multiple image size by this number
+				local drawx = queue[i].target.positionX
+				local drawy = queue[i].target.positionY
+
+				-- calculate the drawing offset
+				local offsetx = (62 / 2)
+				local offsety = (16 / 2)
+				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+
 		end
     end
 end

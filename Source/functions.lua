@@ -21,10 +21,15 @@ function functions.LoadImages()
 
     -- quads for animations
     image[enum.smokefire] = love.graphics.newImage("assets/images/SmokeFireQuads.png")      -- used by anim8
+    image[enum.splash] = love.graphics.newImage("assets/images/splash.png")      -- used by anim8
 
     -- animations
-    grid[1] = anim8.newGrid(16, 16, 64, 64)             -- specify the whole quad
+    grid[1] = anim8.newGrid(16, 16, 64, 64)             -- specify the whole quad. tiles size and image size
     frames[1] = grid[1]:getFrames(1,3,2,3,3,3,4,3,1,4,2,4,3,4,4,4)   -- each pair is col/row within the quad/grid
+
+    grid[2] = anim8.newGrid(62,33,image[enum.splash]:getWidth(), image[enum.splash]:getHeight())    -- tile width, height, image width, height
+    frames[2] = grid[2]:getFrames(1,1,2,1,3,1,4,1,1,2,2,2,3,2,4,2)   -- col/row pairs
+
 end
 
 function functions.LoadFonts()
@@ -208,7 +213,7 @@ local function willBeSunk(thismarker)
 end
 
 local function removeMarker()
-
+    --!
 end
 
 local function getNumberOfShooters(nation)
@@ -294,6 +299,7 @@ local function determineShootingAnimations(nation)
                         table.insert(queue, actionitem)
 
                         local damageinflicted = getDamageInflicted(mrk.gunsDownrange)
+    damageinflicted = 0
                         mrk.targetMarker.damageSustained = mrk.targetMarker.damageSustained + damageinflicted
 
                         timestart = timestart + 1.5 + (love.math.random(0, 10) / 10)
@@ -312,7 +318,9 @@ local function determineShootingAnimations(nation)
 
                         actionitem = {}
                         if damageinflicted <= 0 then
-                            actionitem.action = "waterimage"
+                            actionitem.action = "splashimage"
+                            local newanim = anim8.newAnimation(frames[2], 0.1)
+                            actionitem.animation = newanim
                         else
                             actionitem.action = "damageimage"
                             local newanim = anim8.newAnimation(frames[1], 0.1)        -- frames is the variable above and duration
@@ -349,7 +357,7 @@ function functions.resolveCombat(dt)
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
 
-            if action.action == "damageimage" then
+            if action.action == "damageimage" or action.action == "splashimage" then
                 -- advance animation
                 action.animation:update(dt)
             end
@@ -363,7 +371,7 @@ function functions.resolveCombat(dt)
             action.timestart = action.timestart - dt
             action.timestop = action.timestop - dt
 
-            if action.action == "damageimage" then
+            if action.action == "damageimage" or action.action == "splashimage" then
                 -- advance animation
                 action.animation:update(dt)
             end
