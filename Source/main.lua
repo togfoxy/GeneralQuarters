@@ -360,10 +360,43 @@ local function drawActionImages()
 	end
 	if abort then return end
 
+	for i = 1, #combataction[2] do
+		abort = true
+		fun.setCameraPosition("German")
+
+		if combataction[2][i].action == "splashimage" then
+			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = combataction[2][i].animation
+				local drawscale = 2		-- multiple image size by this number
+				local drawx = combataction[2][i].positionX
+				local drawy = combataction[2][i].positionY
+
+				-- calculate the drawing offset
+				local offsetx = (62 / 2)
+				local offsety = (40)
+				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+		end
+		if combataction[2][i].action == "damageimage" then
+			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = combataction[2][i].animation
+				local drawscale = 8		-- multiple image size by this number
+				local drawx = combataction[2][i].positionX
+				local drawy = combataction[2][i].positionY
+
+				-- calculate the drawing offset
+				local offsetx = (8)
+				local offsety = (8)
+				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
 	for i = 1, #combataction[3] do
 		abort = true
 		fun.setCameraPosition("German")
-		
+
 		if combataction[3][i].action == "muzzleflash" then
 			if combataction[3][i].timestart <= 0 then	-- don't start this action until it is time to start this action
 
@@ -381,6 +414,41 @@ local function drawActionImages()
 			end
 		end
 	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
+	for i = 1, #combataction[4] do
+		abort = true
+		fun.setCameraPosition("British")
+
+		if combataction[4][i].action == "splashimage" then
+			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = combataction[4][i].animation
+				local drawscale = 3		-- multiple image size by this number
+				local drawx = combataction[4][i].positionX
+				local drawy = combataction[4][i].positionY
+
+				-- calculate the drawing offset
+				local offsetx = (62 / 2)
+				local offsety = (40)
+				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+		end
+
+		if combataction[4][i].action == "damageimage" then
+			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				local anim = combataction[4][i].animation
+				local drawscale = 8		-- multiple image size by this number
+				local drawx = combataction[4][i].positionX
+				local drawy = combataction[4][i].positionY
+
+				-- calculate the drawing offset
+				local offsetx = (8)
+				local offsety = (8)
+				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+			end
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
 
 end
 
@@ -446,7 +514,6 @@ function love.update(dt)
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
 			fun.resolveCombat(dt)	-- adds actions to actionqueue[1] and actionqueue[2]
-			-- playAudioActions()
 		end
 	else
 
