@@ -20,6 +20,7 @@ local function initaliseMarker(thisform, m)
     m.planningstep = {}     -- holds future moves determined during the planning stage
     m.frontGunPosition = 20     -- draws the front gun image 20 pixels from the centre of the marker
     m.damageSustained = 0       -- tracks damage taken each combat round
+    m.drawImage = true                -- set to false when sunk but not yet destroyed/removed
 
 end
 
@@ -753,70 +754,72 @@ local function drawEveryMarker()
 			end
 
 			for w,mrk in pairs(form.marker) do
-				local xcentre = (mrk.positionX)
-				local ycentre = (mrk.positionY)
-                local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the marker image
-				local heading = (mrk.heading)
-				local headingrad = math.rad(heading)
-                local markerstartx, markerstarty, markerstopx, markerstopy = mark.getMarkerPoints(mrk)  -- get the x/y pairs that describe the line the marker creates
+                if mrk.drawImage then
+    				local xcentre = (mrk.positionX)
+    				local ycentre = (mrk.positionY)
+    				-- the image needs to be shifted left and forward. These next two lines will do that.
+                    local drawingcentrex, drawingcentrey = getDrawingCentre(mrk)   -- get the correct x/y value (with offsets) for the marker image
+    				local heading = (mrk.heading)
+    				local headingrad = math.rad(heading)
+                    local markerstartx, markerstarty, markerstopx, markerstopy = mark.getMarkerPoints(mrk)  -- get the x/y pairs that describe the line the marker creates
 
-				local red,green,blue = 1,1,1
+    				local red,green,blue = 1,1,1
 
-				if mrk.isFlagship then
-					blue = 0
-				end
-				if mrk.isTarget then
-					-- green = green / 2
-					-- blue = blue / 2
-					--alphavalue = 1
-                    love.graphics.setColor(1, 0, 0, 1)
-                    love.graphics.circle("fill", xcentre, ycentre, 75)
+    				if mrk.isFlagship then
+    					blue = 0
+    				end
+    				if mrk.isTarget then
+    					-- green = green / 2
+    					-- blue = blue / 2
+    					--alphavalue = 1
+                        love.graphics.setColor(1, 0, 0, 1)
+                        love.graphics.circle("fill", xcentre, ycentre, 75)
 
-                    love.graphics.setColor(0, 0, 0, 1)
-                    love.graphics.circle("fill", xcentre, ycentre, 33)
+                        love.graphics.setColor(0, 0, 0, 1)
+                        love.graphics.circle("fill", xcentre, ycentre, 33)
 
-				elseif mrk.isSelected then
-                    -- adjust colour
-					red = red / 2
-					blue = blue / 2
+    				elseif mrk.isSelected then
+                        -- adjust colour
+    					red = red / 2
+    					blue = blue / 2
 
 
-                    determineMouseText(mrk)
-				else
-					-- nothing to do. Accept default rgb values of (1,1,1)
-				end
+                        determineMouseText(mrk)
+    				else
+    					-- nothing to do. Accept default rgb values of (1,1,1)
+    				end
 
-				-- draw line and circle
-				-- love.graphics.line(x1,y1,x2,y2)
-				-- love.graphics.circle("fill", x2, y2, 3)
+    				-- draw line and circle
+    				-- love.graphics.line(x1,y1,x2,y2)
+    				-- love.graphics.circle("fill", x2, y2, 3)
 
-				-- draw marker image
-				-- the image needs to be shifted left and forward. These next two lines will do that.
+    				-- draw marker image
 
-                love.graphics.setColor(red,green,blue,1)
-                love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
-				-- draw the guns
-				-- local drawingheading = cf.adjustHeading(heading, -90)
-				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
-				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mrk.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
-				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
+                    love.graphics.setColor(red,green,blue,1)
+                    love.graphics.draw(image[enum.markerBattleship], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
-                -- draw centre of marker
-				-- love.graphics.circle("fill", xcentre, ycentre, 3)
+    				-- draw the guns
+    				-- local drawingheading = cf.adjustHeading(heading, -90)
+    				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(xcentre,ycentre,drawingheading,3)	-- the centre for drawing purposes is a little to the 'left'
+    				-- local drawingcentrex, drawingcentrey = cf.AddVectorToPoint(drawingcentrex, drawingcentrey, heading, mrk.frontGunPosition)	-- this nudges the image forward to align with the centre of the marker
+    				-- love.graphics.draw(image[enum.markerBattleshipGun], drawingcentrex, drawingcentrey, headingrad, 1, 1)
 
-				-- draw correct position
-				-- if mrk.correctX ~= nil then
-				-- 	love.graphics.circle("fill", mrk.correctX, mrk.correctY, 3)
-				-- end
+                    -- draw centre of marker
+    				-- love.graphics.circle("fill", xcentre, ycentre, 3)
 
-				-- debugging
-				-- draw tempx/tempy if that has been set anywhere
-				if tempx ~= nil then
-					love.graphics.setColor(1, 0, 0, alphavalue)
-					love.graphics.circle("fill", tempx, tempy, 5)
-				end
+    				-- draw correct position
+    				-- if mrk.correctX ~= nil then
+    				-- 	love.graphics.circle("fill", mrk.correctX, mrk.correctY, 3)
+    				-- end
 
+    				-- debugging
+    				-- draw tempx/tempy if that has been set anywhere
+    				if tempx ~= nil then
+    					love.graphics.setColor(1, 0, 0, alphavalue)
+    					love.graphics.circle("fill", tempx, tempy, 5)
+    				end
+                end
 			end
 		end
 	end
