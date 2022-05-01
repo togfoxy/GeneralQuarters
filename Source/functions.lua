@@ -286,13 +286,13 @@ end
 
 local function determineAllActions()
 
--- combataction = {}
--- combataction[1] = {}		-- Player 1 shooting
--- combataction[2] = {}		-- Player 2 getting shot/splash
--- combataction[3] = {}		-- Player 2 shooting
--- combataction[4] = {}		-- Player 1 getting shot
--- combataction[5] = {}		-- Player 1 sinking
--- combataction[6] = {}		-- Player 2 sinking
+    -- combataction = {}
+    -- combataction[1] = {}		-- Player 1 shooting
+    -- combataction[2] = {}		-- Player 2 getting shot/splash
+    -- combataction[3] = {}		-- Player 2 shooting
+    -- combataction[4] = {}		-- Player 1 getting shot
+    -- combataction[5] = {}		-- Player 1 sinking
+    -- combataction[6] = {}		-- Player 2 sinking
 
     for k,flt in pairs(flotilla) do
 		for q,frm in pairs(flt.formation) do
@@ -339,8 +339,10 @@ local function determineAllActions()
                     local damageinflicted = getDamageInflicted(shooter.gunsDownrange)
                     target.damageSustained = target.damageSustained + damageinflicted
 
+    damageinflicted = 0
+
                     -- target animations. Put the animation right inside the table for later playback
-                    local timestart = love.math.random(0, 10) / 10   -- start this action at a random time
+                    local timestart = 0.5 + love.math.random(0, 10) / 10   -- start this action at a random time
                     local timestop = timestart + 1
 
                     actionitem = {}
@@ -364,19 +366,23 @@ local function determineAllActions()
                         playerqueue = combataction[4]
                     end
                     table.insert(playerqueue, actionitem)
-        --
-        --             -- target audio
-        --             actionitem = {}
-        --             if damageinflicted <= 0 then
-        --                 actionitem.action = "splashsound"
-        --             else
-        --                 actionitem.action = "damagesound"
-        --             end
-        --
-        --             actionitem.timestart = timestart
-        --             actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
-        --
-        -- -- table.insert(playerqueue, actionitem)
+
+                    -- queue damage audio or splash audio
+                    actionitem = {}
+                    actionitem.timestart = timestart
+                    actionitem.timestop = timestop    -- timestop is a required attribute but has no meaning for audio
+                    actionitem.started = false
+                    if damageinflicted <= 0 then
+                        actionitem.action = "splashsound"
+                    else
+                        actionitem.action = "damagesound"
+                    end
+                    if nation == "British" then
+                        playerqueue = combataction[2]
+                    else
+                        playerqueue = combataction[4]
+                    end
+                    table.insert(playerqueue, actionitem)
 
                     mrk.targetMarker = nil  -- erase this so the shooting is calculated just once
                 end
@@ -407,7 +413,39 @@ local function playSounds()
             end
         end
     end
+    if abort then return end
 
+    if #combataction[2] > 0 then
+        abort = true
+        for i = 1, #combataction[2] do
+            -- play gunshots if any are queued
+
+            if combataction[2][i].action == "splashsound" then
+                if combataction[2][i].timestart <= 0 and combataction[2][i].started == false then
+                    -- play audio
+                    local newaudio = audio[enum.audiosplash1]:clone()
+                    newaudio:play()
+
+                    combataction[2][i].started = true
+                    combataction[2][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                end
+            end
+        end
+        for i = 1, #combataction[2] do
+            -- play gunshots if any are queued
+
+            if combataction[2][i].action == "damagesound" then
+                if combataction[2][i].timestart <= 0 and combataction[2][i].started == false then
+                    -- play audio
+                    local newaudio = audio[enum.audiodamage1]:clone()
+                    newaudio:play()
+
+                    combataction[2][i].started = true
+                    combataction[2][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                end
+            end
+        end
+    end
     if abort then return end
 
     if #combataction[3] > 0 then
@@ -427,6 +465,40 @@ local function playSounds()
             end
         end
     end
+    if abort then return end
+
+    if #combataction[4] > 0 then
+        abort = true
+        for i = 1, #combataction[4] do
+            -- play gunshots if any are queued
+
+            if combataction[4][i].action == "splashsound" then
+                if combataction[4][i].timestart <= 0 and combataction[4][i].started == false then
+                    -- play audio
+                    local newaudio = audio[enum.audiosplash1]:clone()
+                    newaudio:play()
+
+                    combataction[4][i].started = true
+                    combataction[4][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                end
+            end
+        end
+        for i = 1, #combataction[4] do
+            -- play gunshots if any are queued
+
+            if combataction[4][i].action == "damagesound" then
+                if combataction[4][i].timestart <= 0 and combataction[4][i].started == false then
+                    -- play audio
+                    local newaudio = audio[enum.audiodamage1]:clone()
+                    newaudio:play()
+
+                    combataction[4][i].started = true
+                    combataction[4][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                end
+            end
+        end
+    end
+    if abort then return end
 end
 
 function functions.resolveCombat(dt)

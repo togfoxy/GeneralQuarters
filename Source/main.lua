@@ -374,7 +374,7 @@ local function drawActionImages()
 				-- calculate the drawing offset
 				local offsetx = (62 / 2)
 				local offsety = (40)
-				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
 			end
 		end
 		if combataction[2][i].action == "damageimage" then
@@ -514,7 +514,6 @@ function love.update(dt)
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
 			fun.resolveCombat(dt)	-- adds actions to actionqueue[1] and actionqueue[2]
-			-- playAudioActions()
 		end
 	else
 
