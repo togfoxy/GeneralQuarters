@@ -335,35 +335,35 @@ local function determineAllActions()
                     end
                     table.insert(playerqueue, actionitem)
 
-        --             -- after adding muzzle flash and gun sound, determine damage
-        --             local damageinflicted = getDamageInflicted(shooter.gunsDownrange)
-        --             target.damageSustained = target.damageSustained + damageinflicted
-        --
-        --             -- target animations. Put the animation right inside the table for later playback
-        --             local timestart = love.math.random(0, 10) / 10   -- start this action at a random time
-        --             local timestop = timestart + 1
-        --
-        --             if damageinflicted <= 0 then
-        --                 actionitem.action = "splashimage"
-        --                 local newanim = anim8.newAnimation(frames[enum.splash], 0.1)
-        --                 actionitem.animation = newanim
-        --             else
-        --                 actionitem.action = "damageimage"
-        --                 local newanim = anim8.newAnimation(frames[enum.smokefire], 0.1)        -- frames is the variable above and duration
-        --                 actionitem.animation = newanim                          -- create the animation and put it into the action queue
-        --             end
-        --
-        --             actionitem.timestart = timestart
-        --             actionitem.timestop = timestop
-        --             actionitem.started = false
-        --             actionitem.positionX = target.positionX
-        --             actionitem.positionY = target.positionY
-        --             if nation == "British" then
-        --                 playerqueue = combataction[2]
-        --             else
-        --                 playerqueue = combataction[4]
-        --             end
-        -- -- table.insert(playerqueue, actionitem)
+                    -- after adding muzzle flash and gun sound, determine damage
+                    local damageinflicted = getDamageInflicted(shooter.gunsDownrange)
+                    target.damageSustained = target.damageSustained + damageinflicted
+
+                    -- target animations. Put the animation right inside the table for later playback
+                    local timestart = love.math.random(0, 10) / 10   -- start this action at a random time
+                    local timestop = timestart + 1
+
+                    actionitem = {}
+                    if damageinflicted <= 0 then
+                        actionitem.action = "splashimage"
+                        local newanim = anim8.newAnimation(frames[enum.splash], 0.1)
+                        actionitem.animation = newanim
+                    else
+                        actionitem.action = "damageimage"
+                        local newanim = anim8.newAnimation(frames[enum.smokefire], 0.1)        -- frames is the variable above and duration
+                        actionitem.animation = newanim                          -- create the animation and put it into the action queue
+                    end
+                    actionitem.timestart = timestart
+                    actionitem.timestop = timestop
+                    actionitem.started = false
+                    actionitem.positionX = target.positionX
+                    actionitem.positionY = target.positionY
+                    if nation == "British" then
+                        playerqueue = combataction[2]
+                    else
+                        playerqueue = combataction[4]
+                    end
+                    table.insert(playerqueue, actionitem)
         --
         --             -- target audio
         --             actionitem = {}
@@ -441,12 +441,12 @@ function functions.resolveCombat(dt)
 
     -- each queued item has a time that needs to run down
     -- the timer for each image/animtation/sound is stored in the action queue
-
     local abort = false     -- controls the flow between phases
     for i = #combataction[1], 1, -1 do
         abort = true
         combataction[1][i].timestart = combataction[1][i].timestart - dt
         combataction[1][i].timestop = combataction[1][i].timestop - dt
+        if combataction[1][i].animation ~= nil then combataction[1][i].animation:update(dt) end
         if combataction[1][i].timestop <= 0 then
             table.remove(combataction[1], i)
         end
@@ -457,6 +457,7 @@ function functions.resolveCombat(dt)
             abort = true
             combataction[2][i].timestart = combataction[2][i].timestart - dt
             combataction[2][i].timestop = combataction[2][i].timestop - dt
+            if combataction[2][i].animation ~= nil then combataction[2][i].animation:update(dt) end
             if combataction[2][i].timestop <= 0 then
                 table.remove(combataction[2], i)
             end
@@ -468,8 +469,21 @@ function functions.resolveCombat(dt)
             abort = true
             combataction[3][i].timestart = combataction[3][i].timestart - dt
             combataction[3][i].timestop = combataction[3][i].timestop - dt
+            if combataction[3][i].animation ~= nil then combataction[3][i].animation:update(dt) end
             if combataction[3][i].timestop <= 0 then
                 table.remove(combataction[3], i)
+            end
+        end
+    end
+
+    if not abort then
+        for i = #combataction[4], 1, -1 do
+            abort = true
+            combataction[4][i].timestart = combataction[4][i].timestart - dt
+            combataction[4][i].timestop = combataction[4][i].timestop - dt
+            if combataction[4][i].animation ~= nil then combataction[4][i].animation:update(dt) end
+            if combataction[4][i].timestop <= 0 then
+                table.remove(combataction[4], i)
             end
         end
     end
