@@ -598,9 +598,8 @@ function functions.resolveCombat(dt)
 
             if combataction[5][i].action == "sinkingimage" and combataction[5][i].timestart <= 0 then
                 combataction[5][i].marker.drawImage = false
+                if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
             end
-
-            if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
 
             if combataction[5][i].timestop <= 0 then
                 table.remove(combataction[5], i)
@@ -615,10 +614,8 @@ function functions.resolveCombat(dt)
 
             if combataction[6][i].action == "sinkingimage" and combataction[6][i].timestart <= 0 then
                 combataction[6][i].marker.drawImage = false
-            end
-
-
             if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
+            end
 
             if combataction[6][i].timestop <= 0 then
                 table.remove(combataction[6], i)

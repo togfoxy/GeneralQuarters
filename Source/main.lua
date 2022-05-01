@@ -460,17 +460,18 @@ local function drawActionImages()
 			local drawscale = 1		-- multiple image size by this number
 			local drawx = combataction[5][i].positionX
 			local drawy = combataction[5][i].positionY
-
-			-- calculate the drawing offset
-			local offsetx = (62 / 2)
-			local offsety = (40)
-
 			local heading = combataction[5][i].heading
 			local headingrad = math.rad(heading)
+
+			-- calculate the drawing offset
+			local offsetx = 0 -- (62 / 2)
+			local offsety = 0 -- (40)
+
 			anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
 		end
 	end
 	if abort then return end	-- this prevents moving onto the next phase prematurely
+
 	for i = 1, #combataction[6] do
 		abort = true
 		fun.setCameraPosition("German")
@@ -482,8 +483,8 @@ local function drawActionImages()
 			local drawy = combataction[6][i].positionY
 
 			-- calculate the drawing offset
-			local offsetx = (62 / 2)
-			local offsety = (40)
+			local offsetx = 0 -- (62 / 2)
+			local offsety = 0 -- (40)
 
 			local heading = combataction[6][i].heading
 			local headingrad = math.rad(heading)
