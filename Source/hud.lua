@@ -34,4 +34,67 @@ function hud.printGameMode()
     love.graphics.setColor(1,1,1,1)
     love.graphics.print(text, 50, 75)
 end
+
+function hud.printKeyCommands()
+
+    love.graphics.setFont(font[enum.fontDefault])
+    love.graphics.setColor(1,1,1,1)
+
+    local printy = 130
+    local lineheight = 20
+
+    if GAME_MODE == enum.gamemodePlanning then
+        love.graphics.print("Movement", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("========", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("Mouse button 1 on flag = select a formation", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("kp7/kp9 = aim formation", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("kp8 = move formation forward", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("backspace = undo 1 step", 20, printy)
+        printy = printy + lineheight
+
+        printy = printy + lineheight
+        love.graphics.print("Camera", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("======", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("arrow keys = pan camera", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("shift arrow keys = fast pan", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("mouse wheel = zoom in/out", 20, printy)
+        printy = printy + lineheight
+
+        printy = printy + lineheight
+        love.graphics.print("KEYPAD 5 TO PROGRESS TO NEXT PHASE", 20, printy)
+        printy = printy + lineheight
+
+    elseif GAME_MODE == enum.gamemodeTargeting then
+        love.graphics.print("left button = select a marker to shoot", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("right button = select marker to shoot at", 20, printy)
+        printy = printy + lineheight
+
+        printy = printy + lineheight
+        love.graphics.print("Camera", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("======", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("arrow keys = pan camera", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("shift arrow keys = fast pan", 20, printy)
+        printy = printy + lineheight
+        love.graphics.print("mouse wheel = zoom in/out", 20, printy)
+        printy = printy + lineheight
+
+        printy = printy + lineheight
+        love.graphics.print("KEYPAD 5 TO PROGRESS TO NEXT PHASE", 20, printy)
+        printy = printy + lineheight
+    end
+
+end
 return hud

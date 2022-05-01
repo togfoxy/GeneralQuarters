@@ -528,6 +528,7 @@ function love.draw()
 	-- do hud stuff after cam:detach because we don't want that to zoom/scale/pan etc.
 	if currentscreen == "GameLoop" then
 		hud.printGameMode()	-- ensure this is drawn towards the end so that it draws over other things
+		hud.printKeyCommands()
 	end
 
 	res.stop()
