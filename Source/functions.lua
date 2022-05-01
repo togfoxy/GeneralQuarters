@@ -284,7 +284,7 @@ function functions.getArc(x1, y1, heading, x2, y2)
     return result
 end
 
-local function determineAllActions()
+local function determineAllActions(dt)
 
     -- combataction = {}
     -- combataction[1] = {}		-- Player 1 shooting
@@ -338,8 +338,6 @@ local function determineAllActions()
                     -- after adding muzzle flash and gun sound, determine damage
                     local damageinflicted = getDamageInflicted(shooter.gunsDownrange)
                     target.damageSustained = target.damageSustained + damageinflicted
-
-    damageinflicted = 0
 
                     -- target animations. Put the animation right inside the table for later playback
                     local timestart = 0.5 + love.math.random(0, 10) / 10   -- start this action at a random time
@@ -507,9 +505,42 @@ function functions.resolveCombat(dt)
     -- determine all the sounds, images and animations that need to be queued up
     --determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
     --determineShootingAnimations("German")
-    determineAllActions()
+    determineAllActions(dt)
 
     playSounds()
+
+    -- check for sinkages
+    for k,flot in pairs(flotilla) do
+		for q,form in pairs(flot.formation) do
+			for w,mrk in pairs(form.marker) do
+                if willBeSunk(mrk) then
+
+    print(mrk.markerName .. "is sunk")
+
+                    actionitem = {}
+                    actionitem.action = "sinkingimage"
+                    local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
+                    actionitem.animation = newanim
+                    actionitem.timestart = (love.math.random(0, 20) / 10)
+                    actionitem.timestop = actionitem.timestart + 3
+                    actionitem.started = false
+                    actionitem.positionX = mrk.positionX
+                    actionitem.positionY = mrk.positionY
+                    actionitem.heading = mrk.heading
+                    actionitem.marker = mrk
+
+                    -- add the sinking animation to the correct action queue
+                    if mark.getNation(mrk) == "British" then
+                        table.insert(combataction[5], actionitem)
+                    else
+                        table.insert(combataction[6], actionitem)
+                    end
+
+                    mrk.damageSustained = 0 -- stops the animation playing multiple times
+                end
+            end
+        end
+    end
 
     -- each queued item has a time that needs to run down
     -- the timer for each image/animtation/sound is stored in the action queue
@@ -559,78 +590,39 @@ function functions.resolveCombat(dt)
             end
         end
     end
+    if not abort then
+        for i = #combataction[5], 1, -1 do
+            abort = true
+            combataction[5][i].timestart = combataction[5][i].timestart - dt
+            combataction[5][i].timestop = combataction[5][i].timestop - dt
 
+            if combataction[5][i].action == "sinkingimage" and combataction[5][i].timestart <= 0 then
+                combataction[5][i].marker.drawImage = false
+                if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
+            end
 
-    -- if #actionqueue[1] > 0 then     -- process the britsh queue OR the german queue but not both at the same time
-    --     for k,action in pairs(actionqueue[1]) do
-    --         action.timestart = action.timestart - dt
-    --         action.timestop = action.timestop - dt
-    --
-    --         if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
-    --             -- advance animation
-    --             action.animation:update(dt)
-    --         end
-    --
-    --         if action.timestop <= 0 then
-    --
-    -- print(action.timestop)
-    --             if action.action == "sinkingimage" then
-    --                 -- destroy marker
-    -- print(action.marker.markerName .. " is destroyed")
-    --                 removeMarker(action.marker)
-    --             end
-    --             table.remove(actionqueue[1], k)
-    --         end
-    --     end
-    -- else
-    --     for k,action in pairs(actionqueue[2]) do
-    --         action.timestart = action.timestart - dt
-    --         action.timestop = action.timestop - dt
-    --
-    --         if action.action == "damageimage" or action.action == "splashimage" or action.action == "sinkingimage" then
-    --             -- advance animation
-    --             action.animation:update(dt)
-    --         end
-    --
-    --         if action.timestop <= 0 then
-    --             if action.action == "sinkingimage" then
-    --                 -- destroy marker
-    --                 removeMarker(action.marker)
-    --             end
-    --             table.remove(actionqueue[2], k)
-    --         end
-    --     end
-    -- end
-    --
-    -- -- check for sinkages
-    -- for k,flot in pairs(flotilla) do
-	-- 	for q,form in pairs(flot.formation) do
-	-- 		for w,mrk in pairs(form.marker) do
-    --             if willBeSunk(mrk) then
-    --                 print(mrk.markerName .. "is sunk")
-    --                 --!
-    --                 actionitem = {}
-    --                 actionitem.action = "sinkingimage"
-    --                 local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
-    --                 actionitem.animation = newanim
-    --                 actionitem.marker = mrk
-    --                 actionitem.target = nil
-    --                 actionitem.timestart = 3 + (love.math.random(0, 20) / 10)
-    --                 actionitem.timestop = actionitem.timestart + 3
-    --                 actionitem.started = false
-    --
-    --                 -- add the sinking animation to the correct action queue
-    --                 if mark.getNation(mrk) == "British" then
-    --                     table.insert(actionqueue[1], actionitem)
-    --                 else
-    --                     table.insert(actionqueue[2], actionitem)
-    --                 end
-    --
-    --                 mrk.damageSustained = 0 -- stops the animation playing multiple times
-    --             end
-    --         end
-    --     end
-    -- end
+            if combataction[5][i].timestop <= 0 then
+                table.remove(combataction[5], i)
+            end
+        end
+    end
+    if not abort then
+        for i = #combataction[6], 1, -1 do
+            abort = true
+            combataction[6][i].timestart = combataction[6][i].timestart - dt
+            combataction[6][i].timestop = combataction[6][i].timestop - dt
+
+            if combataction[6][i].action == "sinkingimage" and combataction[6][i].timestart <= 0 then
+                combataction[6][i].marker.drawImage = false
+            if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
+            end
+
+            if combataction[6][i].timestop <= 0 then
+                table.remove(combataction[6], i)
+            end
+        end
+    end
+
 end
 
 return functions
