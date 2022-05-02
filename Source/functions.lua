@@ -530,40 +530,24 @@ function functions.resolveCombat(dt)
     if not abort then
         for i = #combataction[5], 1, -1 do
             abort = true
-            combataction[5][i].timestart = combataction[5][i].timestart - dt
-            combataction[5][i].timestop = combataction[5][i].timestop - dt
-
-            if combataction[5][i].action == "sinkingimage" and combataction[5][i].timestart <= 0 then
-                combataction[5][i].marker.drawImage = false
-
-                if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
-            end
-
+            updateActionTimer(combataction[5][i], dt)
             if combataction[5][i].timestop <= 0 then
                 if combataction[5][i].marker ~= nil then
                     mark.remove(combataction[5][i].marker)      -- destroy the marker when the animation stops
                 end
-                table.remove(combataction[5], i)
+                table.remove(combataction[5], i)                -- do this step last
             end
         end
     end
     if not abort then
         for i = #combataction[6], 1, -1 do
             abort = true
-            combataction[6][i].timestart = combataction[6][i].timestart - dt
-            combataction[6][i].timestop = combataction[6][i].timestop - dt
-
-            if combataction[6][i].action == "sinkingimage" and combataction[6][i].timestart <= 0 then
-                combataction[6][i].marker.drawImage = false
-
-                if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
-            end
-
+            updateActionTimer(combataction[6][i], dt)
             if combataction[6][i].timestop <= 0 then
                 if combataction[6][i].marker ~= nil then
-                    mark.remove(combataction[6][i].marker)     -- destroy the marker when the animation stops
+                    mark.remove(combataction[6][i].marker)      -- destroy the marker when the animation stops
                 end
-                table.remove(combataction[6], i)
+                table.remove(combataction[6], i)                -- do this step last
             end
         end
     end

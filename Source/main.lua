@@ -216,6 +216,7 @@ end
 
 
 local function drawSinkingAnimation(action)
+	-- called when action timestart <= 0
 	local anim = action.animation
 	local drawscale = 1
 	local drawx = action.positionX
@@ -228,6 +229,8 @@ local function drawSinkingAnimation(action)
 	local heading = action.heading
 	local headingrad = math.rad(heading)
 	anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
+
+	action.marker.drawImage = false		-- sinking animation has started so need to stop drawing 'normal' marker image
 end
 
 local function drawSplashAnimation(action)
