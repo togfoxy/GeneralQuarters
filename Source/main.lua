@@ -111,9 +111,16 @@ function love.keypressed( key, scancode, isrepeat )
 		-- cyle to the next player and then the next game mode
 		-- noting that gthe MOVING and COMBAT modes are resolved simultaneously and don't have a player 2 component
 
-		if GAME_MODE ~= enum.gamemodeMoving then	-- disable kp5 if moving/combat is being resolved
-			--! will also need to do same for gamemodeCombat at some point
+		if (GAME_MODE == enum.gamemodePlanning) or (GAME_MODE == enum.gamemodeTargeting) then
 			fun.advanceMode()
+		elseif (GAME_MODE == enum.gamemodeCombat)  then	-- disable kp5 if moving/combat is being resolved
+			-- can advance mode only if all queues are empty
+			if #combataction[1] < 1 and #combataction[2] < 1 and #combataction[3] < 1 and #combataction[4] < 1 and #combataction[5] < 1 and #combataction[6] < 1 then
+				fun.advanceMode()
+			else
+			end
+		else
+			assert(error)
 		end
 	end
 end
@@ -204,7 +211,6 @@ function love.wheelmoved(x, y)
 	end
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
 
-	print("Zoom is now " .. ZOOMFACTOR)
 end
 
 function love.load()
@@ -233,106 +239,6 @@ function love.load()
 
     Slab.Initialize()
 end
---
--- local function drawMuzzleFlashes()
--- 	-- do all the muzzle flashing display
---
--- 	-- -- key data is stored in the action queue. Unpack that so clever things can be done
--- 	local queue = {}
--- 	if #actionqueue[1] > 0 then
--- 		queue = actionqueue[1]
--- 		fun.setCameraPosition("British")
--- 	else
--- 		if #actionqueue[2] > 0 then
--- 			queue = actionqueue[2]
--- 			fun.setCameraPosition("German")
--- 		end
--- 	end
---
--- 	if #queue > 0 then
--- 	    for i = 1, #queue do
--- 			local shooter = queue[i].marker
--- 			local target = queue[i].target
---
--- 	        if queue[i].action == "muzzleflash" then
--- 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
--- 		            -- draw muzzle flash
---
---
--- 					-- get orientation to target so the flash can be aligned correctly
--- 					local targetbearing = mark.getAbsoluteHeadingToTarget(shooter.positionX, shooter.positionY, target.positionX, target.positionY)
---
--- 					targetbearing = targetbearing - 90		-- this means '0' is now point to the east (90 degrees to the right)
--- 					if targetbearing < 0 then targetbearing = 360 + targetbearing end
---
--- 					-- the image needs to be offset towards the target bearing
--- 					local muzzlex, muzzley = cf.AddVectorToPoint(shooter.positionX,shooter.positionY,targetbearing,64)		-- x,y,heading, distance
---
--- 					local rads = math.rad(targetbearing)	-- convert the degrees to radians because the draw function uses radians
---
--- 					-- next two lines are for debugging
--- 		            -- love.graphics.setColor(1,1,1,0.5)
--- 					-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
---
--- 					love.graphics.setColor(1,1,1,1)
--- 					love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
--- 				end
--- 			elseif queue[i].action == "damageimage" then
--- 				-- -- set camera to the formation of the target
--- 				-- local nation = mark.getNation(target)
--- 				-- fun.setCameraPosition(nation)
---
--- 				-- draw explosion animation
--- 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
--- 					local anim = queue[i].animation
--- 					local drawscale = 8		-- multiple image size by this number
--- 					local drawx = queue[i].target.positionX
--- 					local drawy = queue[i].target.positionY
---
--- 					-- calculate the drawing offset
--- 					local offsetx = (16 / 2)
--- 					local offsety = (16 / 2)
--- 					anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
--- 				end
--- 			elseif queue[i].action == "splashimage" then
--- 				--
--- 				-- -- set camera to the formation of the target
--- 				-- local nation = mark.getNation(target)
--- 				-- fun.setCameraPosition(nation)
---
--- 				-- draw splash animation
--- 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
--- 					local anim = queue[i].animation
--- 					local drawscale = 2		-- multiple image size by this number
--- 					local drawx = queue[i].target.positionX
--- 					local drawy = queue[i].target.positionY
---
--- 					-- calculate the drawing offset
--- 					local offsetx = (62 / 2)
--- 					local offsety = (40)
--- 					anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
--- 				end
--- 			elseif queue[i].action == "sinkingimage" then
--- 				if queue[i].timestart <= 0 then	-- don't start this action until it is time to start this action
--- 					local anim = queue[i].animation
--- 					local drawscale = 1		-- multiple image size by this number
--- 					local drawx = queue[i].marker.positionX
--- 					local drawy = queue[i].marker.positionY
---
--- 					-- calculate the drawing offset
--- 					local offsetx = (62 / 2)
--- 					local offsety = (40)
---
--- 					local heading = queue[i].marker.heading
--- 					local headingrad = math.rad(heading)
--- 					anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
--- 				end
--- 			end
--- 	    end
--- 	end
--- end
---
---
 
 local function drawActionImages()
 
@@ -495,6 +401,19 @@ local function drawActionImages()
 
 end
 
+local function gameOver()
+	local player1gameover = true
+	local player2gameover = true
+
+	for q,flot in pairs(flotilla) do
+		if flot.nation == "British" then player1gameover = false end
+		if flot.nation == "German" then player2gameover = false end
+	end
+	if player1gameover == true or player2gameover == true then
+		return true
+	end
+end
+
 function love.draw()
 
     res.start()
@@ -531,6 +450,9 @@ function love.draw()
 		hud.printKeyCommands()
 	end
 
+	if currentscreen == "GameOver" then
+		love.graphics.print("Game over. Thanks for playing. Close this program.", 600, 400)
+	end
 	res.stop()
 end
 
@@ -558,6 +480,10 @@ function love.update(dt)
 			fun.updateLoSRay()
 		elseif GAME_MODE == enum.gamemodeCombat then
 			fun.resolveCombat(dt)	-- adds actions to actionqueue[1] and actionqueue[2]
+		end
+
+		if gameOver() then
+			cf.SwapScreen("GameOver", SCREEN_STACK)
 		end
 	else
 

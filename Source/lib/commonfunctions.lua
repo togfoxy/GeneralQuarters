@@ -161,26 +161,6 @@ local function GetCollisionMap(objMap)
 			colmap[rows][cols] = objMap[rows][cols].tiletype
 		end
 	end
-
-	-- print(inspect(colmap[2]))
-
-
-	-- -- after colmap is established, tweak individual tiles that occupy a player
-	-- for i = 1 , #parray do
-        -- if parray[i].health > 0 then
-            -- if parray[i].ismoving == false then
-                -- -- player is not moving so the tile they are on is obstructed
-                -- row = parray[i].row
-                -- col = parray[i].col
-            -- else
-                -- -- the tile the player is moving too is obstructed
-                -- row = parray[i].row
-                -- col = parray[i].col
-            -- end
-              -- colmap[row][col] = enum.tilePlayer
-		-- end
-	-- end
-
 	return colmap
 end
 
@@ -287,7 +267,7 @@ function SwapScreen(newScreen, screenStack)
 	-- swaps screens so that the old screen is removed from the stack
 	-- this adds the new screen then removes the 2nd last screen.
 
-    AddScreen(newScreen)
+    AddScreen(newScreen, screenStack)
     table.remove(screenStack, #screenStack - 1)
 end
 
