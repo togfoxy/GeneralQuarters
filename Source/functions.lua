@@ -74,15 +74,10 @@ function functions.changeCameraPosition()
         camy = (britishy + germany) / 2
 
     elseif GAME_MODE == enum.gamemodeTargeting then
-        if PLAYER_TURN == 1 then
-            -- focus on player 1 flotilla
-            camx = britishx
-            camy = britishy
-        else
-            -- focus on player 2 flotilla
-            camx = germanx
-            camy = germany
-        end
+        -- position between the two formations
+        camx = (britishx + germanx) / 2
+        camy = (britishy + germany) / 2
+
     elseif GAME_MODE == enum.gamemodeCombat then
         -- zoom out and focus on centre
         camx = MAP_CENTRE
@@ -227,55 +222,6 @@ local function willBeSunk(thismarker)
     end
 end
 
-local function removeMarker(thismarker)
-    --! move to the marker module
-    for i = #flotilla, 1, -1 do
-        for j = #flotilla[i].formation, 1, -1 do
-            for k = #flotilla[i].formation[j].marker, 1, -1 do
-                if flotilla[i].formation[j].marker[k] ~= nil then
-                    if flotilla[i].formation[j].marker[k] == thismarker then
-                        -- delete the marker
-                        flotilla[i].formation[j].marker[k] = nil
-                    end
-                end
-            end
-        end
-    end
-    -- now check if there are empty formations
-    for i = #flotilla, 1, -1 do
-        for j = #flotilla[i].formation, 1, -1 do
-            if #flotilla[i].formation[j].marker < 1 then
-                flotilla[i].formation[j] = nil
-            end
-        end
-    end
-    -- now check for empty flotillas
-    for i = #flotilla, 1, -1 do
-        if #flotilla[i].formation < 1 then
-            flotilla[i] = nil
-        end
-    end
-end
-
-local function getNumberOfShooters(nation)
-    -- determine how many markers will shoot. Used for animations and timing
-    -- input: nation. String
-    -- output: integer
-    local result = 0
-    for k,flot in pairs(flotilla) do
-        if flot.nation == nation then
-    		for q,frm in pairs(flot.formation) do
-    			for w,mrk in pairs(frm.marker) do
-                    if mrk.targetMarker ~= nil then
-                        result = result + 1
-                    end
-                end
-            end
-        end
-    end
-    return result
-end
-
 function functions.getArc(x1, y1, heading, x2, y2)
     -- gets the arc or quadrant x2/y2 is relative to x1/y1
     -- input: x1,y1,heading of first point.
@@ -408,6 +354,15 @@ local function determineAllActions(dt)
     end
 end
 
+local function playAudioFile(audioObject, action)
+	-- play audio
+	local newaudio = audioObject:clone()
+	newaudio:play()
+
+	action.started = true
+	action.timestop = -1	-- this will 'clean up' this action and remove it later
+end
+
 local function playSounds()
     -- play any sounds that are queued
 
@@ -420,12 +375,7 @@ local function playSounds()
 
             if combataction[1][i].action == "gunsound" then
     			if combataction[1][i].timestart <= 0 and combataction[1][i].started == false then
-    				-- play audio
-    				local newaudio = audio[enum.audiogunfire1]:clone()
-    				newaudio:play()
-
-    				combataction[1][i].started = true
-    				combataction[1][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiogunfire1], combataction[1][i])
     			end
             end
         end
@@ -439,12 +389,7 @@ local function playSounds()
 
             if combataction[2][i].action == "splashsound" then
                 if combataction[2][i].timestart <= 0 and combataction[2][i].started == false then
-                    -- play audio
-                    local newaudio = audio[enum.audiosplash1]:clone()
-                    newaudio:play()
-
-                    combataction[2][i].started = true
-                    combataction[2][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiosplash1], combataction[2][i])
                 end
             end
         end
@@ -453,12 +398,7 @@ local function playSounds()
 
             if combataction[2][i].action == "damagesound" then
                 if combataction[2][i].timestart <= 0 and combataction[2][i].started == false then
-                    -- play audio
-                    local newaudio = audio[enum.audiodamage1]:clone()
-                    newaudio:play()
-
-                    combataction[2][i].started = true
-                    combataction[2][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiodamage1], combataction[2][i])
                 end
             end
         end
@@ -472,12 +412,7 @@ local function playSounds()
 
             if combataction[3][i].action == "gunsound" then
                 if combataction[3][i].timestart <= 0 and combataction[3][i].started == false then
-                    -- play audio
-                    local newaudio = audio[enum.audiogunfire1]:clone()
-                    newaudio:play()
-
-                    combataction[3][i].started = true
-                    combataction[3][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiogunfire1], combataction[3][i])
                 end
             end
         end
@@ -491,12 +426,7 @@ local function playSounds()
 
             if combataction[4][i].action == "splashsound" then
                 if combataction[4][i].timestart <= 0 and combataction[4][i].started == false then
-                    -- play audio
-                    local newaudio = audio[enum.audiosplash1]:clone()
-                    newaudio:play()
-
-                    combataction[4][i].started = true
-                    combataction[4][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiosplash1], combataction[4][i])
                 end
             end
         end
@@ -505,12 +435,7 @@ local function playSounds()
 
             if combataction[4][i].action == "damagesound" then
                 if combataction[4][i].timestart <= 0 and combataction[4][i].started == false then
-                    -- play audio
-                    local newaudio = audio[enum.audiodamage1]:clone()
-                    newaudio:play()
-
-                    combataction[4][i].started = true
-                    combataction[4][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiodamage1], combataction[4][i])
                 end
             end
         end
@@ -518,12 +443,16 @@ local function playSounds()
     if abort then return end
 end
 
+local function updateActionTimer(action, dt)
+	action.timestart = action.timestart - dt
+	action.timestop = action.timestop - dt
+	if action.animation ~= nil then action.animation:update(dt) end
+end
+
 function functions.resolveCombat(dt)
     -- called during love.update()
-
     -- determine all the sounds, images and animations that need to be queued up
-    --determineShootingAnimations("British")   -- 2nd parameter describes the EARLIEST timeframe to do animations
-    --determineShootingAnimations("German")
+
     determineAllActions(dt)
 
     playSounds()
@@ -560,12 +489,13 @@ function functions.resolveCombat(dt)
 
     -- each queued item has a time that needs to run down
     -- the timer for each image/animtation/sound is stored in the action queue
+
+    -- I'm sure this can be refactored but brain is not working today
+
     local abort = false     -- controls the flow between phases
     for i = #combataction[1], 1, -1 do
         abort = true
-        combataction[1][i].timestart = combataction[1][i].timestart - dt
-        combataction[1][i].timestop = combataction[1][i].timestop - dt
-        if combataction[1][i].animation ~= nil then combataction[1][i].animation:update(dt) end
+        updateActionTimer(combataction[1][i], dt)
         if combataction[1][i].timestop <= 0 then
             table.remove(combataction[1], i)
         end
@@ -574,9 +504,7 @@ function functions.resolveCombat(dt)
     if not abort then
         for i = #combataction[2], 1, -1 do
             abort = true
-            combataction[2][i].timestart = combataction[2][i].timestart - dt
-            combataction[2][i].timestop = combataction[2][i].timestop - dt
-            if combataction[2][i].animation ~= nil then combataction[2][i].animation:update(dt) end
+            updateActionTimer(combataction[2][i], dt)
             if combataction[2][i].timestop <= 0 then
                 table.remove(combataction[2], i)
             end
@@ -586,9 +514,7 @@ function functions.resolveCombat(dt)
     if not abort then
         for i = #combataction[3], 1, -1 do
             abort = true
-            combataction[3][i].timestart = combataction[3][i].timestart - dt
-            combataction[3][i].timestop = combataction[3][i].timestop - dt
-            if combataction[3][i].animation ~= nil then combataction[3][i].animation:update(dt) end
+            updateActionTimer(combataction[3][i], dt)
             if combataction[3][i].timestop <= 0 then
                 table.remove(combataction[3], i)
             end
@@ -598,9 +524,7 @@ function functions.resolveCombat(dt)
     if not abort then
         for i = #combataction[4], 1, -1 do
             abort = true
-            combataction[4][i].timestart = combataction[4][i].timestart - dt
-            combataction[4][i].timestop = combataction[4][i].timestop - dt
-            if combataction[4][i].animation ~= nil then combataction[4][i].animation:update(dt) end
+            updateActionTimer(combataction[4][i], dt)
             if combataction[4][i].timestop <= 0 then
                 table.remove(combataction[4], i)
             end
@@ -609,40 +533,24 @@ function functions.resolveCombat(dt)
     if not abort then
         for i = #combataction[5], 1, -1 do
             abort = true
-            combataction[5][i].timestart = combataction[5][i].timestart - dt
-            combataction[5][i].timestop = combataction[5][i].timestop - dt
-
-            if combataction[5][i].action == "sinkingimage" and combataction[5][i].timestart <= 0 then
-                combataction[5][i].marker.drawImage = false
-
-                if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
-            end
-
+            updateActionTimer(combataction[5][i], dt)
             if combataction[5][i].timestop <= 0 then
                 if combataction[5][i].marker ~= nil then
-                    removeMarker(combataction[5][i].marker)     -- destroy the marker when the animation stops
+                    mark.remove(combataction[5][i].marker)      -- destroy the marker when the animation stops
                 end
-                table.remove(combataction[5], i)
+                table.remove(combataction[5], i)                -- do this step last
             end
         end
     end
     if not abort then
         for i = #combataction[6], 1, -1 do
             abort = true
-            combataction[6][i].timestart = combataction[6][i].timestart - dt
-            combataction[6][i].timestop = combataction[6][i].timestop - dt
-
-            if combataction[6][i].action == "sinkingimage" and combataction[6][i].timestart <= 0 then
-                combataction[6][i].marker.drawImage = false
-
-                if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
-            end
-
+            updateActionTimer(combataction[6][i], dt)
             if combataction[6][i].timestop <= 0 then
                 if combataction[6][i].marker ~= nil then
-                    removeMarker(combataction[6][i].marker)     -- destroy the marker when the animation stops
+                    mark.remove(combataction[6][i].marker)      -- destroy the marker when the animation stops
                 end
-                table.remove(combataction[6], i)
+                table.remove(combataction[6], i)                -- do this step last
             end
         end
     end

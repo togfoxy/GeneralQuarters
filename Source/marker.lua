@@ -59,7 +59,6 @@ function marker.getCorrectPositionInFormation(thismarker)
 
     -- get the flagship for the captured formation
     flagship = form.getFlagship(thisform)
-print("formation has " .. #thisform.marker .. " markers.")
     assert(flagship ~= nil)
 
     -- determine if thismarker should be left or right of the flagship by checking numOfColumns
@@ -711,6 +710,35 @@ local function determineMouseText(mrk)
     mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
 end
 
+function marker.remove(thismarker)
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            for k = #flotilla[i].formation[j].marker, 1, -1 do
+                if flotilla[i].formation[j].marker[k] ~= nil then
+                    if flotilla[i].formation[j].marker[k] == thismarker then
+                        -- delete the marker
+                        flotilla[i].formation[j].marker[k] = nil
+                    end
+                end
+            end
+        end
+    end
+    -- now check if there are empty formations
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            if #flotilla[i].formation[j].marker < 1 then
+                flotilla[i].formation[j] = nil
+            end
+        end
+    end
+    -- now check for empty flotillas
+    for i = #flotilla, 1, -1 do
+        if #flotilla[i].formation < 1 then
+            flotilla[i] = nil
+        end
+    end
+end
+
 local function drawEveryGhost(nation)
     love.graphics.setColor(1, 1, 1, 0.5)
 
@@ -831,7 +859,7 @@ function marker.draw()
     end
 end
 
--- ******************************** British makers ******************************
+-- ******************************** British markers ******************************
 function marker.addAgincourt(form)
     -- adds a marker to the provided formation
     -- input: the formation this marker will be assigned to
@@ -1085,7 +1113,7 @@ end
 
 
 
--- ******************************** German makers ******************************
+-- ******************************** German markers ******************************
 function marker.addFriedrichDerGrosse(thisform)
     -- adds the Friederich to the provided flotilla and formation
     -- input: flotilla number, form number   (not objects/tables!)
