@@ -213,8 +213,6 @@ function love.wheelmoved(x, y)
 
 end
 
-
-
 local function drawSinkingAnimation(action)
 	-- called when action timestart <= 0
 	local anim = action.animation

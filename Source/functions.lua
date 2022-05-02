@@ -489,6 +489,9 @@ function functions.resolveCombat(dt)
 
     -- each queued item has a time that needs to run down
     -- the timer for each image/animtation/sound is stored in the action queue
+
+    -- I'm sure this can be refactored but brain is not working today
+
     local abort = false     -- controls the flow between phases
     for i = #combataction[1], 1, -1 do
         abort = true

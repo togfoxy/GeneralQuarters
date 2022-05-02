@@ -859,7 +859,7 @@ function marker.draw()
     end
 end
 
--- ******************************** British makers ******************************
+-- ******************************** British markers ******************************
 function marker.addAgincourt(form)
     -- adds a marker to the provided formation
     -- input: the formation this marker will be assigned to
@@ -1113,7 +1113,7 @@ end
 
 
 
--- ******************************** German makers ******************************
+-- ******************************** German markers ******************************
 function marker.addFriedrichDerGrosse(thisform)
     -- adds the Friederich to the provided flotilla and formation
     -- input: flotilla number, form number   (not objects/tables!)
