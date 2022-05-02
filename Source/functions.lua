@@ -114,6 +114,12 @@ local function cleanUpAfterCombat()
             end
         end
     end
+    combataction[1] = {}
+    combataction[2] = {}
+    combataction[3] = {}
+    combataction[4] = {}
+    combataction[5] = {}
+    combataction[6] = {}
 end
 
 function functions.advanceMode()
@@ -213,8 +219,7 @@ local function willBeSunk(thismarker)
     -- input: marker object
     -- output: yes/no boolean
 
-    -- if thismarker.damageSustained >  0 then print(thismarker.damageSustained .. " / " .. thismarker.protectionFactor) end
-
+    --! remove the / 2
     if thismarker.damageSustained >= thismarker.protectionFactor / 2 then
         return true
     else
@@ -223,19 +228,33 @@ local function willBeSunk(thismarker)
 end
 
 local function removeMarker(thismarker)
-    --!move to the marker module
-    for k,flot in pairs(flotilla) do
-		for q,form in pairs(flot.formation) do
-            for i = 1, #form.marker do
-                if form.marker[i] == thismarker then
-                    -- delete marker
-                    table.remove(form.marker, i)
+    --! move to the marker module
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            for k = #flotilla[i].formation[j].marker, 1, -1 do
+                if flotilla[i].formation[j].marker[k] ~= nil then
+                    if flotilla[i].formation[j].marker[k] == thismarker then
+                        -- delete the marker
+                        flotilla[i].formation[j].marker[k] = nil
+                    end
                 end
             end
         end
     end
-
-    --! if flagship is sunk then need to determine new flagship
+    -- now check if there are empty formations
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            if #flotilla[i].formation[j].marker < 1 then
+                flotilla[i].formation[j] = nil
+            end
+        end
+    end
+    -- now check for empty flotillas
+    for i = #flotilla, 1, -1 do
+        if #flotilla[i].formation < 1 then
+            flotilla[i] = nil
+        end
+    end
 end
 
 local function getNumberOfShooters(nation)
@@ -514,9 +533,6 @@ function functions.resolveCombat(dt)
 		for q,form in pairs(flot.formation) do
 			for w,mrk in pairs(form.marker) do
                 if willBeSunk(mrk) then
-
-    print(mrk.markerName .. "is sunk")
-
                     actionitem = {}
                     actionitem.action = "sinkingimage"
                     local newanim = anim8.newAnimation(frames[enum.sinking], 0.1, "pauseAtEnd")        -- frames is the variable above and duration
@@ -598,10 +614,14 @@ function functions.resolveCombat(dt)
 
             if combataction[5][i].action == "sinkingimage" and combataction[5][i].timestart <= 0 then
                 combataction[5][i].marker.drawImage = false
+
                 if combataction[5][i].animation ~= nil then combataction[5][i].animation:update(dt) end
             end
 
             if combataction[5][i].timestop <= 0 then
+                if combataction[5][i].marker ~= nil then
+                    removeMarker(combataction[5][i].marker)     -- destroy the marker when the animation stops
+                end
                 table.remove(combataction[5], i)
             end
         end
@@ -614,15 +634,18 @@ function functions.resolveCombat(dt)
 
             if combataction[6][i].action == "sinkingimage" and combataction[6][i].timestart <= 0 then
                 combataction[6][i].marker.drawImage = false
-            if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
+
+                if combataction[6][i].animation ~= nil then combataction[6][i].animation:update(dt) end
             end
 
             if combataction[6][i].timestop <= 0 then
+                if combataction[6][i].marker ~= nil then
+                    removeMarker(combataction[6][i].marker)     -- destroy the marker when the animation stops
+                end
                 table.remove(combataction[6], i)
             end
         end
     end
-
 end
 
 return functions

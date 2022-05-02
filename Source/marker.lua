@@ -59,6 +59,7 @@ function marker.getCorrectPositionInFormation(thismarker)
 
     -- get the flagship for the captured formation
     flagship = form.getFlagship(thisform)
+print("formation has " .. #thisform.marker .. " markers.")
     assert(flagship ~= nil)
 
     -- determine if thismarker should be left or right of the flagship by checking numOfColumns
@@ -322,6 +323,9 @@ local function getNewFlagshipHeading(m, desiredheading)
 
     local newheading
     local steeringamount = 15   -- this is the steering amount. Increase it to permit larger turns
+
+    if mark.getNation(m) == "British" then steeringamount = 30 end
+
     local angledelta = desiredheading - currentheading
     local adjsteeringamount = math.min(math.abs(angledelta), steeringamount)
 
@@ -491,19 +495,6 @@ local function getNewMarkerHeading(m)
     return newheading
 end
 
-local function getFlagShip(thisform)
-    -- scans the provided flotilla/formation for the marker ID (index) that is the flagship
-    -- input: flotilla (number/index)
-    -- input: formation (number/index)
-    -- output: a marker object that is the flagship
-    for w,mrk in pairs(thisform.marker) do
-        if mrk.isFlagship then
-            return mrk
-        end
-    end
-    error("Unexpected program flow. Flotilla has no flagship")
-end
-
 function marker.addOneStepToFlagship()
     -- adds one step (ghost) to the flagship planned moves if the formation is selected. This is determined by the formation facing/direction
 
@@ -511,7 +502,7 @@ function marker.addOneStepToFlagship()
     for k,flot in pairs(flotilla) do
 		for q,frm in pairs(flot.formation) do
             if frm.isSelected then
-                local flagship = getFlagShip(frm)
+                local flagship = form.getFlagship(frm)
                 for w,mrk in pairs(frm.marker) do
                     if #mrk.planningstep < mrk.movementFactor then    -- ensure marker hasn't expended all steps/movement
                         if mrk.isFlagship then  -- can also say if mrk == flagship

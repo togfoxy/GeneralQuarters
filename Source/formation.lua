@@ -144,8 +144,24 @@ function formation.changeFacing(value)
     end
 end
 
+local function determineNewFlagship(thisform)
+    -- determine the fastest marker in the formation and make that marker the new flagship
+    local fastestspeed = -1
+    local fastestmarker = {}
+
+    for w,mrk in pairs(thisform.marker) do
+        if mrk.movementFactor > fastestspeed then
+            fastestspeed = mrk.movementFactor
+            fastestmarker = mrk
+        end
+    end
+    fastestmarker.isFlagship = true
+    return mrk
+end
+
 function formation.getFlagship(thisform)
     -- scans the provided flotilla/formation for the marker that is the flagship
+    -- if there is no flagship (it might have sunk) then determine new flagship
     -- input: formation (number/index)
     -- output: a marker object that is the flagship
     for w,mrk in pairs(thisform.marker) do
@@ -153,6 +169,9 @@ function formation.getFlagship(thisform)
             return mrk
         end
     end
+    -- if this code is reached then there is no flagship. Nominate a new flagship
+    return determineNewFlagship(thisform)
+
 end
 
 function formation.draw()
