@@ -74,15 +74,10 @@ function functions.changeCameraPosition()
         camy = (britishy + germany) / 2
 
     elseif GAME_MODE == enum.gamemodeTargeting then
-        if PLAYER_TURN == 1 then
-            -- focus on player 1 flotilla
-            camx = britishx
-            camy = britishy
-        else
-            -- focus on player 2 flotilla
-            camx = germanx
-            camy = germany
-        end
+        -- position between the two formations
+        camx = (britishx + germanx) / 2
+        camy = (britishy + germany) / 2
+
     elseif GAME_MODE == enum.gamemodeCombat then
         -- zoom out and focus on centre
         camx = MAP_CENTRE
@@ -227,55 +222,6 @@ local function willBeSunk(thismarker)
     end
 end
 
-local function removeMarker(thismarker)
-    --! move to the marker module
-    for i = #flotilla, 1, -1 do
-        for j = #flotilla[i].formation, 1, -1 do
-            for k = #flotilla[i].formation[j].marker, 1, -1 do
-                if flotilla[i].formation[j].marker[k] ~= nil then
-                    if flotilla[i].formation[j].marker[k] == thismarker then
-                        -- delete the marker
-                        flotilla[i].formation[j].marker[k] = nil
-                    end
-                end
-            end
-        end
-    end
-    -- now check if there are empty formations
-    for i = #flotilla, 1, -1 do
-        for j = #flotilla[i].formation, 1, -1 do
-            if #flotilla[i].formation[j].marker < 1 then
-                flotilla[i].formation[j] = nil
-            end
-        end
-    end
-    -- now check for empty flotillas
-    for i = #flotilla, 1, -1 do
-        if #flotilla[i].formation < 1 then
-            flotilla[i] = nil
-        end
-    end
-end
-
-local function getNumberOfShooters(nation)
-    -- determine how many markers will shoot. Used for animations and timing
-    -- input: nation. String
-    -- output: integer
-    local result = 0
-    for k,flot in pairs(flotilla) do
-        if flot.nation == nation then
-    		for q,frm in pairs(flot.formation) do
-    			for w,mrk in pairs(frm.marker) do
-                    if mrk.targetMarker ~= nil then
-                        result = result + 1
-                    end
-                end
-            end
-        end
-    end
-    return result
-end
-
 function functions.getArc(x1, y1, heading, x2, y2)
     -- gets the arc or quadrant x2/y2 is relative to x1/y1
     -- input: x1,y1,heading of first point.
@@ -301,6 +247,16 @@ function functions.getArc(x1, y1, heading, x2, y2)
         error(degangle)
     end
     return result
+end
+
+local function playAudioFile(audioObject, action)
+	-- play audio
+	local newaudio = audioObject:clone()
+	newaudio:play()
+
+	action.started = true
+	action.timestop = -1	-- this will 'clean up' this action and remove it later
+
 end
 
 local function determineAllActions(dt)
@@ -408,6 +364,8 @@ local function determineAllActions(dt)
     end
 end
 
+
+
 local function playSounds()
     -- play any sounds that are queued
 
@@ -420,12 +378,7 @@ local function playSounds()
 
             if combataction[1][i].action == "gunsound" then
     			if combataction[1][i].timestart <= 0 and combataction[1][i].started == false then
-    				-- play audio
-    				local newaudio = audio[enum.audiogunfire1]:clone()
-    				newaudio:play()
-
-    				combataction[1][i].started = true
-    				combataction[1][i].timestop = -1	-- this will 'clean up' this action and remove it later
+                    playAudioFile(audio[enum.audiogunfire1], combataction[1][i])
     			end
             end
         end
@@ -620,7 +573,7 @@ function functions.resolveCombat(dt)
 
             if combataction[5][i].timestop <= 0 then
                 if combataction[5][i].marker ~= nil then
-                    removeMarker(combataction[5][i].marker)     -- destroy the marker when the animation stops
+                    mark.remove(combataction[5][i].marker)      -- destroy the marker when the animation stops
                 end
                 table.remove(combataction[5], i)
             end
@@ -640,7 +593,7 @@ function functions.resolveCombat(dt)
 
             if combataction[6][i].timestop <= 0 then
                 if combataction[6][i].marker ~= nil then
-                    removeMarker(combataction[6][i].marker)     -- destroy the marker when the animation stops
+                    mark.remove(combataction[6][i].marker)     -- destroy the marker when the animation stops
                 end
                 table.remove(combataction[6], i)
             end

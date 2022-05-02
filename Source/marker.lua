@@ -59,7 +59,6 @@ function marker.getCorrectPositionInFormation(thismarker)
 
     -- get the flagship for the captured formation
     flagship = form.getFlagship(thisform)
-print("formation has " .. #thisform.marker .. " markers.")
     assert(flagship ~= nil)
 
     -- determine if thismarker should be left or right of the flagship by checking numOfColumns
@@ -709,6 +708,35 @@ local function determineMouseText(mrk)
     mousearc = fun.getArc(xcentre, ycentre, heading, wx,wy)    -- returns a string
     local gunsdownrange = mark.getGunsInArc(mrk, mousearc)
     mousetext = "Angle: " .. degangle .. "\nArc: " .. mousearc .. "\nGuns: " .. gunsdownrange
+end
+
+function marker.remove(thismarker)
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            for k = #flotilla[i].formation[j].marker, 1, -1 do
+                if flotilla[i].formation[j].marker[k] ~= nil then
+                    if flotilla[i].formation[j].marker[k] == thismarker then
+                        -- delete the marker
+                        flotilla[i].formation[j].marker[k] = nil
+                    end
+                end
+            end
+        end
+    end
+    -- now check if there are empty formations
+    for i = #flotilla, 1, -1 do
+        for j = #flotilla[i].formation, 1, -1 do
+            if #flotilla[i].formation[j].marker < 1 then
+                flotilla[i].formation[j] = nil
+            end
+        end
+    end
+    -- now check for empty flotillas
+    for i = #flotilla, 1, -1 do
+        if #flotilla[i].formation < 1 then
+            flotilla[i] = nil
+        end
+    end
 end
 
 local function drawEveryGhost(nation)

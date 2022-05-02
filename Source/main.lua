@@ -204,13 +204,161 @@ end
 function love.wheelmoved(x, y)
 	if y > 0 then
 		-- wheel moved up. Zoom in
-		ZOOMFACTOR = ZOOMFACTOR + 0.1
+		ZOOMFACTOR = ZOOMFACTOR + 0.05
 	end
 	if y < 0 then
-		ZOOMFACTOR = ZOOMFACTOR - 0.1
+		ZOOMFACTOR = ZOOMFACTOR - 0.05
 	end
 	if ZOOMFACTOR < 0.1 then ZOOMFACTOR = 0.1 end
 
+end
+
+
+
+local function drawSinkingAnimation(action)
+	local anim = action.animation
+	local drawscale = 1
+	local drawx = action.positionX
+	local drawy = action.positionY
+
+	-- calculate the drawing offset
+	local offsetx = 0 -- (62 / 2)
+	local offsety = 0 -- (40)
+
+	local heading = action.heading
+	local headingrad = math.rad(heading)
+	anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
+end
+
+local function drawSplashAnimation(action)
+	local anim = action.animation
+	local drawscale = 3		-- multiple image size by this number
+	local drawx = action.positionX
+	local drawy = action.positionY
+
+	-- calculate the drawing offset
+	local offsetx = (62 / 2)
+	local offsety = (40)
+	anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+end
+
+local function drawDamageAnimation(action)
+	local anim = action.animation
+	local drawscale = 8		-- multiple image size by this number
+	local drawx = action.positionX
+	local drawy = action.positionY
+
+	-- calculate the drawing offset
+	local offsetx = (8)
+	local offsety = (8)
+	anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
+end
+
+local function drawFlashAnimation(action)
+	-- the image needs to be offset towards the target bearing
+	local muzzlex, muzzley = cf.AddVectorToPoint(action.positionX, action.positionY, action.targetbearing, 64)		-- x,y,heading, distance
+
+	local rads = math.rad(action.targetbearing)	-- convert the degrees to radians because the draw function uses radians
+
+	love.graphics.setColor(1,1,1,1)
+	love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
+end
+
+local function drawActionImages()
+
+    local abort = false     -- controls the moving between phases
+	for i = 1, #combataction[1] do
+		abort = true
+		fun.setCameraPosition("British")
+
+		if combataction[1][i].action == "muzzleflash" then
+			if combataction[1][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawFlashAnimation(combataction[1][i])
+			end
+		end
+	end
+	if abort then return end
+
+	for i = 1, #combataction[2] do
+		abort = true
+		fun.setCameraPosition("German")
+
+		if combataction[2][i].action == "splashimage" then
+			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawSplashAnimation(combataction[2][i])
+			end
+		end
+		if combataction[2][i].action == "damageimage" then
+			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawDamageAnimation(combataction[2][i])
+			end
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
+	for i = 1, #combataction[3] do
+		abort = true
+		fun.setCameraPosition("German")
+
+		if combataction[3][i].action == "muzzleflash" then
+			if combataction[3][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawFlashAnimation(combataction[3][i])
+			end
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
+	for i = 1, #combataction[4] do
+		abort = true
+		fun.setCameraPosition("British")
+
+		if combataction[4][i].action == "splashimage" then
+			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawSplashAnimation(combataction[4][i])
+			end
+		end
+
+		if combataction[4][i].action == "damageimage" then
+			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+				drawDamageAnimation(combataction[4][i])
+			end
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
+	-- British sinking animations
+	for i = 1, #combataction[5] do
+		abort = true
+		fun.setCameraPosition("British")
+
+		if combataction[5][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+			drawSinkingAnimation(combataction[5][i])
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+
+	for i = 1, #combataction[6] do
+		abort = true
+		fun.setCameraPosition("German")
+
+		if combataction[6][i].timestart <= 0 then	-- don't start this action until it is time to start this action
+			drawSinkingAnimation(combataction[6][i])
+		end
+	end
+	if abort then return end	-- this prevents moving onto the next phase prematurely
+end
+
+local function gameOver()
+	local player1gameover = true
+	local player2gameover = true
+
+	for q,flot in pairs(flotilla) do
+		if flot.nation == "British" then player1gameover = false end
+		if flot.nation == "German" then player2gameover = false end
+	end
+	if player1gameover == true or player2gameover == true then
+		return true
+	end
 end
 
 function love.load()
@@ -240,180 +388,6 @@ function love.load()
     Slab.Initialize()
 end
 
-local function drawActionImages()
-
-    local abort = false     -- controls the moving between phases
-	for i = 1, #combataction[1] do
-		abort = true
-		fun.setCameraPosition("British")
-
-		if combataction[1][i].action == "muzzleflash" then
-			if combataction[1][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-
-				-- the image needs to be offset towards the target bearing
-				local muzzlex, muzzley = cf.AddVectorToPoint(combataction[1][i].positionX,combataction[1][i].positionY,combataction[1][i].targetbearing,64)		-- x,y,heading, distance
-
-				local rads = math.rad(combataction[1][i].targetbearing)	-- convert the degrees to radians because the draw function uses radians
-
-				-- next two lines are for debugging
-		        -- love.graphics.setColor(1,1,1,0.5)
-				-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
-
-				love.graphics.setColor(1,1,1,1)
-				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
-			end
-		end
-	end
-	if abort then return end
-
-	for i = 1, #combataction[2] do
-		abort = true
-		fun.setCameraPosition("German")
-
-		if combataction[2][i].action == "splashimage" then
-			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = combataction[2][i].animation
-				local drawscale = 2		-- multiple image size by this number
-				local drawx = combataction[2][i].positionX
-				local drawy = combataction[2][i].positionY
-
-				-- calculate the drawing offset
-				local offsetx = (62 / 2)
-				local offsety = (40)
-				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-		end
-		if combataction[2][i].action == "damageimage" then
-			if combataction[2][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = combataction[2][i].animation
-				local drawscale = 8		-- multiple image size by this number
-				local drawx = combataction[2][i].positionX
-				local drawy = combataction[2][i].positionY
-
-				-- calculate the drawing offset
-				local offsetx = (8)
-				local offsety = (8)
-				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-		end
-	end
-	if abort then return end	-- this prevents moving onto the next phase prematurely
-
-	for i = 1, #combataction[3] do
-		abort = true
-		fun.setCameraPosition("German")
-
-		if combataction[3][i].action == "muzzleflash" then
-			if combataction[3][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-
-				-- the image needs to be offset towards the target bearing
-				local muzzlex, muzzley = cf.AddVectorToPoint(combataction[3][i].positionX,combataction[3][i].positionY,combataction[3][i].targetbearing,64)		-- x,y,heading, distance
-
-				local rads = math.rad(combataction[3][i].targetbearing)	-- convert the degrees to radians because the draw function uses radians
-
-				-- next two lines are for debugging
-		        -- love.graphics.setColor(1,1,1,0.5)
-				-- love.graphics.draw(image[enum.muzzle1], shooter.positionX,shooter.positionY, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
-
-				love.graphics.setColor(1,1,1,1)
-				love.graphics.draw(image[enum.muzzle1], muzzlex, muzzley, rads, 0.5, 0.5)  -- file, x, y, radians, scalex, scaley
-			end
-		end
-	end
-	if abort then return end	-- this prevents moving onto the next phase prematurely
-
-	for i = 1, #combataction[4] do
-		abort = true
-		fun.setCameraPosition("British")
-
-		if combataction[4][i].action == "splashimage" then
-			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = combataction[4][i].animation
-				local drawscale = 3		-- multiple image size by this number
-				local drawx = combataction[4][i].positionX
-				local drawy = combataction[4][i].positionY
-
-				-- calculate the drawing offset
-				local offsetx = (62 / 2)
-				local offsety = (40)
-				anim:draw(image[enum.splash], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-		end
-
-		if combataction[4][i].action == "damageimage" then
-			if combataction[4][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-				local anim = combataction[4][i].animation
-				local drawscale = 8		-- multiple image size by this number
-				local drawx = combataction[4][i].positionX
-				local drawy = combataction[4][i].positionY
-
-				-- calculate the drawing offset
-				local offsetx = (8)
-				local offsety = (8)
-				anim:draw(image[enum.smokefire], drawx, drawy, 0, drawscale, drawscale, offsetx, offsety)
-			end
-		end
-	end
-	if abort then return end	-- this prevents moving onto the next phase prematurely
-
-	-- British sinking animations
-	for i = 1, #combataction[5] do
-		abort = true
-		fun.setCameraPosition("British")
-
-		if combataction[5][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-			local anim = combataction[5][i].animation
-			local drawscale = 1		-- multiple image size by this number
-			local drawx = combataction[5][i].positionX
-			local drawy = combataction[5][i].positionY
-			local heading = combataction[5][i].heading
-			local headingrad = math.rad(heading)
-
-			-- calculate the drawing offset
-			local offsetx = 0 -- (62 / 2)
-			local offsety = 0 -- (40)
-
-			anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
-		end
-	end
-	if abort then return end	-- this prevents moving onto the next phase prematurely
-
-	for i = 1, #combataction[6] do
-		abort = true
-		fun.setCameraPosition("German")
-
-		if combataction[6][i].timestart <= 0 then	-- don't start this action until it is time to start this action
-			local anim = combataction[6][i].animation
-			local drawscale = 1		-- multiple image size by this number
-			local drawx = combataction[6][i].positionX
-			local drawy = combataction[6][i].positionY
-
-			-- calculate the drawing offset
-			local offsetx = 0 -- (62 / 2)
-			local offsety = 0 -- (40)
-
-			local heading = combataction[6][i].heading
-			local headingrad = math.rad(heading)
-			anim:draw(image[enum.sinking], drawx, drawy, headingrad, drawscale, drawscale, offsetx, offsety)
-		end
-	end
-	if abort then return end	-- this prevents moving onto the next phase prematurely
-
-end
-
-local function gameOver()
-	local player1gameover = true
-	local player2gameover = true
-
-	for q,flot in pairs(flotilla) do
-		if flot.nation == "British" then player1gameover = false end
-		if flot.nation == "German" then player2gameover = false end
-	end
-	if player1gameover == true or player2gameover == true then
-		return true
-	end
-end
-
 function love.draw()
 
     res.start()
@@ -429,7 +403,6 @@ function love.draw()
 		ocean.draw()
 		flot.draw()
 
-		--!drawMuzzleFlashes()
 		drawActionImages()
 
 		love.graphics.setColor(1,1,1,1)
